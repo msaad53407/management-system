@@ -8,7 +8,6 @@ const memberSchema = new mongoose.Schema(
     },
     greeting: {
       type: String,
-      required: true,
       enum: {
         values: ["Sis.", "Bro."],
         message: "{VALUE} is not supported",
@@ -16,7 +15,6 @@ const memberSchema = new mongoose.Schema(
     },
     firstName: {
       type: String,
-      required: true,
     },
     middleName: {
       type: String,
@@ -26,7 +24,6 @@ const memberSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
       unique: true,
       validate: [/\S+@\S+\.\S+/, "Please enter a valid email address."],
     },
@@ -35,7 +32,6 @@ const memberSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
       minLength: [6, "Password must be at least 6 characters long."],
       validate: [
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
@@ -44,53 +40,43 @@ const memberSchema = new mongoose.Schema(
     },
     phoneNumber1: {
       type: String,
-      required: true,
     },
     phoneNumber2: {
       type: String,
     },
     address1: {
       type: String,
-      required: true,
     },
     address2: {
       type: String,
     },
     city: {
       type: String,
-      required: true,
     },
     state: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "State",
-      required: true,
     },
     zipCode: {
       type: String,
-      required: true,
     },
     birthPlace: {
       type: String,
-      required: true,
     },
     birthDate: {
       type: Date,
-      required: true,
     },
     chapterOffice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "ChapterOffice",
-      required: true,
     },
     grandOffice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "GrandOffice",
-      required: true,
     },
     rank: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Rank",
-      required: true,
     },
     dropReason: {
       type: mongoose.Schema.Types.ObjectId,
@@ -147,7 +133,6 @@ const memberSchema = new mongoose.Schema(
     sponsor1: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Member",
-      required: true,
     },
     sponsor2: {
       type: mongoose.Schema.Types.ObjectId,
@@ -175,17 +160,14 @@ const memberSchema = new mongoose.Schema(
     districtId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "District",
-      required: true,
     },
     regionId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Region",
-      required: true,
     },
     chapterId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chapter",
-      required: true,
     },
     spouseName: {
       type: String,
