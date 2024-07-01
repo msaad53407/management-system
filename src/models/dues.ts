@@ -23,4 +23,4 @@ const duesSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Due = mongoose.model("Due", duesSchema);
+export const Due = mongoose.models.Due || mongoose.model("Due", duesSchema);

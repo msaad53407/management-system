@@ -193,4 +193,5 @@ const memberSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Member = mongoose.model("Member", memberSchema);
+export const Member =
+  mongoose.models.Member || mongoose.model("Member", memberSchema);

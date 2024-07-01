@@ -14,4 +14,5 @@ const statusSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Status = mongoose.model("Status", statusSchema);
+export const Status =
+  mongoose.models.Status || mongoose.model("Status", statusSchema);

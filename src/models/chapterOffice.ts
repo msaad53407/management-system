@@ -14,7 +14,6 @@ const chapterOfficeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const ChapterOffice = mongoose.model(
-  "ChapterOffice",
-  chapterOfficeSchema
-);
+export const ChapterOffice =
+  mongoose.models.ChapterOffice ||
+  mongoose.model("ChapterOffice", chapterOfficeSchema);

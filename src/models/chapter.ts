@@ -45,7 +45,7 @@ const chapterSchema = new mongoose.Schema(
     },
     secretaryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Member",
+      ref: "User",
       required: true,
     },
     districtId: {
@@ -72,4 +72,5 @@ const chapterSchema = new mongoose.Schema(
   }
 );
 
-export const Chapter = mongoose.model("Chapter", chapterSchema);
+export const Chapter =
+  mongoose.models.Chapter || mongoose.model("Chapter", chapterSchema);

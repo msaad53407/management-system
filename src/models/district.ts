@@ -39,4 +39,5 @@ const districtSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const District = mongoose.model("District", districtSchema);
+export const District =
+  mongoose.models.District || mongoose.model("District", districtSchema);

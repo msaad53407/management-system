@@ -14,4 +14,5 @@ const reasonSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Reason = mongoose.model("Reason", reasonSchema);
+export const Reason =
+  mongoose.models.Reason || mongoose.model("Reason", reasonSchema);

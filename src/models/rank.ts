@@ -14,4 +14,4 @@ const rankSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Rank = mongoose.model("Rank", rankSchema);
+export const Rank = mongoose.models.Rank || mongoose.model("Rank", rankSchema);

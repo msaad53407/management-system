@@ -14,4 +14,6 @@ const GrandOfficeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const GrandOffice = mongoose.model("GrandOffice", GrandOfficeSchema);
+export const GrandOffice =
+  mongoose.models.GrandOffice ||
+  mongoose.model("GrandOffice", GrandOfficeSchema);

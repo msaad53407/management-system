@@ -14,4 +14,5 @@ const StateSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const State = mongoose.model("State", StateSchema);
+export const State =
+  mongoose.models.State || mongoose.model("State", StateSchema);
