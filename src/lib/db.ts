@@ -1,3 +1,5 @@
+import "server-only";
+
 import mongoose from "mongoose";
 
 export const connectDB = async () => {

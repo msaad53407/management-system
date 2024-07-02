@@ -64,6 +64,7 @@ export async function POST(req: Request) {
         username: evt.data.username,
         role: evt.data.public_metadata?.role,
         clerkId: evt.data.id,
+        avatar: evt.data.image_url || null,
       });
       if (!user) {
         return new Response("Error creating user", { status: 400 });
@@ -84,6 +85,7 @@ export async function POST(req: Request) {
           email: evt.data.email_addresses[0].email_address,
           username: evt.data.username,
           role: evt.data.public_metadata?.role,
+          avatar: evt.data.image_url || null,
         }
       );
       if (!user) {

@@ -1,8 +1,19 @@
+import { isAuthenticated } from "@/lib/authorization";
 import { connectDB } from "@/lib/db";
 import { Member } from "@/models/member";
 import { clerkClient } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
+  // if (!isAuthenticated()) {
+  //   return Response.json(
+  //     {
+  //       data: null,
+  //       message: "Unauthorized",
+  //     },
+  //     { status: 401 }
+  //   );
+  // }
+
   const body = await req.json();
 
   if (!body?.userId) {
@@ -56,3 +67,4 @@ export async function POST(req: Request) {
     );
   }
 }
+
