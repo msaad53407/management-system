@@ -1,15 +1,16 @@
 import { connectDB } from "@/lib/db";
 import { Chapter } from "@/models/chapter";
+import { isValidObjectId } from "mongoose";
 
 export async function GET(
   _req: Request,
   { params }: { params: { id?: string } }
 ) {
-  if (!params?.id) {
+  if (!params?.id || !isValidObjectId(params?.id)) {
     return Response.json(
       {
         data: null,
-        message: "Missing id",
+        message: "Missing or Invalid id",
       },
       { status: 400 }
     );
@@ -51,10 +52,10 @@ export async function DELETE(
   _req: Request,
   { params }: { params: { id?: string } }
 ) {
-  if (!params?.id) {
+  if (!params?.id || !isValidObjectId(params?.id)) {
     return Response.json(
       {
-        message: "Missing id",
+        message: "Missing or Invalid id",
         data: null,
       },
       { status: 400 }
@@ -108,10 +109,10 @@ export async function PUT(
     );
   }
 
-  if (!params?.id) {
+  if (!params?.id || !isValidObjectId(params?.id)) {
     return Response.json(
       {
-        message: "Missing id",
+        message: "Missing or Invalid id",
         data: null,
       },
       { status: 400 }

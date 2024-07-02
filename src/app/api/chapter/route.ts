@@ -33,36 +33,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
-export async function GET(_req: Request) {
-  try {
-    await connectDB();
-    const chapters = await Chapter.find({});
-    if (!chapters || chapters?.length === 0) {
-      return Response.json(
-        {
-          data: null,
-          message: "Chapters not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    return Response.json(
-      {
-        data: chapters,
-        message: "Chapters fetched successfully",
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error(error);
-    return Response.json(
-      {
-        data: null,
-        message: "Error Connecting to DB",
-      },
-      { status: 500 }
-    );
-  }
-}

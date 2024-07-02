@@ -26,19 +26,19 @@ export async function GET() {
         return Response.json(
           {
             data: null,
-            message: "Chapter not found",
+            message: "You are not secretary of any chapter",
           },
           { status: 404 }
         );
       }
       members = await Member.find({ chapterId: chapter._id });
-    } else {
+    } else if (checkRole("member")) {
       const member = await Member.findOne({ userId });
       if (!member) {
         return Response.json(
           {
             data: null,
-            message: "Chapter not found",
+            message: "You are not a member of any chapter",
           },
           { status: 404 }
         );

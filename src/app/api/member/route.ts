@@ -1,9 +1,11 @@
 import { isAuthenticated } from "@/lib/authorization";
 import { connectDB } from "@/lib/db";
+import { Chapter } from "@/models/chapter";
 import { Member } from "@/models/member";
-import { clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function POST(req: Request) {
+  //TODO Check if current user is authenticated and secretary
   // if (!isAuthenticated()) {
   //   return Response.json(
   //     {
@@ -13,6 +15,7 @@ export async function POST(req: Request) {
   //     { status: 401 }
   //   );
   // }
+  const userId = auth().userId;
 
   const body = await req.json();
 
@@ -40,7 +43,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const member = await Member.create(body);
+    const chapter = await Chapter.findOne({ secretaryId: userId });
+
+    const member = await Member.create({
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.primaryEmailAddress?.emailAddress,
+      photo: user.imageUrl,
+      chapterId: chapter?._id,
+    });
 
     if (!member) {
       return Response.json(
@@ -67,4 +79,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
