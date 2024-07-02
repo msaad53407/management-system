@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { User } from "@/models/user";
 import { connectDB } from "@/lib/db";
+import { Member } from "@/models/member";
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
 
     if (eventType === "user.deleted") {
       const user = await User.findOneAndDelete({ clerkId: evt.data.id });
+      await Member.findOneAndDelete({ userId: evt.data.id });
       if (!user) {
         return new Response("Error deleting user", { status: 400 });
       }
