@@ -1,4 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+export interface GrandOfficeDocument extends Document {
+  name: string;
+  description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const GrandOfficeSchema = new mongoose.Schema(
   {
@@ -14,6 +21,6 @@ const GrandOfficeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const GrandOffice =
+export const GrandOffice: mongoose.Model<GrandOfficeDocument> =
   mongoose.models.GrandOffice ||
   mongoose.model("GrandOffice", GrandOfficeSchema);

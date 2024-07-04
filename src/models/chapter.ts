@@ -1,4 +1,25 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Types } from "mongoose";
+
+export interface ChapterDocument extends Document {
+  name?: string;
+  chapterNumber?: number;
+  chapterAddress1?: string;
+  chapterAddress2?: string;
+  chapterCity?: string;
+  chapterState?: string;
+  chapterEmail?: string;
+  chapterZipCode?: string;
+  chapterChartDate?: Date;
+  chapterMeet1?: string;
+  chapterMeet2?: string;
+  secretaryId?: string;
+  districtId?: Types.ObjectId;
+  regionId?: Types.ObjectId;
+  chpYrDues?: Types.ObjectId;
+  chpMonDues?: Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const chapterSchema = new mongoose.Schema(
   {
@@ -60,5 +81,5 @@ const chapterSchema = new mongoose.Schema(
   }
 );
 
-export const Chapter =
+export const Chapter: mongoose.Model<ChapterDocument> =
   mongoose.models.Chapter || mongoose.model("Chapter", chapterSchema);

@@ -1,4 +1,10 @@
-import { clerkClient, clerkMiddleware } from "@clerk/nextjs/server";
+import {
+  clerkClient,
+  clerkMiddleware,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
+
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/user"]);
 
 export default clerkMiddleware((auth, _req) => {
   //setting role to member if not already set by default.
@@ -12,6 +18,10 @@ export default clerkMiddleware((auth, _req) => {
         role: "member",
       },
     });
+  }
+
+  if (!isPublicRoute(_req)) {
+    auth().protect();
   }
 });
 

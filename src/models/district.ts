@@ -1,4 +1,16 @@
-import mongoose from "mongoose";
+import mongoose, { Types, Document } from "mongoose";
+
+export interface DistrictDocument extends Document {
+  deputyId: Types.ObjectId;
+  districtCharterDate: Date;
+  districtMeet1: string;
+  districtMeet2: string;
+  regionId: Types.ObjectId;
+  districtYrDues: Types.ObjectId;
+  districtMonDues: Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const districtSchema = new mongoose.Schema(
   {
@@ -39,5 +51,5 @@ const districtSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const District =
+export const District: mongoose.Model<DistrictDocument> =
   mongoose.models.District || mongoose.model("District", districtSchema);

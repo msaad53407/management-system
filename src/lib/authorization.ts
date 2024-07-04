@@ -1,11 +1,11 @@
 import "server-only";
 
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 
-export const isAuthenticated = () => {
-  const { userId, sessionId } = auth();
+export const isAuthenticated = async () => {
+  const user = await currentUser();
 
-  if (!userId || !sessionId) {
+  if (!user || !user?.id){
     return false;
   }
 

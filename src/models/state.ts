@@ -1,4 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+export interface StateDocument extends Document {
+  name: string;
+  description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+} 
 
 const StateSchema = new mongoose.Schema(
   {
@@ -14,5 +21,5 @@ const StateSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const State =
+export const State:mongoose.Model<StateDocument> =
   mongoose.models.State || mongoose.model("State", StateSchema);

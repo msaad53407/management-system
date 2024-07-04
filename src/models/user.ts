@@ -1,4 +1,15 @@
-import mongoose from "mongoose";
+import { Roles } from "@/types/globals";
+import mongoose, { Document } from "mongoose";
+
+export interface UserDocument extends Document {
+  email: string;
+  clerkId: string;
+  username?: string;
+  avatar?: string;
+  role?: Roles;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,4 +47,4 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const User = mongoose.models.User || mongoose.model("User", userSchema);
+export const User: mongoose.Model<UserDocument> = mongoose.models.User || mongoose.model("User", userSchema);

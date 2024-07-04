@@ -1,4 +1,14 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { Types } from "mongoose";
+
+export interface PaymentDocument extends Document {
+  memberId: Types.ObjectId;
+  paymentType: string;
+  amount: number;
+  paymentDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const paymentSchema = new mongoose.Schema(
   {
@@ -23,5 +33,5 @@ const paymentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Payment =
+export const Payment: mongoose.Model<PaymentDocument> =
   mongoose.models.Payment || mongoose.model("Payment", paymentSchema);

@@ -1,4 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+export interface ReasonDocument extends Document {
+  name: string;
+  description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const reasonSchema = new mongoose.Schema(
   {
@@ -14,5 +21,5 @@ const reasonSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Reason =
+export const Reason: mongoose.Model<ReasonDocument> =
   mongoose.models.Reason || mongoose.model("Reason", reasonSchema);

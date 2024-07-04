@@ -3,18 +3,19 @@ import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
 import { Chapter } from "@/models/chapter";
 import { Member } from "@/models/member";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function GET() {
-  // if (!isAuthenticated()) {
-  //   return Response.json(
-  //     {
-  //       data: null,
-  //       message: "Unauthorized",
-  //     },
-  //     { status: 401 }
-  //   );
-  // }
+  console.log(await currentUser());
+  if (!(await isAuthenticated())) {
+    return Response.json(
+      {
+        data: null,
+        message: "Unauthorized",
+      },
+      { status: 401 }
+    );
+  }
   const userId = auth().userId;
   try {
     await connectDB();
@@ -44,6 +45,14 @@ export async function GET() {
         );
       }
       members = await Member.find({ chapterId: member.chapterId });
+    } else {
+      return Response.json(
+        {
+          data: null,
+          message: "Unauthorized",
+        },
+        { status: 401 }
+      );
     }
 
     if (!members || members?.length === 0) {

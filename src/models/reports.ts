@@ -1,4 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+export interface ReportsDocument extends Document {
+  reportFormat: string;
+  savedReports: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const reportsSchema = new mongoose.Schema(
   {
@@ -14,5 +21,5 @@ const reportsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Reports =
+export const Reports: mongoose.Model<ReportsDocument> =
   mongoose.models.Reports || mongoose.model("Reports", reportsSchema);

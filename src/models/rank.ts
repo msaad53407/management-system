@@ -1,4 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+export interface RankDocument extends Document {
+  name: string;
+  description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const rankSchema = new mongoose.Schema(
   {
@@ -14,4 +21,4 @@ const rankSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Rank = mongoose.models.Rank || mongoose.model("Rank", rankSchema);
+export const Rank:mongoose.Model<RankDocument> = mongoose.models.Rank || mongoose.model("Rank", rankSchema);

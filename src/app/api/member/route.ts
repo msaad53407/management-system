@@ -51,7 +51,9 @@ export async function POST(req: Request) {
       lastName: user.lastName,
       email: user.primaryEmailAddress?.emailAddress,
       photo: user.imageUrl,
-      chapterId: chapter?._id,
+      // chapterId: chapter?._id,
+      chapterId: body.chapterId,
+      role: user.publicMetadata?.role as string || null,
     });
 
     if (!member) {

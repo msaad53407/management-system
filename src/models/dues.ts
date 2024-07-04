@@ -1,4 +1,13 @@
-import mongoose from "mongoose";
+import mongoose, { Types, Document } from "mongoose";
+
+export interface DueDocument extends Document {
+  memberId: Types.ObjectId;
+  amount: number;
+  dueDate: Date;
+  paymentStatus: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const duesSchema = new mongoose.Schema(
   {
@@ -23,4 +32,5 @@ const duesSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Due = mongoose.models.Due || mongoose.model("Due", duesSchema);
+export const Due: mongoose.Model<DueDocument> =
+  mongoose.models.Due || mongoose.model("Due", duesSchema);

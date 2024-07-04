@@ -1,4 +1,11 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+
+export interface ChapterOfficeDocument extends Document {
+  name: string;
+  description: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 const chapterOfficeSchema = new mongoose.Schema(
   {
@@ -14,6 +21,6 @@ const chapterOfficeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const ChapterOffice =
+export const ChapterOffice: mongoose.Model<ChapterOfficeDocument> =
   mongoose.models.ChapterOffice ||
   mongoose.model("ChapterOffice", chapterOfficeSchema);
