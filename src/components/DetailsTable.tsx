@@ -32,6 +32,7 @@ import { MemberDocument } from "@/models/member";
 import { removeMember } from "@/actions/chapter";
 import { useUser } from "@clerk/nextjs";
 import { capitalize } from "@/utils";
+import RemoveMemberButton from "./RemoveMemberButton";
 
 type Props = {
   members: MemberDocument[];
@@ -114,17 +115,14 @@ export default function DetailsTable({ members }: Props) {
                       </Button>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <Button
-                        variant="destructive"
-                        className="w-full"
-                        onClick={async () =>
-                          removeMemberHandler(member.userId)
-                        }
+                      <RemoveMemberButton
+                        memberId={member.userId}
+                        removeMemberHandler={removeMemberHandler}
                       >
                         {user.publicMetadata?.role === "member"
                           ? "Leave"
                           : "Remove"}
-                      </Button>
+                      </RemoveMemberButton>
                     </TableCell>
                   </>
                 ) : null}
@@ -144,23 +142,26 @@ export default function DetailsTable({ members }: Props) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>
+                        <DropdownMenuLabel className="flex justify-center">
+                          Actions
+                        </DropdownMenuLabel>
+                        <DropdownMenuItem className="justify-center">
                           <Link href={`/chapter/member/${member.userId}/edit`}>
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Dues</DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={async () =>
-                            removeMemberHandler(member.userId)
-                          }
-                          className="bg-red-500 text-white"
+                        <DropdownMenuItem className="justify-center">
+                          Dues
+                        </DropdownMenuItem>
+                        <RemoveMemberButton
+                          memberId={member.userId}
+                          removeMemberHandler={removeMemberHandler}
+                          className="p-1 !h-fit"
                         >
                           {user.publicMetadata?.role === "member"
                             ? "Leave"
                             : "Remove"}
-                        </DropdownMenuItem>
+                        </RemoveMemberButton>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : null}
@@ -170,11 +171,6 @@ export default function DetailsTable({ members }: Props) {
           </TableBody>
         </Table>
       </CardContent>
-      <CardFooter>
-        <div className="text-xs text-muted-foreground">
-          Showing <strong>1-10</strong> of <strong>32</strong> products
-        </div>
-      </CardFooter>
     </Card>
   );
 }
