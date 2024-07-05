@@ -1,9 +1,17 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { editMember } from "@/actions/chapter";
 import { MemberDocument } from "@/models/member";
+import SubmitButton from "@/components/SubmitButton";
+import { useFormState } from "react-dom";
+import { toast } from "@/components/ui/use-toast";
+
+interface FormMessage {
+  [key: string]: string[] | undefined;
+}
 
 export default function EditMemberForm({
   memberId,
@@ -12,14 +20,13 @@ export default function EditMemberForm({
   memberId: string;
   member: MemberDocument;
 }) {
+  const initialState = { message: "" };
+
+  const [formState, formAction] = useFormState(editMember, initialState);
+
+  const formMessage: FormMessage | string | undefined = formState?.message;
+
   const fields = [
-    {
-      label: "Member ID",
-      id: "memberId",
-      placeholder: "3",
-      type: "text",
-      defaultValue: member.userId,
-    },
     {
       label: "First Name",
       id: "firstName",
@@ -142,42 +149,54 @@ export default function EditMemberForm({
       id: "birthdate",
       placeholder: "04/15/1960",
       type: "date",
-      defaultValue: member.birthDate?.toString(),
+      defaultValue: member.birthDate
+        ? new Date(member.birthDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Initiation Date",
       id: "initiationDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.initiationDate?.toString(),
+      defaultValue: member.initiationDate
+        ? new Date(member.initiationDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Queen of the South",
       id: "queenOfTheSouth",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.queenOfSouthDate?.toString(),
+      defaultValue: member.queenOfSouthDate
+        ? new Date(member.queenOfSouthDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Amarant",
       id: "amarant",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.amaranthDate?.toString(),
+      defaultValue: member.amaranthDate
+        ? new Date(member.amaranthDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Petition Date",
       id: "petitionDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.petitionDate?.toString(),
+      defaultValue: member.petitionDate
+        ? new Date(member.petitionDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Petition Received",
       id: "petitionReceived",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.petitionReceivedDate?.toString(),
+      defaultValue: member.petitionReceivedDate
+        ? new Date(member.petitionReceivedDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Demit In",
@@ -185,7 +204,9 @@ export default function EditMemberForm({
       placeholder: "mm/dd/yyyy",
       type: "date",
 
-      defaultValue: member.demitInDate?.toString(),
+      defaultValue: member.demitInDate
+        ? new Date(member.demitInDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Demit Out",
@@ -193,7 +214,9 @@ export default function EditMemberForm({
       placeholder: "mm/dd/yyyy",
       type: "date",
 
-      defaultValue: member.demitOutDate?.toString(),
+      defaultValue: member.demitOutDate
+        ? new Date(member.demitOutDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Demit to Chapter",
@@ -206,28 +229,38 @@ export default function EditMemberForm({
       id: "investigationDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.investigationDate?.toString(),
+      defaultValue: member.investigationDate
+        ? new Date(member.investigationDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Investigation Accept/Reject",
       id: "investigationAcceptReject",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.investigationAcceptOrRejectDate?.toString(),
+      defaultValue: member.investigationAcceptOrRejectDate
+        ? new Date(member.investigationAcceptOrRejectDate)
+            ?.toISOString()
+            .split("T")[0]
+        : "",
     },
     {
       label: "Enlightened Date",
       id: "enlightenedDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.enlightenDate?.toString(),
+      defaultValue: member.enlightenDate
+        ? new Date(member.enlightenDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Dropped Date",
       id: "droppedDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.dropDate?.toString(),
+      defaultValue: member.dropDate
+        ? new Date(member.dropDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Drop Reason",
@@ -241,7 +274,9 @@ export default function EditMemberForm({
       id: "suspensionExpelledDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.suspendDate?.toString(),
+      defaultValue: member.suspendDate
+        ? new Date(member.suspendDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Suspension/Expelled Reason",
@@ -261,14 +296,18 @@ export default function EditMemberForm({
       id: "dateOfDeath",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.deathDate?.toString(),
+      defaultValue: member.deathDate
+        ? new Date(member.deathDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Actual Date of Death",
       id: "actualDateOfDeath",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.actualDeathDate?.toString(),
+      defaultValue: member.actualDeathDate
+        ? new Date(member.actualDeathDate)?.toISOString().split("T")[0]
+        : "",
     },
     {
       label: "Place of Death",
@@ -292,10 +331,31 @@ export default function EditMemberForm({
   ];
 
   return (
-    <form className="flex flex-col gap-4" action={editMember}>
+    <form className="flex flex-col gap-4" action={formAction}>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+        <div className="space-y-2">
+          <p className="text-red-500 text-xs font-medium">
+            {typeof formState?.message === "string"
+              ? ""
+              : formState?.message?.memberId}
+          </p>
+          <Label htmlFor="memberId">Member Id</Label>
+          <Input
+            id="memberId"
+            placeholder="Member Id"
+            type="text"
+            name="memberId"
+            value={memberId}
+            className="cursor-not-allowed opacity-75"
+          />
+        </div>
         {fields.map(({ id, label, placeholder, type, defaultValue }, indx) => (
           <div className="space-y-2" key={indx}>
+            <p className="text-red-500 text-xs font-medium">
+              {typeof formMessage === "string"
+                ? ""
+                : formMessage && formMessage[id]}
+            </p>
             <Label htmlFor={id}>{label}</Label>
             <Input
               id={id}
@@ -311,17 +371,14 @@ export default function EditMemberForm({
           <Textarea
             id="secretaryNotes"
             placeholder="Secretary Notes"
+            name="secretaryNotes"
+            defaultValue={member.secretaryNotes}
             className="min-h-[100px]"
           />
         </div>
       </div>
       <div className="w-1/2 mx-auto">
-        <Button
-          type="submit"
-          className="w-1/2 mx-auto bg-purple-800 hover:bg-purple-700 text-white"
-        >
-          Update Member
-        </Button>
+        <SubmitButton>Update Member</SubmitButton>
       </div>
     </form>
   );

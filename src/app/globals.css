@@ -82,3 +82,46 @@
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+@keyframes spin {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    border-style: solid;
+  }
+  50% {
+    border-style: dotted;
+  }
+}
+
+@keyframes speedChange {
+  0% {
+    animation-timing-function: ease-in;
+  }
+  25% {
+    animation-timing-function: ease-out;
+  }
+  50% {
+    animation-timing-function: ease-in;
+  }
+  75% {
+    animation-timing-function: ease-out;
+  }
+  100% {
+    animation-timing-function: ease-in;
+  }
+}
+
+.spinner {
+  border-radius: 50%;
+  animation: spin 2s linear infinite, pulse 1.5s infinite,
+    speedChange 2s infinite;
+}

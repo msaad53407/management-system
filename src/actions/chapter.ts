@@ -40,7 +40,9 @@ export const getChapterMembers = async () => {
           message: "You are not a member of any chapter",
         };
       }
-      members = await Member.find({ chapterId: member.chapterId });
+      members = await Member.find({ chapterId: member.chapterId }, null, {
+        sort: { updatedAt: 1 },
+      });
     } else {
       return {
         data: null,
@@ -112,18 +114,12 @@ export const removeMember = async (
   }
 };
 
-export const addMember = async (formData: FormData) => {
+export const addMember = async (_prevState: any, formData: FormData) => {
   if (!(await isAuthenticated())) {
-    return {
-      data: null,
-      message: "Unauthorized",
-    };
+    redirect("/chapter/members");
   }
   if (!checkRole("secretary")) {
-    return {
-      data: null,
-      message: "Unauthorized",
-    };
+    redirect("/chapter/members");
   }
   const { userId } = auth();
   const rawData = Object.fromEntries(formData);
@@ -133,27 +129,35 @@ export const addMember = async (formData: FormData) => {
   if (!success) {
     console.error(error);
     return {
-      data: null,
-      message: "Invalid data",
+      message: error.flatten().fieldErrors,
     };
   }
 
   if (data.userId === userId) {
-    return {
-      data: null,
-      message: "You cannot add yourself as a member",
-    };
+    redirect("/chapter/members");
   }
-  let memberAdded: boolean = false;
+  let shouldRedirect: boolean = false;
 
   try {
     await connectDB();
     const user = await clerkClient.users.getUser(data.userId);
 
     if (!user) {
+      shouldRedirect = true;
+      return { message: "User not found" };
+    }
+
+    const alreadyMember = await Member.findOne({ userId: data.userId });
+
+    if (alreadyMember) {
+      console.error("User is already a member");
+      redirect("/chapter/members");
+    }
+
+    if (user.publicMetadata?.role !== "member") {
+      shouldRedirect = true;
       return {
-        data: null,
-        message: "User not found",
+        message: "User's role should be member to become a part of Chapter",
       };
     }
 
@@ -171,33 +175,33 @@ export const addMember = async (formData: FormData) => {
       address1: data.address,
       city: data.city,
       phoneNumber1: data.phoneNumber,
+      sponsor1: data.petitioner1,
+      sponsor2: data.petitioner2,
+      sponsor3: data.petitioner3,
     });
 
     if (!member) {
+      shouldRedirect = true;
       return {
-        data: null,
         message: "Member not created",
       };
     }
     revalidatePath("/chapter/members");
-    memberAdded = true;
+    shouldRedirect = true;
   } catch (error) {
     console.error(error);
+    shouldRedirect = true;
     return {
-      data: null,
       message: "Error Connecting to DB",
     };
   } finally {
-    if (memberAdded) redirect("/chapter/members");
+    if (shouldRedirect) redirect("/chapter/members");
   }
 };
 
-export const editMember = async (formData: FormData) => {
+export const editMember = async (_prevState: any, formData: FormData) => {
   if (!(await isAuthenticated())) {
-    return {
-      data: null,
-      message: "Unauthorized",
-    };
+    redirect("/chapter/members");
   }
 
   const { userId } = auth();
@@ -209,18 +213,14 @@ export const editMember = async (formData: FormData) => {
   if (!success) {
     console.error(JSON.stringify(error));
     return {
-      data: null,
-      message: "Invalid data",
+      message: error.flatten().fieldErrors,
     };
   }
 
   if (!checkRole("secretary") && userId !== data.memberId) {
-    return {
-      data: null,
-      message: "Unauthorized",
-    };
+    redirect("/chapter/members");
   }
-  let memberEdited: boolean = false;
+  let shouldRedirect: boolean = false;
   try {
     await connectDB();
 
@@ -239,22 +239,24 @@ export const editMember = async (formData: FormData) => {
         sponsor1: data.petitioner1,
         sponsor2: data.petitioner2,
         sponsor3: data.petitioner3,
-        birthDate: data.birthdate,
-        initiationDate: data.initiationDate,
-        queenOfTheSouth: data.queenOfTheSouth,
-        amaranthDate: data.amarant,
+        birthDate: new Date(data.birthdate || ""),
+        initiationDate: new Date(data.initiationDate || ""),
+        queenOfTheSouth: new Date(data.queenOfTheSouth || ""),
+        amaranthDate: new Date(data.amarant || ""),
         memberRank: data.memberRank || null,
-        petitionDate: data.petitionDate,
-        petitionReceivedDate: data.petitionReceived,
-        demitInDate: data.demitIn,
-        demitOutDate: data.demitOut,
-        investigationDate: data.investigationDate,
-        investigationAcceptOrRejectDate: data.investigationAcceptReject,
-        droppedDate: data.droppedDate,
+        petitionDate: new Date(data.petitionDate || ""),
+        petitionReceivedDate: new Date(data.petitionReceived || ""),
+        demitInDate: new Date(data.demitIn || ""),
+        demitOutDate: new Date(data.demitOut || ""),
+        investigationDate: new Date(data.investigationDate || ""),
+        investigationAcceptOrRejectDate: new Date(
+          data.investigationAcceptReject || ""
+        ),
+        droppedDate: new Date(data.droppedDate || ""),
         emergencyContact: data.emergencyContact,
         secretaryNotes: data.secretaryNotes,
-        dateOfDeath: data.dateOfDeath,
-        actualDateOfDeath: data.actualDateOfDeath,
+        dateOfDeath: new Date(data.dateOfDeath || ""),
+        actualDateOfDeath: new Date(data.actualDateOfDeath || ""),
         emergencyContactPhone: data.emergencyContactPhone,
         password: data.password,
       },
@@ -264,21 +266,21 @@ export const editMember = async (formData: FormData) => {
     );
 
     if (!member) {
+      shouldRedirect = true;
       return {
-        data: null,
         message: "Member not found",
       };
     }
 
-    memberEdited = true;
+    shouldRedirect = true;
     revalidatePath("/chapter/members");
   } catch (error) {
     console.error(error);
+    shouldRedirect = true;
     return {
-      data: null,
       message: "Error Connecting to DB",
     };
   } finally {
-    if (memberEdited) redirect("/chapter/members");
+    if (shouldRedirect) redirect("/chapter/members");
   }
 };

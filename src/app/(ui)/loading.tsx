@@ -1,17 +1,8 @@
-import { cn } from "@/utils";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import React from "react";
 
-const Loading = ({ className }: { className?: string }) => {
-  return (
-    <div
-      className={cn(
-        "w-full min-h-screen h-full flex justify-center items-center",
-        className
-      )}
-    >
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-    </div>
-  );
+const Loading = () => {
+  return <LoadingSpinner className="min-h-screen" spinnerClassName="size-32" />;
 };
 
 export default Loading;

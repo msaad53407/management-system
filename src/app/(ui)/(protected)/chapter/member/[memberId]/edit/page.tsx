@@ -17,13 +17,39 @@ const EditMember = async ({ params }: { params: { memberId?: string } }) => {
     (!checkRole("secretary") && params.memberId !== userId)
   )
     redirect("/");
+  let member: MemberDocument;
+  try {
+    member = JSON.parse(
+      JSON.stringify(await Member.findOne({ userId: params.memberId }))
+    );
 
-  const member: MemberDocument = JSON.parse(
-    JSON.stringify(await Member.findOne({ userId: params.memberId }))
-  );
-
-  if (!member) {
-    redirect("/chapter/members");
+    if (!member) {
+      redirect("/chapter/members");
+    }
+  } catch (error) {
+    console.error(error);
+    return (
+      <section className="flex flex-col gap-6 p-4 w-full">
+        <Card>
+          <CardHeader className="flex items-center justify-between w-full flex-row">
+            <h3 className="text-xl font-semibold text-slate-600">
+              Edit Member
+            </h3>
+            <Link href="/chapter/members">
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
+              >
+                Back
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-600">Something went wrong</p>
+          </CardContent>
+        </Card>
+      </section>
+    );
   }
 
   return (

@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const addMemberSchema = z.object({
-  userId: z.string(),
+  userId: z.string().min(30, "User ID is minimum 30 characters long"),
   greeting: z.string(),
   firstName: z.string(),
   lastName: z.string(),
-  email: z.string().email(),
+  email: z.string().email("Invalid email address"),
   phoneNumber: z.string(),
   address: z.string(),
   city: z.string(),
@@ -19,11 +19,11 @@ export const addMemberSchema = z.object({
 
 export const editFormSchema = z.object({
   memberId: z.string(),
-  firstName: z.string(),
+  firstName: z.string().min(1, "First name is required"),
   middleName: z.string().optional(),
-  lastName: z.string(),
+  lastName: z.string().min(1, "Last name is required"),
   emailAddress: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().optional(),
   phoneNumber: z.string(),
   address: z.string(),
   city: z.string(),
