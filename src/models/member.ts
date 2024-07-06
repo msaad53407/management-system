@@ -5,6 +5,7 @@ import { Document, Types } from "mongoose";
 export interface MemberDocument extends Document {
   __id: Types.ObjectId;
   userId: string;
+  status?: Types.ObjectId;
   greeting?: "Sis." | "Bro.";
   role?: Roles;
   firstName?: string;
@@ -54,6 +55,9 @@ export interface MemberDocument extends Document {
   chapterId?: Types.ObjectId;
   spouseName?: string;
   spousePhone?: string;
+  emergencyContact?: string;
+  emergencyContactPhone?: string;
+  reinstatedDate?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -135,6 +139,11 @@ const memberSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    status: {
+      type: Types.ObjectId,
+      ref: "Status",
+      default: null,
+    },
     state: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "State",
@@ -203,7 +212,7 @@ const memberSchema = new mongoose.Schema(
       default: null,
     },
     deathPlace: {
-      type: Date,
+      type: String,
       default: null,
     },
     secretaryNotes: {
@@ -211,6 +220,10 @@ const memberSchema = new mongoose.Schema(
       default: null,
     },
     enlightenDate: {
+      type: Date,
+      default: null,
+    },
+    reinstatedDate: {
       type: Date,
       default: null,
     },
@@ -287,6 +300,14 @@ const memberSchema = new mongoose.Schema(
       default: null,
     },
     spousePhone: {
+      type: String,
+      default: null,
+    },
+    emergencyContact: {
+      type: String,
+      default: null,
+    },
+    emergencyContactPhone: {
       type: String,
       default: null,
     },

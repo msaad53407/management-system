@@ -10,6 +10,7 @@ import { isAuthenticated } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
 import { addMemberSchema, editFormSchema } from "@/lib/zod/member";
 import { redirect } from "next/navigation";
+import { Types } from "mongoose";
 
 export const getChapterMembers = async () => {
   if (!(await isAuthenticated())) {
@@ -174,6 +175,8 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       zipCode: data.zipCode,
       address1: data.address,
       city: data.city,
+      state: new Types.ObjectId(data.state) || null,
+      status: data.memberStatus,
       phoneNumber1: data.phoneNumber,
       sponsor1: data.petitioner1,
       sponsor2: data.petitioner2,
@@ -223,7 +226,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
   let shouldRedirect: boolean = false;
   try {
     await connectDB();
-
+    console.log(data.state);
     const member = await Member.findOneAndUpdate(
       { userId: data.memberId },
       {
@@ -234,31 +237,64 @@ export const editMember = async (_prevState: any, formData: FormData) => {
         zipCode: data.zipcode,
         address1: data.address,
         city: data.city,
-        state: data.state || null,
+        state: new Types.ObjectId(data.state) || null,
         phoneNumber1: data.phoneNumber,
         sponsor1: data.petitioner1,
         sponsor2: data.petitioner2,
         sponsor3: data.petitioner3,
-        birthDate: new Date(data.birthdate || ""),
-        initiationDate: new Date(data.initiationDate || ""),
-        queenOfTheSouth: new Date(data.queenOfTheSouth || ""),
-        amaranthDate: new Date(data.amarant || ""),
+        birthDate: data.birthdate ? new Date(data.birthdate) : null,
+        initiationDate: data.initiationDate
+          ? new Date(data.initiationDate)
+          : null,
+        queenOfTheSouth: data.queenOfTheSouth
+          ? new Date(data.queenOfTheSouth)
+          : null,
+        amaranthDate: data.amarant ? new Date(data.amarant) : null,
         memberRank: data.memberRank || null,
-        petitionDate: new Date(data.petitionDate || ""),
-        petitionReceivedDate: new Date(data.petitionReceived || ""),
-        demitInDate: new Date(data.demitIn || ""),
-        demitOutDate: new Date(data.demitOut || ""),
-        investigationDate: new Date(data.investigationDate || ""),
-        investigationAcceptOrRejectDate: new Date(
-          data.investigationAcceptReject || ""
-        ),
-        droppedDate: new Date(data.droppedDate || ""),
+        petitionDate: data.petitionDate ? new Date(data.petitionDate) : null,
+        petitionReceivedDate: data.petitionReceived
+          ? new Date(data.petitionReceived)
+          : null,
+        demitInDate: data.demitIn ? new Date(data.demitIn) : null,
+        demitOutDate: data.demitOut ? new Date(data.demitOut) : null,
+        investigationDate: data.investigationDate
+          ? new Date(data.investigationDate)
+          : null,
+        investigationAcceptOrRejectDate: data.investigationAcceptReject
+          ? new Date(data.investigationAcceptReject)
+          : null,
+        droppedDate: data.droppedDate ? new Date(data.droppedDate) : null,
         emergencyContact: data.emergencyContact,
         secretaryNotes: data.secretaryNotes,
-        dateOfDeath: new Date(data.dateOfDeath || ""),
-        actualDateOfDeath: new Date(data.actualDateOfDeath || ""),
+        dateOfDeath: data.dateOfDeath ? new Date(data.dateOfDeath) : null,
+        actualDateOfDeath: data.actualDateOfDeath
+          ? new Date(data.actualDateOfDeath)
+          : null,
         emergencyContactPhone: data.emergencyContactPhone,
         password: data.password,
+        dropReason: new Types.ObjectId(data.dropReason) || null,
+        expelReason: new Types.ObjectId(data.suspensionExpelledReason) || null,
+        expelDate: data.suspensionExpelledDate
+          ? new Date(data.suspensionExpelledDate)
+          : null,
+        dropDate: data.droppedDate ? new Date(data.droppedDate) : null,
+        deathDate: data.dateOfDeath ? new Date(data.dateOfDeath) : null,
+        actualDeathDate: data.actualDateOfDeath
+          ? new Date(data.actualDateOfDeath)
+          : null,
+        deathPlace: data.placeOfDeath,
+        enlightenDate: data.enlightenedDate
+          ? new Date(data.enlightenedDate)
+          : null,
+        queenOfSouthDate: data.queenOfTheSouth
+          ? new Date(data.queenOfTheSouth)
+          : null,
+        chapterOffice: new Types.ObjectId(data.chapterOffice) || null,
+        grandOffice: new Types.ObjectId(data.grandChapterOffice) || null,
+        rank: new Types.ObjectId(data.memberRank) || null,
+        reinstatedDate: data.reinstatedDate
+          ? new Date(data.reinstatedDate)
+          : null,
       },
       {
         new: true,

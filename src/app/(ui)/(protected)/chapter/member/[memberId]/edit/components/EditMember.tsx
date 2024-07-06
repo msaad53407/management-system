@@ -8,18 +8,49 @@ import { MemberDocument } from "@/models/member";
 import SubmitButton from "@/components/SubmitButton";
 import { useFormState } from "react-dom";
 import { toast } from "@/components/ui/use-toast";
+import { StateDocument } from "@/models/state";
+import {
+  SelectLabel,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { StatusDocument } from "@/models/status";
+import { ChapterOfficeDocument } from "@/models/chapterOffice";
+import { GrandOfficeDocument } from "@/models/grandOffice";
+import { RankDocument } from "@/models/rank";
+import { ReasonDocument } from "@/models/reason";
 
 interface FormMessage {
   [key: string]: string[] | undefined;
 }
 
-export default function EditMemberForm({
-  memberId,
-  member,
-}: {
-  memberId: string;
+interface Props {
   member: MemberDocument;
-}) {
+  dropdownOptions: {
+    [key: string]:
+      | StateDocument[]
+      | StatusDocument[]
+      | ChapterOfficeDocument[]
+      | GrandOfficeDocument[]
+      | RankDocument[]
+      | ReasonDocument[];
+  };
+}
+
+interface DropdownOption {
+  [key: string]:
+    | StateDocument[]
+    | StatusDocument[]
+    | ChapterOfficeDocument[]
+    | GrandOfficeDocument[]
+    | RankDocument[]
+    | ReasonDocument[];
+}
+
+export default function EditMemberForm({ member, dropdownOptions }: Props) {
   const initialState = { message: "" };
 
   const [formState, formAction] = useFormState(editMember, initialState);
@@ -87,8 +118,11 @@ export default function EditMemberForm({
       label: "State",
       id: "state",
       placeholder: "Louisiana",
-      type: "text",
-      defaultValue: member.state?.toString(),
+      type: "select",
+      dropdownType: "state",
+      defaultValue: dropdownOptions.state.find(
+        (state: StateDocument) => state._id === member.state
+      )?._id,
     },
     {
       label: "Zipcode",
@@ -122,27 +156,42 @@ export default function EditMemberForm({
       label: "Member Status",
       id: "memberStatus",
       placeholder: "Regular",
-      type: "text",
+      type: "select",
+      dropdownType: "memberStatus",
+      defaultValue: dropdownOptions.memberStatus.find(
+        (status: StatusDocument) => status._id === member.status
+      )?._id,
     },
     {
       label: "Chapter Office",
       id: "chapterOffice",
       placeholder: "Worthy Patron",
-      type: "text",
-      defaultValue: member.chapterOffice?.toString(),
+      type: "select",
+      dropdownType: "chapterOffice",
+      defaultValue: dropdownOptions.chapterOffice.find(
+        (chapterOffice: ChapterOfficeDocument) =>
+          chapterOffice._id === member.chapterOffice
+      )?._id,
     },
     {
       label: "Grand Chapter Office",
       id: "grandChapterOffice",
       placeholder: "None",
-      type: "text",
-      defaultValue: member.grandOffice?.toString(),
+      type: "select",
+      dropdownType: "grandChapterOffice",
+      defaultValue: dropdownOptions.grandChapterOffice.find(
+        (office: GrandOfficeDocument) => office._id === member.grandOffice
+      )?._id,
     },
     {
       label: "Member Rank",
       id: "memberRank",
       placeholder: "Select Member Rank",
-      type: "text",
+      type: "select",
+      dropdownType: "memberRank",
+      defaultValue: dropdownOptions.memberRank.find(
+        (rank: RankDocument) => rank._id === member.rank
+      )?._id,
     },
     {
       label: "Birthdate",
@@ -266,30 +315,37 @@ export default function EditMemberForm({
       label: "Drop Reason",
       id: "dropReason",
       placeholder: "Select Drop Reason",
-      type: "text",
-      defaultValue: member.dropReason?.toString(),
+      type: "select",
+      dropdownType: "reasons",
+      defaultValue: dropdownOptions.reasons.find(
+        (reason: ReasonDocument) => reason._id === member.dropReason
+      )?._id,
     },
     {
       label: "Suspension/Expelled Date",
       id: "suspensionExpelledDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.suspendDate
-        ? new Date(member.suspendDate)?.toISOString().split("T")[0]
+      defaultValue: member.expelDate
+        ? new Date(member.expelDate)?.toISOString().split("T")[0]
         : "",
     },
     {
       label: "Suspension/Expelled Reason",
       id: "suspensionExpelledReason",
       placeholder: "Select Suspension/Expelled Reason",
-      type: "text",
-      defaultValue: member.suspendReason?.toString(),
+      type: "select",
+      dropdownType: "reasons",
+      defaultValue: dropdownOptions.reasons.find(
+        (reason: ReasonDocument) => reason._id === member.expelReason
+      )?._id,
     },
     {
       label: "Reinstated Date",
       id: "reinstatedDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
+      defaultValue: member.reinstatedDate
     },
     {
       label: "Date of Death",
@@ -321,12 +377,14 @@ export default function EditMemberForm({
       id: "emergencyContact",
       placeholder: "Emergency Contact",
       type: "text",
+      defaultValue: member.emergencyContact,
     },
     {
       label: "Emergency Contact Phone No",
       id: "emergencyContactPhone",
       placeholder: "Emergency Contact Phone No",
       type: "text",
+      defaultValue: member.emergencyContactPhone,
     },
   ];
 
@@ -345,27 +403,59 @@ export default function EditMemberForm({
             placeholder="Member Id"
             type="text"
             name="memberId"
-            value={memberId}
+            value={member.userId}
+            readOnly
             className="cursor-not-allowed opacity-75"
           />
         </div>
-        {fields.map(({ id, label, placeholder, type, defaultValue }, indx) => (
-          <div className="space-y-2" key={indx}>
-            <p className="text-red-500 text-xs font-medium">
-              {typeof formMessage === "string"
-                ? ""
-                : formMessage && formMessage[id]}
-            </p>
-            <Label htmlFor={id}>{label}</Label>
-            <Input
-              id={id}
-              placeholder={placeholder}
-              type={type}
-              name={id}
-              defaultValue={defaultValue}
-            />
-          </div>
-        ))}
+        {fields.map(
+          (
+            { id, label, placeholder, type, defaultValue, dropdownType },
+            indx
+          ) =>
+            type === "select" ? (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Select defaultValue={defaultValue?.toString()} name={id}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dropdownOptions[dropdownType!].map((state, indx) => (
+                      <SelectItem key={indx} value={state._id?.toString()}>
+                        {state.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Input
+                  id={id}
+                  placeholder={placeholder}
+                  type={type}
+                  name={id}
+                  defaultValue={defaultValue as string | undefined}
+                />
+              </div>
+            )
+        )}
         <div className="col-span-full space-y-2">
           <Label htmlFor="secretaryNotes">Secretary Notes</Label>
           <Textarea

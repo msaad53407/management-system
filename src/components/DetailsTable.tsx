@@ -39,6 +39,7 @@ type Props = {
 };
 
 export default function DetailsTable({ members }: Props) {
+  //TODO Convert it into a server component and replace the event handler with a form and replace useUser hook with server side user fetching capability
   const removeMemberHandler = async (memberId: string) => {
     const { message } = await removeMember(memberId);
     alert(message);
