@@ -28,7 +28,7 @@ const chapterSchema = new mongoose.Schema(
       type: String,
     },
     chapterNumber: {
-      type: Number,
+      type: String,
     },
     chapterAddress1: {
       type: String,
@@ -40,7 +40,8 @@ const chapterSchema = new mongoose.Schema(
       type: String,
     },
     chapterState: {
-      type: String,
+      type: mongoose.Types.ObjectId,
+      ref: "State",
     },
     chapterEmail: {
       type: String,

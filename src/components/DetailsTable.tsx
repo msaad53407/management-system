@@ -81,7 +81,7 @@ export default function DetailsTable({ members }: Props) {
                   />
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
-                  {member?.firstName} {member?.lastName}
+                  {member?.firstName} {member?.middleName} {member?.lastName}
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
                   {capitalize(member?.role)}
