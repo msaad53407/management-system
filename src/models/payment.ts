@@ -2,7 +2,8 @@ import mongoose, { Document } from "mongoose";
 import { Types } from "mongoose";
 
 export interface PaymentDocument extends Document {
-  memberId: Types.ObjectId;
+  _id: Types.ObjectId;
+  member_id: Types.ObjectId;
   paymentType: string;
   amount: number;
   paymentDate: Date;

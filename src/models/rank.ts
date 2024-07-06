@@ -1,6 +1,7 @@
 import mongoose, { Document } from "mongoose";
 
 export interface RankDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
   description: string;
   createdAt?: Date;

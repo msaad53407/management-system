@@ -1,10 +1,11 @@
 import mongoose, { Document, Types } from "mongoose";
 
 export interface MediaDocument extends Document {
+  _id: Types.ObjectId;
   mediaType: string;
   filePath: string;
   relatedEvent: string;
-  chapterId: Types.ObjectId;
+  chapter_id: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
 }

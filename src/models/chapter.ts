@@ -1,6 +1,7 @@
 import mongoose, { Document, Types } from "mongoose";
 
 export interface ChapterDocument extends Document {
+  _id: Types.ObjectId;
   name?: string;
   chapterNumber?: number;
   chapterAddress1?: string;

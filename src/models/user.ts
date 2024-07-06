@@ -2,6 +2,7 @@ import { Roles } from "@/types/globals";
 import mongoose, { Document } from "mongoose";
 
 export interface UserDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   email: string;
   clerkId: string;
   username?: string;

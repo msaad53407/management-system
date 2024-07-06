@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { Document, Types } from "mongoose";
 
 export interface MemberDocument extends Document {
-  _id: Types.ObjectId;
+  __id: Types.ObjectId;
   userId: string;
   greeting?: "Sis." | "Bro.";
   role?: Roles;

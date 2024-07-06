@@ -1,6 +1,7 @@
 import mongoose, { Document } from "mongoose";
 
 export interface ReportsDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   reportFormat: string;
   savedReports: string;
   createdAt?: Date;

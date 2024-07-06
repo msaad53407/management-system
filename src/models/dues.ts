@@ -1,7 +1,8 @@
 import mongoose, { Types, Document } from "mongoose";
 
 export interface DueDocument extends Document {
-  memberId: Types.ObjectId;
+  _id: Types.ObjectId;
+  member_id: Types.ObjectId;
   amount: number;
   dueDate: Date;
   paymentStatus: string;

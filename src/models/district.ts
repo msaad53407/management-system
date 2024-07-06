@@ -1,11 +1,12 @@
 import mongoose, { Types, Document } from "mongoose";
 
 export interface DistrictDocument extends Document {
-  deputyId: Types.ObjectId;
+  _id: Types.ObjectId;
+  deputy_id: Types.ObjectId;
   districtCharterDate: Date;
   districtMeet1: string;
   districtMeet2: string;
-  regionId: Types.ObjectId;
+  region_id: Types.ObjectId;
   districtYrDues: Types.ObjectId;
   districtMonDues: Types.ObjectId;
   createdAt?: Date;

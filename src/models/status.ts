@@ -2,6 +2,7 @@ import mongoose, { Document } from "mongoose";
 
 
 export interface StatusDocument extends Document {
+  _id: mongoose.Types.ObjectId;
   name: string;
   description: string;
   createdAt?: Date;
