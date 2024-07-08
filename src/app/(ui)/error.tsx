@@ -14,7 +14,7 @@ export default function Error({
     <div className="flex flex-col items-center justify-center w-screen min-h-screen">
       <h1 className="text-2xl font-bold">Error</h1>
       <p className="text-lg text-red-500">{error.message}</p>
-      <div className="flex flex-col md:flex-row items-center gap-4 w-full">
+      <div className="flex flex-col md:flex-row items-center gap-4 w-full justify-center">
         <Button
           className="bg-purple-700 hover:bg-purple-600 text-lg"
           variant="default"
