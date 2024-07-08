@@ -19,7 +19,9 @@ export default function RootLayout({
   return (
     <ClerkProvider afterSignOutUrl={"/sign-in"}>
       <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className + " overflow-y-hidden"}>
+          {children}
+        </body>
         <Toaster />
       </html>
     </ClerkProvider>

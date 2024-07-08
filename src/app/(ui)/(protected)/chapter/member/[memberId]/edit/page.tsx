@@ -84,7 +84,7 @@ const EditMember = async ({ params }: { params: { memberId?: string } }) => {
     chapterOffice: chapterOffices,
     grandChapterOffice: grandOffice,
     memberRank: ranks,
-    reasons
+    reasons,
   };
   return (
     <section className="flex flex-col gap-6 p-4 w-full">
@@ -101,7 +101,7 @@ const EditMember = async ({ params }: { params: { memberId?: string } }) => {
           </Link>
         </CardHeader>
         <CardContent>
-          <EditMemberForm member={member} dropdownOptions={dropdownOptions}/>
+          <EditMemberForm member={member} dropdownOptions={dropdownOptions} />
         </CardContent>
       </Card>
     </section>

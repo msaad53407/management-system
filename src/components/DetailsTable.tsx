@@ -33,12 +33,16 @@ import { removeMember } from "@/actions/chapter";
 import { useUser } from "@clerk/nextjs";
 import { capitalize } from "@/utils";
 import RemoveMemberButton from "./RemoveMemberButton";
+import { RankDocument } from "@/models/rank";
+import { StatusDocument } from "@/models/status";
 
 type Props = {
   members: MemberDocument[];
+  ranks: RankDocument[];
+  statuses: StatusDocument[];
 };
 
-export default function DetailsTable({ members }: Props) {
+export default function DetailsTable({ members, ranks, statuses }: Props) {
   //TODO Convert it into a server component and replace the event handler with a form and replace useUser hook with server side user fetching capability
   const removeMemberHandler = async (memberId: string) => {
     const { message } = await removeMember(memberId);
@@ -62,7 +66,7 @@ export default function DetailsTable({ members }: Props) {
                 <span className="sr-only">Image</span>
               </TableHead>
               <TableHead>Member</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Rank</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead colSpan={3} className="text-center">
                 Actions
@@ -85,14 +89,19 @@ export default function DetailsTable({ members }: Props) {
                   {member?.firstName} {member?.middleName} {member?.lastName}
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
-                  {capitalize(member?.role)}
+                  {capitalize(
+                    ranks.find((rank) => rank._id === member.rank)?.name
+                  )}
                 </TableCell>
                 <TableCell>
                   <Badge
                     variant="outline"
                     className="bg-lime-400 text-white px-3 py-2 rounded-xl"
                   >
-                    Draft
+                    {capitalize(
+                      statuses.find((status) => status._id === member.status)
+                        ?.name
+                    )}
                   </Badge>
                 </TableCell>
                 {(user?.publicMetadata?.role === "member" &&
