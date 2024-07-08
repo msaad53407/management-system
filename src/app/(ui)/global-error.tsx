@@ -22,14 +22,14 @@ export default function Error({
         >
           Try Again
         </Button>
-        <Link href="/" className="text-lg">
+        <a href="/" className="text-lg">
           <Button
             className="bg-purple-700 hover:bg-purple-600"
             variant="default"
           >
             Home
           </Button>
-        </Link>
+        </a>
       </div>
     </div>
   );
