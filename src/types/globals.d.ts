@@ -14,6 +14,7 @@ export type NavLink = {
     title: string;
     href: string;
     Icon: React.ReactNode;
+    roles?: Roles[];
   }[];
   roles?: Roles[];
 };

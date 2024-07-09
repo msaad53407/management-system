@@ -35,6 +35,7 @@ import { capitalize } from "@/utils";
 import RemoveMemberButton from "./RemoveMemberButton";
 import { RankDocument } from "@/models/rank";
 import { StatusDocument } from "@/models/status";
+import { Roles } from "@/types/globals";
 
 type Props = {
   members: MemberDocument[];
@@ -50,6 +51,18 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
   };
 
   const { user } = useUser();
+  const userRole = user?.publicMetadata?.role as Roles | null;
+
+  const allowedActions = (member: MemberDocument) => {
+    if (
+      (userRole === "member" && user?.id === member.userId) ||
+      userRole === "secretary" ||
+      userRole === "grand-administrator"
+    ) {
+      return true;
+    }
+    return false;
+  };
 
   return (
     <Card>
@@ -104,9 +117,7 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                     )}
                   </Badge>
                 </TableCell>
-                {(user?.publicMetadata?.role === "member" &&
-                  user?.id === member.userId) ||
-                user?.publicMetadata?.role === "secretary" ? (
+                {allowedActions(member) ? (
                   <>
                     {" "}
                     <TableCell className="hidden lg:table-cell">
@@ -129,17 +140,13 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                         memberId={member.userId}
                         removeMemberHandler={removeMemberHandler}
                       >
-                        {user.publicMetadata?.role === "member"
-                          ? "Leave"
-                          : "Remove"}
+                        {userRole === "member" ? "Leave" : "Remove"}
                       </RemoveMemberButton>
                     </TableCell>
                   </>
                 ) : null}
                 <TableCell className="table-cell lg:hidden">
-                  {(user?.publicMetadata?.role === "member" &&
-                    user?.id === member.userId) ||
-                  user?.publicMetadata?.role === "secretary" ? (
+                  {allowedActions(member) ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -168,9 +175,7 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                           removeMemberHandler={removeMemberHandler}
                           className="p-1 !h-fit"
                         >
-                          {user.publicMetadata?.role === "member"
-                            ? "Leave"
-                            : "Remove"}
+                          {userRole === "member" ? "Leave" : "Remove"}
                         </RemoveMemberButton>
                       </DropdownMenuContent>
                     </DropdownMenu>

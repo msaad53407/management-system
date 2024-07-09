@@ -12,7 +12,7 @@ import { addMemberSchema, editFormSchema } from "@/lib/zod/member";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 
-export const getChapterMembers = async () => {
+export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
   if (!(await isAuthenticated())) {
     return {
       data: null,
@@ -23,6 +23,23 @@ export const getChapterMembers = async () => {
   try {
     await connectDB();
     let members;
+
+    if (chapterId) {
+      members = await Member.find({ chapterId });
+
+      if (!members || members?.length === 0) {
+        return {
+          data: null,
+          message: "There are currently no members in this Chapter.",
+        };
+      }
+
+      return {
+        data: members,
+        message: "Members fetched successfully",
+      };
+    }
+
     if (checkRole("secretary")) {
       const chapter = await Chapter.findOne({ secretaryId: userId });
 
@@ -42,7 +59,7 @@ export const getChapterMembers = async () => {
         };
       }
       members = await Member.find({ chapterId: member.chapterId }, null, {
-        sort: { updatedAt: 1 },
+        sort: { createdAt: -1 },
       });
     } else {
       return {

@@ -2,24 +2,67 @@ import { getChapterMembers } from "@/actions/chapter";
 import DetailsTable from "@/components/DetailsTable";
 import { Button } from "@/components/ui/button";
 import { checkRole } from "@/lib/role";
+import { Chapter } from "@/models/chapter";
+import { District } from "@/models/district";
 import { MemberDocument } from "@/models/member";
 import { Rank } from "@/models/rank";
 import { Status } from "@/models/status";
+import { auth } from "@clerk/nextjs/server";
+import { Types } from "mongoose";
 import Link from "next/link";
-import { redirect, RedirectType } from "next/navigation";
+import { redirect } from "next/navigation";
 import React from "react";
 
-const ChapterMembers = async () => {
-  if (checkRole(["grand-administrator", "grand-officer", "district-deputy"])) {
-    redirect("/chapter", RedirectType.push);
+const ChapterMembers = async ({
+  params,
+}: {
+  params: { chapterId?: Types.ObjectId };
+}) => {
+  if (!params.chapterId) {
+    return (
+      <section className="flex flex-col gap-6 p-4 w-full">
+        <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+          Chapter Id not found. Please provide a valid Chapter Id.
+        </h3>
+      </section>
+    );
+  }
+
+  const { userId } = auth();
+  if (checkRole(["secretary", "member", "worthy-matron"])) {
+    redirect("/chapter/members");
   }
 
   try {
-    const { data, message } = await getChapterMembers();
+    if (checkRole("district-deputy")) {
+      const district = await District.findOne({ deputyId: userId });
 
-    const parsedData: MemberDocument[] | null = JSON.parse(
-      JSON.stringify(data)
-    );
+      if (!district) {
+        return (
+          <section className="flex flex-col gap-6 p-4 w-full">
+            <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+              You are not assigned to any District.
+            </h3>
+          </section>
+        );
+      }
+
+      const chapter = await Chapter.findById(params.chapterId);
+
+      if (chapter?.districtId?.toString() !== district._id.toString()) {
+        return (
+          <section className="flex flex-col gap-6 p-4 w-full">
+            <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+              This Chapter is not included in your District.
+            </h3>
+          </section>
+        );
+      }
+    }
+
+    const { data, message } = await getChapterMembers(params.chapterId);
+
+    const parsedData = JSON.parse(JSON.stringify(data));
 
     const ranks = JSON.parse(JSON.stringify(await Rank.find({})));
     const statuses = JSON.parse(JSON.stringify(await Status.find({})));

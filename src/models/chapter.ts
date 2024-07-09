@@ -18,6 +18,7 @@ export interface ChapterDocument extends Document {
   regionId?: Types.ObjectId;
   chpYrDues?: Types.ObjectId;
   chpMonDues?: Types.ObjectId;
+  matronId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -59,6 +60,9 @@ const chapterSchema = new mongoose.Schema(
       type: String,
     },
     secretaryId: {
+      type: String,
+    },
+    matronId: {
       type: String,
     },
     districtId: {

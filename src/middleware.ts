@@ -4,7 +4,11 @@ import {
   createRouteMatcher,
 } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/user"]);
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/user",
+]);
 
 export default clerkMiddleware((auth, _req) => {
   //setting role to member if not already set by default.
