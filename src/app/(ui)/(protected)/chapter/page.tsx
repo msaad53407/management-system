@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import React from "react";
 import Link from "next/link";
 import { capitalize } from "@/utils";
+import { connectDB } from "@/lib/db";
 
 const Chapter = async () => {
   const { userId } = auth();
@@ -18,6 +19,7 @@ const Chapter = async () => {
   }
 
   try {
+    await connectDB();
     if (checkRole("district-deputy")) {
       const district = await District.findOne({ deputyId: userId });
 
