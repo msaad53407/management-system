@@ -8,8 +8,12 @@ import AddMemberForm from "./components/AddMemberForm";
 import { State, StateDocument } from "@/models/state";
 import { Status, StatusDocument } from "@/models/status";
 
-const AddMember = async () => {
-  if (!checkRole("secretary")) {
+const AddMember = async ({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+  if (!checkRole(["secretary", "grand-administrator"])) {
     redirect("/");
   }
 
@@ -25,7 +29,13 @@ const AddMember = async () => {
         <Card>
           <CardHeader className="flex items-center justify-between w-full flex-row">
             <h3 className="text-xl font-semibold text-slate-600">Add Member</h3>
-            <Link href="/chapter/members">
+            <Link
+              href={
+                searchParams?.chapterId
+                  ? `/chapter/${searchParams.chapterId}/members`
+                  : "/chapter/members"
+              }
+            >
               <Button
                 variant={"destructive"}
                 className="bg-purple-800 hover:bg-purple-700"
@@ -51,7 +61,13 @@ const AddMember = async () => {
       <Card>
         <CardHeader className="flex items-center justify-between w-full flex-row">
           <h3 className="text-xl font-semibold text-slate-600">Add Member</h3>
-          <Link href="/chapter/members">
+          <Link
+            href={
+              searchParams?.chapterId
+                ? `/chapter/${searchParams.chapterId}/members`
+                : "/chapter/members"
+            }
+          >
             <Button
               variant={"destructive"}
               className="bg-purple-800 hover:bg-purple-700"
@@ -61,7 +77,7 @@ const AddMember = async () => {
           </Link>
         </CardHeader>
         <CardContent>
-          <AddMemberForm dropdownOptions={dropdownOptions} />
+          <AddMemberForm dropdownOptions={dropdownOptions} chapterId={searchParams?.chapterId}/>
         </CardContent>
       </Card>
     </section>

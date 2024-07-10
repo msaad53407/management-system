@@ -6,6 +6,8 @@ import React from "react";
 import Link from "next/link";
 import { capitalize } from "@/utils";
 import { connectDB } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Chapter = async () => {
   const { userId } = auth();
@@ -46,22 +48,47 @@ const Chapter = async () => {
       }
 
       return (
-        <section className="flex flex-col gap-4 items-center justify-center">
-          <h1 className="text-slate-600 text-2xl">
-            {`District ${capitalize(district.name)}`} Chapters
-          </h1>
-          <div className="flex flex-col gap-4 w-full">
-            {chapters.map((chapter) => (
-              <Link
-                href={`/chapter/${chapter._id}/members`}
-                key={chapter._id.toHexString()}
-                className="w-full"
+        <section className="flex flex-col gap-6 p-4 w-full">
+          <div className="flex items-center justify-between w-full">
+            <h3 className="text-xl font-semibold text-slate-600">
+              District:{" "}
+              <span className="text-pink-600">{capitalize(district.name)}</span>{" "}
+              Chapters
+            </h3>
+            {checkRole(["grand-administrator"]) && (
+              // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
               >
-                <h2 className="text-lg font-semibold text-slate-600">
-                  {chapter.name}
-                </h2>
-              </Link>
-            ))}
+                Add Chapter
+              </Button>
+              // </Link>
+            )}
+          </div>
+          <div className="flex flex-col gap-4 w-full">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-slate-600 text-lg">
+                  Total Chapters {chapters.length}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4 w-full">
+                  {chapters.map((chapter) => (
+                    <Link
+                      href={`/chapter/${chapter._id}/members`}
+                      key={chapter._id.toHexString()}
+                      className="w-full"
+                    >
+                      <h2 className="text-lg font-semibold text-slate-600">
+                        {chapter.name}
+                      </h2>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
       );
@@ -81,20 +108,45 @@ const Chapter = async () => {
       }
 
       return (
-        <section className="flex flex-col gap-4 items-center justify-center">
-          <h1 className="text-slate-600 text-2xl">All Chapters</h1>
-          <div className="flex flex-col gap-4 w-full">
-            {chapters.map((chapter) => (
-              <Link
-                href={`/chapter/${chapter._id}/members`}
-                key={chapter._id.toHexString()}
-                className="w-full"
+        <section className="flex flex-col gap-6 p-4 w-full">
+          <div className="flex items-center justify-between w-full">
+            <h3 className="text-xl font-semibold text-slate-600">
+              All Chapters
+            </h3>
+            {checkRole(["grand-administrator"]) && (
+              // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
               >
-                <h2 className="text-lg font-semibold text-slate-600">
-                  {chapter.name}
-                </h2>
-              </Link>
-            ))}
+                Add Chapter
+              </Button>
+              // </Link>
+            )}
+          </div>
+          <div className="flex flex-col gap-4 w-full">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-slate-600 text-lg">
+                  Total Chapters {chapters.length}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-4 w-full">
+                  {chapters.map((chapter) => (
+                    <Link
+                      href={`/chapter/${chapter._id}/members`}
+                      key={chapter._id.toHexString()}
+                      className="w-full"
+                    >
+                      <h2 className="text-lg font-semibold text-slate-600">
+                        {chapter.name}
+                      </h2>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
       );

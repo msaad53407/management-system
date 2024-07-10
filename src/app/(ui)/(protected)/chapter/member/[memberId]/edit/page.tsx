@@ -14,14 +14,21 @@ import { GrandOffice, GrandOfficeDocument } from "@/models/grandOffice";
 import { Rank, RankDocument } from "@/models/rank";
 import { Reason, ReasonDocument } from "@/models/reason";
 
-const EditMember = async ({ params }: { params: { memberId?: string } }) => {
+const EditMember = async ({
+  params,
+  searchParams,
+}: {
+  params: { memberId?: string };
+  searchParams?: { [key: string]: string | undefined };
+}) => {
   // TODO Check if secretary is of the same chapter whose member is being edited.
   //TODO Try to implement Aggregation so that we can get states in one query
   const { userId } = auth();
-
+  const chapterId = searchParams?.chapterId;
   if (
     !params.memberId ||
-    (!checkRole("secretary") && params.memberId !== userId)
+    (!checkRole(["secretary", "grand-administrator"]) &&
+      params.memberId !== userId)
   )
     redirect("/");
   let member: MemberDocument;
@@ -61,7 +68,11 @@ const EditMember = async ({ params }: { params: { memberId?: string } }) => {
             <h3 className="text-xl font-semibold text-slate-600">
               Edit Member
             </h3>
-            <Link href="/chapter/members">
+            <Link
+              href={
+                chapterId ? `/chapter/${chapterId}/members` : "/chapter/members"
+              }
+            >
               <Button
                 variant={"destructive"}
                 className="bg-purple-800 hover:bg-purple-700"
@@ -91,7 +102,11 @@ const EditMember = async ({ params }: { params: { memberId?: string } }) => {
       <Card>
         <CardHeader className="flex items-center justify-between w-full flex-row">
           <h3 className="text-xl font-semibold text-slate-600">Edit Member</h3>
-          <Link href="/chapter/members">
+          <Link
+            href={
+              chapterId ? `/chapter/${chapterId}/members` : "/chapter/members"
+            }
+          >
             <Button
               variant={"destructive"}
               className="bg-purple-800 hover:bg-purple-700"

@@ -1,16 +1,17 @@
 "use server";
 import "server-only";
-import { Chapter } from "@/models/chapter";
+import { Chapter, ChapterDocument } from "@/models/chapter";
 
 import { connectDB } from "@/lib/db";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Member, MemberDocument } from "@/models/member";
 import { checkRole } from "@/lib/role";
 import { isAuthenticated } from "@/lib/authorization";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { addMemberSchema, editFormSchema } from "@/lib/zod/member";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
+import { Roles } from "@/types/globals";
 
 export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
   if (!(await isAuthenticated())) {
@@ -40,13 +41,21 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       };
     }
 
-    if (checkRole("secretary")) {
-      const chapter = await Chapter.findOne({ secretaryId: userId });
+    if (checkRole(["secretary", "worthy-matron"])) {
+      let role: Roles | null = null;
+      let chapter: ChapterDocument | null;
+      if (checkRole("secretary")) {
+        chapter = await Chapter.findOne({ secretaryId: userId });
+        role = "secretary";
+      } else {
+        chapter = await Chapter.findOne({ matronId: userId });
+        role = "worthy-matron";
+      }
 
       if (!chapter) {
         return {
           data: null,
-          message: "You are not secretary of any chapter",
+          message: `You are not ${role} of any chapter`,
         };
       }
       members = await Member.find({ chapterId: chapter._id });
@@ -102,7 +111,10 @@ export const removeMember = async (
 
   const { userId } = auth();
 
-  if (!memberId || (!checkRole("secretary") && memberId !== userId)) {
+  if (
+    !memberId ||
+    (!checkRole(["secretary", "grand-administrator"]) && memberId !== userId)
+  ) {
     return {
       data: null,
       message: "Unauthorized",
@@ -119,6 +131,7 @@ export const removeMember = async (
       };
     }
     revalidatePath("/chapter/members");
+    revalidatePath("/chapter/[chapterId]/members");
     return {
       data: JSON.parse(JSON.stringify(member)),
       message: "Member removed successfully",
@@ -134,9 +147,9 @@ export const removeMember = async (
 
 export const addMember = async (_prevState: any, formData: FormData) => {
   if (!(await isAuthenticated())) {
-    redirect("/chapter/members");
+    redirect("/sign-in");
   }
-  if (!checkRole("secretary")) {
+  if (!checkRole(["secretary", "grand-administrator"])) {
     redirect("/chapter/members");
   }
   const { userId } = auth();
@@ -207,6 +220,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       };
     }
     revalidatePath("/chapter/members");
+    revalidatePath("/chapter/[chapterId]/members");
     shouldRedirect = true;
   } catch (error) {
     console.error(error);
@@ -221,7 +235,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
 
 export const editMember = async (_prevState: any, formData: FormData) => {
   if (!(await isAuthenticated())) {
-    redirect("/chapter/members");
+    redirect("/sign-in");
   }
 
   const { userId } = auth();
@@ -237,13 +251,15 @@ export const editMember = async (_prevState: any, formData: FormData) => {
     };
   }
 
-  if (!checkRole("secretary") && userId !== data.memberId) {
-    redirect("/chapter/members");
+  if (
+    !checkRole(["secretary", "grand-administrator"]) &&
+    userId !== data.memberId
+  ) {
+    redirect("/");
   }
   let shouldRedirect: boolean = false;
   try {
     await connectDB();
-    console.log(data.state);
     const member = await Member.findOneAndUpdate(
       { userId: data.memberId },
       {

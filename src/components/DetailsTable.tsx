@@ -121,7 +121,9 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                   <>
                     {" "}
                     <TableCell className="hidden lg:table-cell">
-                      <Link href={`/chapter/member/${member.userId}/edit`}>
+                      <Link
+                        href={`/chapter/member/${member.userId}/edit?chapterId=${member.chapterId}`}
+                      >
                         <Button className="w-full bg-lime-400 hover:bg-lime-300 text-white">
                           Edit
                         </Button>
@@ -163,7 +165,9 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                           Actions
                         </DropdownMenuLabel>
                         <DropdownMenuItem className="justify-center">
-                          <Link href={`/chapter/member/${member.userId}/edit`}>
+                          <Link
+                            href={`/chapter/member/${member.userId}/edit?chapterId=${member.chapterId}`}
+                          >
                             Edit
                           </Link>
                         </DropdownMenuItem>

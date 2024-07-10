@@ -72,8 +72,8 @@ const ChapterMembers = async ({
           <h3 className="text-xl font-semibold text-slate-600">
             Member Roster
           </h3>
-          {checkRole("secretary") && (
-            <Link href="/chapter/member/add">
+          {checkRole(["secretary", "grand-administrator"]) && (
+            <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
               <Button
                 variant={"destructive"}
                 className="bg-purple-800 hover:bg-purple-700"

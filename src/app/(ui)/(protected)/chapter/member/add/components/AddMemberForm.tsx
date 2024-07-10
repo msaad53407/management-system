@@ -96,9 +96,10 @@ interface Props {
   dropdownOptions: {
     [key: string]: StateDocument[] | StatusDocument[];
   };
+  chapterId?: string;
 }
 
-const AddMemberForm = ({ dropdownOptions }: Props) => {
+const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
   const initialState = {
     message: "",
   };
