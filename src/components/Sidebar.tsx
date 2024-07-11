@@ -13,8 +13,34 @@ import { NavLink as NavLinkType } from "@/types/globals";
 import { auth } from "@clerk/nextjs/server";
 import { SignOutButton } from "@clerk/nextjs";
 import { capitalize } from "@/utils";
+import { getDistrict } from "@/actions/district";
+import { DistrictDocument } from "@/models/district";
+import { ChapterDocument } from "@/models/chapter";
+import { getChapter } from "@/actions/chapter";
 
 async function Sidebar() {
+  const role = auth().sessionClaims?.metadata?.role;
+  const { userId } = auth();
+  let district: DistrictDocument | null = null;
+  let chapter: ChapterDocument | null = null;
+  if (role === "district-deputy") {
+    const { data } = await getDistrict({
+      deputyId: userId as string,
+    });
+    if (data) {
+      district = data;
+    }
+  }
+
+  if (role === "secretary") {
+    const { data } = await getChapter({
+      secretaryId: userId as string,
+    });
+
+    if (data) {
+      chapter = data;
+    }
+  }
 
   const navLinks: NavLinkType[] = [
     {
@@ -102,12 +128,19 @@ async function Sidebar() {
       ],
     },
     {
-      heading: "MANAGE CHAPTER",
+      heading: "MANAGE",
       links: [
         {
-          title: "Chapter Settings",
-          href: "/chapter-settings",
+          title: "Chapter(s) Settings",
+          href: `/chapter${chapter ? `/${chapter._id}/settings` : ""}`,
           Icon: <Settings />,
+          roles: ["secretary", "grand-administrator"],
+        },
+        {
+          title: "District(s) Settings",
+          href: `/district${district ? `/${district._id}/settings` : ""}`,
+          Icon: <Settings />,
+          roles: ["district-deputy", "grand-administrator"],
         },
       ],
       roles: [
@@ -119,7 +152,7 @@ async function Sidebar() {
       ],
     },
   ];
-  const role = auth().sessionClaims?.metadata?.role;
+
   return (
     <aside className="w-72 px-4 py-10 space-y-4 overflow-y-auto no-scrollbar">
       <div className="flex items-center justify-center">

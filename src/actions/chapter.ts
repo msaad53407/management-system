@@ -13,6 +13,10 @@ import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 import { Roles } from "@/types/globals";
 
+type GetDistrictParams =
+  | { secretaryId: string; chapterId?: never }
+  | { secretaryId?: never; chapterId: string };
+
 export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
   if (!(await isAuthenticated())) {
     return {
@@ -351,5 +355,67 @@ export const editMember = async (_prevState: any, formData: FormData) => {
     };
   } finally {
     if (shouldRedirect) redirect("/chapter/members");
+  }
+};
+
+export const getChapter = async (params: GetDistrictParams) => {
+  try {
+    await connectDB();
+
+    if (checkRole("secretary")) {
+      if (!("secretaryId" in params) || !params.secretaryId) {
+        return {
+          data: null,
+          message: "Please provide a valid SecretaryId",
+        };
+      }
+
+      const chapter: ChapterDocument | null = JSON.parse(
+        JSON.stringify(
+          await Chapter.findOne({ secretaryId: params.secretaryId })
+        )
+      );
+
+      if (!chapter) {
+        return {
+          data: null,
+          message: "Chapter not found",
+        };
+      }
+
+      return {
+        data: chapter,
+        message: "Chapter fetched successfully",
+      };
+    }
+
+    if (!("chapterId" in params) || !params.chapterId) {
+      return {
+        data: null,
+        message: "Please provide a valid ChapterId",
+      };
+    }
+
+    const chapter: ChapterDocument | null = JSON.parse(
+      JSON.stringify(await Chapter.findById(params.chapterId))
+    );
+
+    if (!chapter) {
+      return {
+        data: null,
+        message: "Chapter not found",
+      };
+    }
+
+    return {
+      data: chapter,
+      message: "Chapter fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to DB",
+    };
   }
 };
