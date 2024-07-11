@@ -7,12 +7,25 @@ import { redirect } from "next/navigation";
 import React from "react";
 import EditMemberForm from "./components/EditMember";
 import { Member, MemberDocument } from "@/models/member";
-import { State, StateDocument } from "@/models/state";
-import { Status, StatusDocument } from "@/models/status";
-import { ChapterOffice, ChapterOfficeDocument } from "@/models/chapterOffice";
-import { GrandOffice, GrandOfficeDocument } from "@/models/grandOffice";
-import { Rank, RankDocument } from "@/models/rank";
-import { Reason, ReasonDocument } from "@/models/reason";
+import { StateDocument } from "@/models/state";
+import { StatusDocument } from "@/models/status";
+import { ChapterOfficeDocument } from "@/models/chapterOffice";
+import { GrandOfficeDocument } from "@/models/grandOffice";
+import { RankDocument } from "@/models/rank";
+import { ReasonDocument } from "@/models/reason";
+import mongoose from "mongoose";
+import { connectDB } from "@/lib/db";
+
+type AggregationResult = {
+  _id?: mongoose.Types.ObjectId;
+  member?: MemberDocument;
+  allStates?: StateDocument[];
+  allStatuses?: StatusDocument[];
+  allChapterOffices?: ChapterOfficeDocument[];
+  allGrandOffices?: GrandOfficeDocument[];
+  allRanks?: RankDocument[];
+  allReasons?: ReasonDocument[];
+};
 
 const EditMember = async ({
   params,
@@ -31,34 +44,207 @@ const EditMember = async ({
       params.memberId !== userId)
   )
     redirect("/");
-  let member: MemberDocument;
-  let states: StateDocument[];
-  let statuses: StatusDocument[];
-  let chapterOffices: ChapterOfficeDocument[];
-  let grandOffice: GrandOfficeDocument[];
-  let ranks: RankDocument[];
-  let reasons: ReasonDocument[];
 
   try {
-    member = JSON.parse(
-      JSON.stringify(await Member.findOne({ userId: params.memberId }))
-    );
+    await connectDB();
+    const result = await Member.aggregate([
+      {
+        $match: {
+          userId: params.memberId,
+        },
+      },
+      {
+        $lookup: {
+          from: "states", // collection name for states
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allStates",
+        },
+      },
+      {
+        $lookup: {
+          from: "status",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allStatuses",
+        },
+      },
+      {
+        $lookup: {
+          from: "chapteroffices",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allChapterOffices",
+        },
+      },
+      {
+        $lookup: {
+          from: "grandoffices",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allGrandOffices",
+        },
+      },
+      {
+        $lookup: {
+          from: "ranks",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allRanks",
+        },
+      },
+      {
+        $lookup: {
+          from: "reasons",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allReasons",
+        },
+      },
+      {
+        $project: {
+          member: {
+            _id: "$_id",
+            userId: "$userId",
+            role: "$role",
+            greeting: "$greeting",
+            firstName: "$firstName",
+            middleName: "$middleName",
+            lastName: "$lastName",
+            status: "$status",
+            email: "$email",
+            photo: "$photo",
+            password: "$password",
+            phoneNumber1: "$phoneNumber1",
+            phoneNumber2: "$phoneNumber2",
+            address1: "$address1",
+            address2: "$address2",
+            city: "$city",
+            state: "$state",
+            zipCode: "$zipCode",
+            birthPlace: "$birthPlace",
+            birthDate: "$birthDate",
+            chapterOffice: "$chapterOffice",
+            grandOffice: "$grandOffice",
+            rank: "$rank",
+            dropReason: "$dropReason",
+            dropDate: "$dropDate",
+            expelReason: "$expelReason",
+            expelDate: "$expelDate",
+            suspendReason: "$suspendReason",
+            suspendDate: "$suspendDate",
+            deathDate: "$deathDate",
+            actualDeathDate: "$actualDeathDate",
+            deathPlace: "$deathPlace",
+            secretaryNotes: "$secretaryNotes",
+            enlightenDate: "$enlightenDate",
+            demitInDate: "$demitInDate",
+            demitOutDate: "$demitOutDate",
+            demitToChapter: "$demitToChapter",
+            investigationDate: "$investigationDate",
+            investigationAcceptOrRejectDate: "$investigationAcceptOrRejectDate",
+            sponsor1: "$sponsor1",
+            sponsor2: "$sponsor2",
+            sponsor3: "$sponsor3",
+            petitionDate: "$petitionDate",
+            petitionReceivedDate: "$petitionReceivedDate",
+            initiationDate: "$initiationDate",
+            amaranthDate: "$amaranthDate",
+            queenOfSouthDate: "$queenOfSouthDate",
+            districtId: "$districtId",
+            regionId: "$regionId",
+            chapterId: "$chapterId",
+            spouseName: "$spouseName",
+            spousePhone: "$spousePhone",
+            emergencyContact: "$emergencyContact",
+            emergencyContactPhone: "$emergencyContactPhone",
+          },
+          allStates: 1,
+          allStatuses: 1,
+          allChapterOffices: 1,
+          allGrandOffices: 1,
+          allRanks: 1,
+          allReasons: 1,
+        },
+      },
+    ]);
 
-    states = JSON.parse(JSON.stringify(await State.find({})));
-
-    statuses = JSON.parse(JSON.stringify(await Status.find({})));
-
-    chapterOffices = JSON.parse(JSON.stringify(await ChapterOffice.find({})));
-
-    grandOffice = JSON.parse(JSON.stringify(await GrandOffice.find({})));
-
-    ranks = JSON.parse(JSON.stringify(await Rank.find({})));
-
-    reasons = JSON.parse(JSON.stringify(await Reason.find({})));
-
-    if (!member) {
+    if (!result || result.length === 0) {
       redirect("/chapter/members");
     }
+
+    const {
+      member,
+      allStatuses,
+      allStates,
+      allChapterOffices,
+      allGrandOffices,
+      allRanks,
+      allReasons,
+    } = result[0] as AggregationResult;
+
+    const dropdownOptions = {
+      state: JSON.parse(JSON.stringify(allStates)) as
+        | StateDocument[]
+        | undefined,
+      memberStatus: JSON.parse(JSON.stringify(allStatuses)) as
+        | StatusDocument[]
+        | undefined,
+      chapterOffice: JSON.parse(JSON.stringify(allChapterOffices)) as
+        | ChapterOfficeDocument[]
+        | undefined,
+      grandChapterOffice: JSON.parse(JSON.stringify(allGrandOffices)) as
+        | GrandOfficeDocument[]
+        | undefined,
+      memberRank: JSON.parse(JSON.stringify(allRanks)) as
+        | RankDocument[]
+        | undefined,
+      reasons: JSON.parse(JSON.stringify(allReasons)) as
+        | ReasonDocument[]
+        | undefined,
+    };
+    return (
+      <section className="flex flex-col gap-6 p-4 w-full">
+        <Card>
+          <CardHeader className="flex items-center justify-between w-full flex-row">
+            <h3 className="text-xl font-semibold text-slate-600">
+              Edit Member
+            </h3>
+            <Link
+              href={
+                chapterId ? `/chapter/${chapterId}/members` : "/chapter/members"
+              }
+            >
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
+              >
+                Back
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <EditMemberForm
+              member={JSON.parse(JSON.stringify(member))}
+              dropdownOptions={dropdownOptions}
+            />
+          </CardContent>
+        </Card>
+      </section>
+    );
+
   } catch (error) {
     console.error(error);
     return (
@@ -88,39 +274,6 @@ const EditMember = async ({
       </section>
     );
   }
-
-  const dropdownOptions = {
-    state: states,
-    memberStatus: statuses,
-    chapterOffice: chapterOffices,
-    grandChapterOffice: grandOffice,
-    memberRank: ranks,
-    reasons,
-  };
-  return (
-    <section className="flex flex-col gap-6 p-4 w-full">
-      <Card>
-        <CardHeader className="flex items-center justify-between w-full flex-row">
-          <h3 className="text-xl font-semibold text-slate-600">Edit Member</h3>
-          <Link
-            href={
-              chapterId ? `/chapter/${chapterId}/members` : "/chapter/members"
-            }
-          >
-            <Button
-              variant={"destructive"}
-              className="bg-purple-800 hover:bg-purple-700"
-            >
-              Back
-            </Button>
-          </Link>
-        </CardHeader>
-        <CardContent>
-          <EditMemberForm member={member} dropdownOptions={dropdownOptions} />
-        </CardContent>
-      </Card>
-    </section>
-  );
 };
 
 export default EditMember;
