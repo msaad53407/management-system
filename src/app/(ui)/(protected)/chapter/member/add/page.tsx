@@ -7,6 +7,7 @@ import React from "react";
 import AddMemberForm from "./components/AddMemberForm";
 import { State, StateDocument } from "@/models/state";
 import { Status, StatusDocument } from "@/models/status";
+import { connectDB } from "@/lib/db";
 
 const AddMember = async ({
   searchParams,
@@ -20,6 +21,7 @@ const AddMember = async ({
   let states: StateDocument[];
   let statuses: StatusDocument[];
   try {
+    await connectDB();
     states = JSON.parse(JSON.stringify(await State.find({})));
     statuses = JSON.parse(JSON.stringify(await Status.find({})));
   } catch (error) {

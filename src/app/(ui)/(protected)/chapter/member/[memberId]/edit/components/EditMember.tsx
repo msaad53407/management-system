@@ -36,7 +36,8 @@ interface Props {
       | ChapterOfficeDocument[]
       | GrandOfficeDocument[]
       | RankDocument[]
-      | ReasonDocument[];
+      | ReasonDocument[]
+      | undefined;
   };
 }
 
@@ -120,7 +121,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Louisiana",
       type: "select",
       dropdownType: "state",
-      defaultValue: dropdownOptions.state.find(
+      defaultValue: dropdownOptions?.state && dropdownOptions.state.find(
         (state: StateDocument) => state._id === member.state
       )?._id,
     },
@@ -158,7 +159,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Regular",
       type: "select",
       dropdownType: "memberStatus",
-      defaultValue: dropdownOptions.memberStatus.find(
+      defaultValue: dropdownOptions?.memberStatus && dropdownOptions.memberStatus.find(
         (status: StatusDocument) => status._id === member.status
       )?._id,
     },
@@ -168,7 +169,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Worthy Patron",
       type: "select",
       dropdownType: "chapterOffice",
-      defaultValue: dropdownOptions.chapterOffice.find(
+      defaultValue: dropdownOptions?.chapterOffice && dropdownOptions.chapterOffice.find(
         (chapterOffice: ChapterOfficeDocument) =>
           chapterOffice._id === member.chapterOffice
       )?._id,
@@ -179,7 +180,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "None",
       type: "select",
       dropdownType: "grandChapterOffice",
-      defaultValue: dropdownOptions.grandChapterOffice.find(
+      defaultValue: dropdownOptions?.grandChapterOffice && dropdownOptions.grandChapterOffice.find(
         (office: GrandOfficeDocument) => office._id === member.grandOffice
       )?._id,
     },
@@ -189,7 +190,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Select Member Rank",
       type: "select",
       dropdownType: "memberRank",
-      defaultValue: dropdownOptions.memberRank.find(
+      defaultValue: dropdownOptions?.memberRank && dropdownOptions.memberRank.find(
         (rank: RankDocument) => rank._id === member.rank
       )?._id,
     },
@@ -317,7 +318,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Select Drop Reason",
       type: "select",
       dropdownType: "reasons",
-      defaultValue: dropdownOptions.reasons.find(
+      defaultValue: dropdownOptions?.reasons && dropdownOptions.reasons.find(
         (reason: ReasonDocument) => reason._id === member.dropReason
       )?._id,
     },
@@ -336,7 +337,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Select Suspension/Expelled Reason",
       type: "select",
       dropdownType: "reasons",
-      defaultValue: dropdownOptions.reasons.find(
+      defaultValue: dropdownOptions?.reasons && dropdownOptions.reasons.find(
         (reason: ReasonDocument) => reason._id === member.expelReason
       )?._id,
     },
@@ -428,7 +429,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                     <SelectValue placeholder="Select a State" />
                   </SelectTrigger>
                   <SelectContent>
-                    {dropdownOptions[dropdownType!].map((state, indx) => (
+                    {dropdownOptions && dropdownOptions[dropdownType!]!.map((state, indx) => (
                       <SelectItem key={indx} value={state._id?.toString()}>
                         {state.name}
                       </SelectItem>
