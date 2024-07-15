@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkLoaded, ClerkLoading, ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/toaster";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,13 @@ export default function RootLayout({
     <ClerkProvider afterSignOutUrl={"/sign-in"}>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className + " overflow-y-hidden"}>
-          {children}
+          <ClerkLoading>
+            <LoadingSpinner
+              className="min-h-screen"
+              spinnerClassName="size-32"
+            />
+          </ClerkLoading>
+          <ClerkLoaded>{children}</ClerkLoaded>
         </body>
         <Toaster />
       </html>

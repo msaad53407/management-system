@@ -7,10 +7,8 @@ import { editMember } from "@/actions/chapter";
 import { MemberDocument } from "@/models/member";
 import SubmitButton from "@/components/SubmitButton";
 import { useFormState } from "react-dom";
-import { toast } from "@/components/ui/use-toast";
 import { StateDocument } from "@/models/state";
 import {
-  SelectLabel,
   Select,
   SelectContent,
   SelectItem,
@@ -22,6 +20,8 @@ import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { GrandOfficeDocument } from "@/models/grandOffice";
 import { RankDocument } from "@/models/rank";
 import { ReasonDocument } from "@/models/reason";
+import { Roles } from "@/types/globals";
+import { useCheckRole } from "@/hooks/useCheckRole";
 
 interface FormMessage {
   [key: string]: string[] | undefined;
@@ -41,19 +41,9 @@ interface Props {
   };
 }
 
-interface DropdownOption {
-  [key: string]:
-    | StateDocument[]
-    | StatusDocument[]
-    | ChapterOfficeDocument[]
-    | GrandOfficeDocument[]
-    | RankDocument[]
-    | ReasonDocument[];
-}
-
 export default function EditMemberForm({ member, dropdownOptions }: Props) {
   const initialState = { message: "" };
-
+  const checkRoleClient = useCheckRole();
   const [formState, formAction] = useFormState(editMember, initialState);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
@@ -65,6 +55,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Donald",
       defaultValue: member.firstName,
       type: "text",
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Middle Name",
@@ -72,6 +63,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Middle Name",
       type: "text",
       defaultValue: member.middleName,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Last Name",
@@ -79,6 +71,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Duck",
       type: "text",
       defaultValue: member.lastName,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Email Address",
@@ -86,6 +79,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "donald@gecosla.com",
       type: "email",
       defaultValue: member.email,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Password",
@@ -93,6 +87,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Password",
       type: "password",
       defaultValue: member.password,
+      roles: [],
     },
     {
       label: "Phone Number",
@@ -100,6 +95,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "4443467891",
       type: "text",
       defaultValue: member.phoneNumber1,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Address",
@@ -107,6 +103,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "donald way",
       type: "text",
       defaultValue: member.address1,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "City",
@@ -114,6 +111,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "marrero",
       type: "text",
       defaultValue: member.city,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "State",
@@ -121,9 +119,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Louisiana",
       type: "select",
       dropdownType: "state",
-      defaultValue: dropdownOptions?.state && dropdownOptions.state.find(
-        (state: StateDocument) => state._id === member.state
-      )?._id,
+      defaultValue:
+        dropdownOptions?.state &&
+        dropdownOptions.state.find(
+          (state: StateDocument) => state._id === member.state
+        )?._id,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Zipcode",
@@ -131,6 +132,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "34567",
       type: "text",
       defaultValue: member.zipCode,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Petitioner 1",
@@ -138,6 +140,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "S Williams",
       type: "text",
       defaultValue: member.sponsor1,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Petitioner 2",
@@ -145,6 +148,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "M W",
       type: "text",
       defaultValue: member.sponsor2,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Petitioner 3",
@@ -152,6 +156,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "SL",
       type: "text",
       defaultValue: member.sponsor3,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Member Status",
@@ -159,9 +164,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Regular",
       type: "select",
       dropdownType: "memberStatus",
-      defaultValue: dropdownOptions?.memberStatus && dropdownOptions.memberStatus.find(
-        (status: StatusDocument) => status._id === member.status
-      )?._id,
+      defaultValue:
+        dropdownOptions?.memberStatus &&
+        dropdownOptions.memberStatus.find(
+          (status: StatusDocument) => status._id === member.status
+        )?._id,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Chapter Office",
@@ -169,10 +177,13 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Worthy Patron",
       type: "select",
       dropdownType: "chapterOffice",
-      defaultValue: dropdownOptions?.chapterOffice && dropdownOptions.chapterOffice.find(
-        (chapterOffice: ChapterOfficeDocument) =>
-          chapterOffice._id === member.chapterOffice
-      )?._id,
+      defaultValue:
+        dropdownOptions?.chapterOffice &&
+        dropdownOptions.chapterOffice.find(
+          (chapterOffice: ChapterOfficeDocument) =>
+            chapterOffice._id === member.chapterOffice
+        )?._id,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Grand Chapter Office",
@@ -180,9 +191,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "None",
       type: "select",
       dropdownType: "grandChapterOffice",
-      defaultValue: dropdownOptions?.grandChapterOffice && dropdownOptions.grandChapterOffice.find(
-        (office: GrandOfficeDocument) => office._id === member.grandOffice
-      )?._id,
+      defaultValue:
+        dropdownOptions?.grandChapterOffice &&
+        dropdownOptions.grandChapterOffice.find(
+          (office: GrandOfficeDocument) => office._id === member.grandOffice
+        )?._id,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Member Rank",
@@ -190,9 +204,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Select Member Rank",
       type: "select",
       dropdownType: "memberRank",
-      defaultValue: dropdownOptions?.memberRank && dropdownOptions.memberRank.find(
-        (rank: RankDocument) => rank._id === member.rank
-      )?._id,
+      defaultValue:
+        dropdownOptions?.memberRank &&
+        dropdownOptions.memberRank.find(
+          (rank: RankDocument) => rank._id === member.rank
+        )?._id,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Birthdate",
@@ -202,6 +219,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.birthDate
         ? new Date(member.birthDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Initiation Date",
@@ -211,6 +229,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.initiationDate
         ? new Date(member.initiationDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Queen of the South",
@@ -220,6 +239,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.queenOfSouthDate
         ? new Date(member.queenOfSouthDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Amarant",
@@ -229,6 +249,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.amaranthDate
         ? new Date(member.amaranthDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Petition Date",
@@ -238,6 +259,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.petitionDate
         ? new Date(member.petitionDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Petition Received",
@@ -247,12 +269,14 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.petitionReceivedDate
         ? new Date(member.petitionReceivedDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Demit In",
       id: "demitIn",
       placeholder: "mm/dd/yyyy",
       type: "date",
+      roles: ["secretary", "grand-administrator"],
 
       defaultValue: member.demitInDate
         ? new Date(member.demitInDate)?.toISOString().split("T")[0]
@@ -264,6 +288,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "mm/dd/yyyy",
       type: "date",
 
+      roles: ["secretary", "grand-administrator"],
       defaultValue: member.demitOutDate
         ? new Date(member.demitOutDate)?.toISOString().split("T")[0]
         : "",
@@ -273,6 +298,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       id: "demitToChapter",
       placeholder: "Demit to Chapter",
       type: "text",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Investigation Date",
@@ -282,6 +308,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.investigationDate
         ? new Date(member.investigationDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Investigation Accept/Reject",
@@ -293,6 +320,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
             ?.toISOString()
             .split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Enlightened Date",
@@ -302,6 +330,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.enlightenDate
         ? new Date(member.enlightenDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Dropped Date",
@@ -311,6 +340,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.dropDate
         ? new Date(member.dropDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Drop Reason",
@@ -318,9 +348,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Select Drop Reason",
       type: "select",
       dropdownType: "reasons",
-      defaultValue: dropdownOptions?.reasons && dropdownOptions.reasons.find(
-        (reason: ReasonDocument) => reason._id === member.dropReason
-      )?._id,
+      defaultValue:
+        dropdownOptions?.reasons &&
+        dropdownOptions.reasons.find(
+          (reason: ReasonDocument) => reason._id === member.dropReason
+        )?._id,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Suspension/Expelled Date",
@@ -330,6 +363,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.expelDate
         ? new Date(member.expelDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Suspension/Expelled Reason",
@@ -337,16 +371,20 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Select Suspension/Expelled Reason",
       type: "select",
       dropdownType: "reasons",
-      defaultValue: dropdownOptions?.reasons && dropdownOptions.reasons.find(
-        (reason: ReasonDocument) => reason._id === member.expelReason
-      )?._id,
+      defaultValue:
+        dropdownOptions?.reasons &&
+        dropdownOptions.reasons.find(
+          (reason: ReasonDocument) => reason._id === member.expelReason
+        )?._id,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Reinstated Date",
       id: "reinstatedDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.reinstatedDate
+      defaultValue: member.reinstatedDate,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Date of Death",
@@ -356,6 +394,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.deathDate
         ? new Date(member.deathDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Actual Date of Death",
@@ -365,6 +404,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.actualDeathDate
         ? new Date(member.actualDeathDate)?.toISOString().split("T")[0]
         : "",
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Place of Death",
@@ -372,6 +412,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Place of Death",
       type: "text",
       defaultValue: member.deathPlace,
+      roles: ["secretary", "grand-administrator"],
     },
     {
       label: "Emergency Contact",
@@ -379,6 +420,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Emergency Contact",
       type: "text",
       defaultValue: member.emergencyContact,
+      roles: ["member", "secretary", "grand-administrator"],
     },
     {
       label: "Emergency Contact Phone No",
@@ -386,11 +428,15 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       placeholder: "Emergency Contact Phone No",
       type: "text",
       defaultValue: member.emergencyContactPhone,
+      roles: ["member", "secretary", "grand-administrator"],
     },
   ];
 
   return (
-    <form className="flex flex-col gap-4" action={formAction}>
+    <form className="flex flex-col gap-4 overflow-x-hidden" action={formAction}>
+      <p className="text-red-500 text-xs font-medium">
+        {typeof formState?.message === "object" ? "" : formState?.message}
+      </p>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
         <div className="space-y-2">
           <p className="text-red-500 text-xs font-medium">
@@ -408,10 +454,17 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
             readOnly
             className="cursor-not-allowed opacity-75"
           />
+          <Input
+            type="text"
+            name="chapterId"
+            value={member.chapterId?.toString()}
+            readOnly
+            className="sr-only max-w-fit"
+          />
         </div>
         {fields.map(
           (
-            { id, label, placeholder, type, defaultValue, dropdownType },
+            { id, label, placeholder, type, defaultValue, dropdownType, roles },
             indx
           ) =>
             type === "select" ? (
@@ -424,16 +477,29 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                 <Label htmlFor={id} className="text-slate-600">
                   {label}
                 </Label>
-                <Select defaultValue={defaultValue?.toString()} name={id}>
-                  <SelectTrigger className="w-full">
+                <Select
+                  name={id}
+                  {...(checkRoleClient(roles as Roles[])
+                    ? { defaultValue: defaultValue?.toString() }
+                    : {
+                        value: defaultValue?.toString(),
+                        open: false,
+                      })}
+                >
+                  <SelectTrigger
+                    {...(checkRoleClient(roles as Roles[])
+                      ? {}
+                      : { className: "cursor-not-allowed opacity-75" })}
+                  >
                     <SelectValue placeholder="Select a State" />
                   </SelectTrigger>
                   <SelectContent>
-                    {dropdownOptions && dropdownOptions[dropdownType!]!.map((state, indx) => (
-                      <SelectItem key={indx} value={state._id?.toString()}>
-                        {state.name}
-                      </SelectItem>
-                    ))}
+                    {dropdownOptions &&
+                      dropdownOptions[dropdownType!]!.map((state, indx) => (
+                        <SelectItem key={indx} value={state._id?.toString()}>
+                          {state.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -452,7 +518,13 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                   placeholder={placeholder}
                   type={type}
                   name={id}
-                  defaultValue={defaultValue as string | undefined}
+                  {...(checkRoleClient(roles as Roles[])
+                    ? { defaultValue: defaultValue?.toString() }
+                    : {
+                        value: defaultValue?.toString(),
+                        className: "cursor-not-allowed opacity-75",
+                        readOnly: true,
+                      })}
                 />
               </div>
             )
@@ -463,8 +535,16 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
             id="secretaryNotes"
             placeholder="Secretary Notes"
             name="secretaryNotes"
-            defaultValue={member.secretaryNotes}
-            className="min-h-[100px]"
+            {...(checkRoleClient(["secretary", "grand-administrator"])
+              ? {
+                  defaultValue: member.secretaryNotes,
+                  className: "min-h-[100px]",
+                }
+              : {
+                  value: member.secretaryNotes,
+                  readOnly: true,
+                  className: "min-h-[100px] cursor-not-allowed opacity-75",
+                })}
           />
         </div>
       </div>

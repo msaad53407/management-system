@@ -11,8 +11,6 @@ export const checkRole = (role: Roles | Roles[]) => {
     return false;
   }
   if (Array.isArray(role) && !role.includes(userRole)) {
-    console.log(role.includes(userRole));
-    console.log('Hello');
     return false;
   }
 

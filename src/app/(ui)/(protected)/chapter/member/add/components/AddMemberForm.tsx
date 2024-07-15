@@ -18,10 +18,6 @@ import { useFormState } from "react-dom";
 
 const introductoryFields = [
   {
-    label: "User Id",
-    id: "userId",
-  },
-  {
     label: "Greeting",
     id: "greeting",
   },
@@ -33,6 +29,10 @@ const introductoryFields = [
     label: "Last Name",
     id: "lastName",
   },
+  {
+    label: "Username",
+    id: "username",
+  },
 ];
 
 const detailsFields = [
@@ -40,6 +40,11 @@ const detailsFields = [
     label: "Email Address",
     id: "email",
     type: "email",
+  },
+  {
+    label: "Password",
+    id: "password",
+    type: "password",
   },
   {
     label: "Phone Number",
@@ -108,8 +113,21 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
   const formMessage: FormMessage | string | undefined = formState?.message;
 
   return (
-    <form className="grid grid-cols-1 gap-4 w-full" action={formAction}>
+    <form
+      className="grid grid-cols-1 gap-4 w-full overflow-x-hidden"
+      action={formAction}
+    >
+      <p className="text-red-500 text-xs font-medium">
+        {typeof formState?.message === "object" ? "" : formState?.message}
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
+        <Input
+          type="text"
+          name="chapterId"
+          value={chapterId}
+          readOnly
+          className="sr-only max-w-fit"
+        />
         {introductoryFields.map(({ id, label }, indx) => (
           <div className="w-full flex flex-col gap-1" key={indx}>
             <p className="text-red-500 text-xs font-medium">

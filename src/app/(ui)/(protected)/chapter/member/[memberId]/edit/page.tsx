@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import React from "react";
-import EditMemberForm from "./components/EditMember";
+import EditMemberForm from "./components/EditMemberForm";
 import { Member, MemberDocument } from "@/models/member";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";

@@ -127,36 +127,14 @@ async function Sidebar() {
         "grand-administrator",
       ],
     },
-    {
-      heading: "MANAGE",
-      links: [
-        {
-          title: "Chapter(s) Settings",
-          href: `/chapter${chapter ? `/${chapter._id}/settings` : ""}`,
-          Icon: <Settings />,
-          roles: ["secretary", "grand-administrator"],
-        },
-        {
-          title: "District(s) Settings",
-          href: `/district${district ? `/${district._id}/settings` : ""}`,
-          Icon: <Settings />,
-          roles: ["district-deputy", "grand-administrator"],
-        },
-      ],
-      roles: [
-        "secretary",
-        "district-deputy",
-        "worthy-matron",
-        "grand-officer",
-        "grand-administrator",
-      ],
-    },
   ];
 
   return (
     <aside className="w-72 px-4 py-10 space-y-4 overflow-y-auto no-scrollbar">
       <div className="flex items-center justify-center">
-        <h2 className="text-xl font-bold">{capitalize(role!)} Database</h2>
+        <h2 className="text-xl font-bold text-center">
+          {capitalize(role!)} Database
+        </h2>
       </div>
       <nav className="flex flex-col gap-4">
         <NavLink
@@ -191,7 +169,7 @@ async function Sidebar() {
         )}
       </nav>
       {/*@ts-ignore */}
-      <SignOutButton  className="w-full flex items-center justify-center text-white bg-pink-600 font-medium text-sm rounded-lg py-3"
+      <SignOutButton className="w-full flex items-center justify-center text-white bg-pink-600 font-medium text-sm rounded-lg py-3"
         redirectUrl="/sign-in"
       >
         Logout

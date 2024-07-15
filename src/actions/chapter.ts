@@ -1,9 +1,8 @@
 "use server";
-import "server-only";
 import { Chapter, ChapterDocument } from "@/models/chapter";
-
+import bcrypt from "bcrypt";
 import { connectDB } from "@/lib/db";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { auth, clerkClient, User } from "@clerk/nextjs/server";
 import { Member, MemberDocument } from "@/models/member";
 import { checkRole } from "@/lib/role";
 import { isAuthenticated } from "@/lib/authorization";
@@ -156,7 +155,6 @@ export const addMember = async (_prevState: any, formData: FormData) => {
   if (!checkRole(["secretary", "grand-administrator"])) {
     redirect("/chapter/members");
   }
-  const { userId } = auth();
   const rawData = Object.fromEntries(formData);
 
   const { success, data, error } = addMemberSchema.safeParse(rawData);
@@ -168,43 +166,46 @@ export const addMember = async (_prevState: any, formData: FormData) => {
     };
   }
 
-  if (data.userId === userId) {
-    redirect("/chapter/members");
-  }
   let shouldRedirect: boolean = false;
 
   try {
     await connectDB();
-    const user = await clerkClient.users.getUser(data.userId);
-
-    if (!user) {
-      shouldRedirect = true;
-      return { message: "User not found" };
-    }
-
-    const alreadyMember = await Member.findOne({ userId: data.userId });
-
-    if (alreadyMember) {
-      console.error("User is already a member");
-      redirect("/chapter/members");
-    }
-
-    if (user.publicMetadata?.role !== "member") {
-      shouldRedirect = true;
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    let user: User | null = null;
+    try {
+      user = await clerkClient().users.createUser({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        username: data.username,
+        emailAddress: [data.email],
+        publicMetadata: {
+          role: "member",
+        },
+        passwordHasher: "bcrypt",
+        passwordDigest: hashedPassword,
+        skipPasswordRequirement: true,
+        skipPasswordChecks: true,
+      });
+    } catch (error) {
+      console.error(JSON.stringify(error));
       return {
-        message: "User's role should be member to become a part of Chapter",
+        message:
+          "Provide all required User details or Email or Username may already exist",
       };
     }
 
-    const chapter = await Chapter.findOne({ secretaryId: userId });
+    if (!user) {
+      return { message: "User not found" };
+    }
 
     const member = await Member.create({
-      userId: data.userId,
+      userId: user.id,
       firstName: data.firstName,
       lastName: data.lastName,
+      password: hashedPassword,
       email: data.email,
       photo: user.imageUrl,
-      chapterId: chapter?._id,
+      chapterId: new Types.ObjectId(data.chapterId),
       role: (user.publicMetadata?.role as string) || null,
       zipCode: data.zipCode,
       address1: data.address,
@@ -215,25 +216,34 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       sponsor1: data.petitioner1,
       sponsor2: data.petitioner2,
       sponsor3: data.petitioner3,
+      greeting: data.greeting,
     });
 
     if (!member) {
-      shouldRedirect = true;
       return {
-        message: "Member not created",
+        message: "Member not added",
       };
     }
-    revalidatePath("/chapter/members");
-    revalidatePath("/chapter/[chapterId]/members");
+
     shouldRedirect = true;
+    if (checkRole(["secretary", "member"])) {
+      revalidatePath("/chapter/members");
+    } else {
+      revalidatePath(`/chapter/${data.chapterId}/members`);
+    }
   } catch (error) {
     console.error(error);
-    shouldRedirect = true;
     return {
       message: "Error Connecting to DB",
     };
   } finally {
-    if (shouldRedirect) redirect("/chapter/members");
+    if (shouldRedirect) {
+      if (checkRole(["member", "secretary"])) {
+        redirect("/chapter/members");
+      } else {
+        redirect(`/chapter/${data.chapterId}/members`);
+      }
+    }
   }
 };
 
@@ -243,10 +253,11 @@ export const editMember = async (_prevState: any, formData: FormData) => {
   }
 
   const { userId } = auth();
+  const role = auth().sessionClaims?.metadata.role;
 
   const rawData = Object.fromEntries(formData);
-
-  const { success, data, error } = editFormSchema.safeParse(rawData);
+  const editFormSchemaValidation = editFormSchema(role!);
+  const { success, data, error } = editFormSchemaValidation.safeParse(rawData);
 
   if (!success) {
     console.error(JSON.stringify(error));
@@ -264,6 +275,95 @@ export const editMember = async (_prevState: any, formData: FormData) => {
   let shouldRedirect: boolean = false;
   try {
     await connectDB();
+    if (checkRole(["secretary", "grand-administrator"])) {
+      const member = await Member.findOneAndUpdate(
+        checkRole("secretary")
+          ? { userId: data.memberId }
+          : { chapterId: new Types.ObjectId(data.chapterId) },
+        {
+          firstName: data.firstName,
+          middleName: data.middleName,
+          lastName: data.lastName,
+          email: data.emailAddress,
+          zipCode: data.zipcode,
+          address1: data.address,
+          city: data.city,
+          state: new Types.ObjectId(data.state) || null,
+          phoneNumber1: data.phoneNumber,
+          sponsor1: data.petitioner1,
+          sponsor2: data.petitioner2,
+          sponsor3: data.petitioner3,
+          birthDate: data.birthdate ? new Date(data.birthdate) : null,
+          initiationDate: data.initiationDate
+            ? new Date(data.initiationDate)
+            : null,
+          queenOfTheSouth: data.queenOfTheSouth
+            ? new Date(data.queenOfTheSouth)
+            : null,
+          amaranthDate: data.amarant ? new Date(data.amarant) : null,
+          memberRank: data.memberRank || null,
+          petitionDate: data.petitionDate ? new Date(data.petitionDate) : null,
+          petitionReceivedDate: data.petitionReceived
+            ? new Date(data.petitionReceived)
+            : null,
+          demitInDate: data.demitIn ? new Date(data.demitIn) : null,
+          demitOutDate: data.demitOut ? new Date(data.demitOut) : null,
+          investigationDate: data.investigationDate
+            ? new Date(data.investigationDate)
+            : null,
+          investigationAcceptOrRejectDate: data.investigationAcceptReject
+            ? new Date(data.investigationAcceptReject)
+            : null,
+          droppedDate: data.droppedDate ? new Date(data.droppedDate) : null,
+          emergencyContact: data.emergencyContact,
+          secretaryNotes: data.secretaryNotes,
+          dateOfDeath: data.dateOfDeath ? new Date(data.dateOfDeath) : null,
+          actualDateOfDeath: data.actualDateOfDeath
+            ? new Date(data.actualDateOfDeath)
+            : null,
+          emergencyContactPhone: data.emergencyContactPhone,
+          password: data.password,
+          dropReason: new Types.ObjectId(data.dropReason) || null,
+          expelReason:
+            new Types.ObjectId(data.suspensionExpelledReason) || null,
+          expelDate: data.suspensionExpelledDate
+            ? new Date(data.suspensionExpelledDate)
+            : null,
+          dropDate: data.droppedDate ? new Date(data.droppedDate) : null,
+          deathDate: data.dateOfDeath ? new Date(data.dateOfDeath) : null,
+          actualDeathDate: data.actualDateOfDeath
+            ? new Date(data.actualDateOfDeath)
+            : null,
+          deathPlace: data.placeOfDeath,
+          enlightenDate: data.enlightenedDate
+            ? new Date(data.enlightenedDate)
+            : null,
+          queenOfSouthDate: data.queenOfTheSouth
+            ? new Date(data.queenOfTheSouth)
+            : null,
+          chapterOffice: new Types.ObjectId(data.chapterOffice) || null,
+          grandOffice: new Types.ObjectId(data.grandChapterOffice) || null,
+          rank: new Types.ObjectId(data.memberRank) || null,
+          reinstatedDate: data.reinstatedDate
+            ? new Date(data.reinstatedDate)
+            : null,
+          status: new Types.ObjectId(data.memberStatus) || null,
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (!member) {
+        return {
+          message: "Member not found",
+        };
+      }
+      shouldRedirect = true;
+      revalidatePath(`/chapter/${data.chapterId}/members`);
+      return;
+    }
+
     const member = await Member.findOneAndUpdate(
       { userId: data.memberId },
       {
@@ -276,70 +376,12 @@ export const editMember = async (_prevState: any, formData: FormData) => {
         city: data.city,
         state: new Types.ObjectId(data.state) || null,
         phoneNumber1: data.phoneNumber,
-        sponsor1: data.petitioner1,
-        sponsor2: data.petitioner2,
-        sponsor3: data.petitioner3,
-        birthDate: data.birthdate ? new Date(data.birthdate) : null,
-        initiationDate: data.initiationDate
-          ? new Date(data.initiationDate)
-          : null,
-        queenOfTheSouth: data.queenOfTheSouth
-          ? new Date(data.queenOfTheSouth)
-          : null,
-        amaranthDate: data.amarant ? new Date(data.amarant) : null,
-        memberRank: data.memberRank || null,
-        petitionDate: data.petitionDate ? new Date(data.petitionDate) : null,
-        petitionReceivedDate: data.petitionReceived
-          ? new Date(data.petitionReceived)
-          : null,
-        demitInDate: data.demitIn ? new Date(data.demitIn) : null,
-        demitOutDate: data.demitOut ? new Date(data.demitOut) : null,
-        investigationDate: data.investigationDate
-          ? new Date(data.investigationDate)
-          : null,
-        investigationAcceptOrRejectDate: data.investigationAcceptReject
-          ? new Date(data.investigationAcceptReject)
-          : null,
-        droppedDate: data.droppedDate ? new Date(data.droppedDate) : null,
         emergencyContact: data.emergencyContact,
-        secretaryNotes: data.secretaryNotes,
-        dateOfDeath: data.dateOfDeath ? new Date(data.dateOfDeath) : null,
-        actualDateOfDeath: data.actualDateOfDeath
-          ? new Date(data.actualDateOfDeath)
-          : null,
         emergencyContactPhone: data.emergencyContactPhone,
-        password: data.password,
-        dropReason: new Types.ObjectId(data.dropReason) || null,
-        expelReason: new Types.ObjectId(data.suspensionExpelledReason) || null,
-        expelDate: data.suspensionExpelledDate
-          ? new Date(data.suspensionExpelledDate)
-          : null,
-        dropDate: data.droppedDate ? new Date(data.droppedDate) : null,
-        deathDate: data.dateOfDeath ? new Date(data.dateOfDeath) : null,
-        actualDeathDate: data.actualDateOfDeath
-          ? new Date(data.actualDateOfDeath)
-          : null,
-        deathPlace: data.placeOfDeath,
-        enlightenDate: data.enlightenedDate
-          ? new Date(data.enlightenedDate)
-          : null,
-        queenOfSouthDate: data.queenOfTheSouth
-          ? new Date(data.queenOfTheSouth)
-          : null,
-        chapterOffice: new Types.ObjectId(data.chapterOffice) || null,
-        grandOffice: new Types.ObjectId(data.grandChapterOffice) || null,
-        rank: new Types.ObjectId(data.memberRank) || null,
-        reinstatedDate: data.reinstatedDate
-          ? new Date(data.reinstatedDate)
-          : null,
-      },
-      {
-        new: true,
       }
     );
 
     if (!member) {
-      shouldRedirect = true;
       return {
         message: "Member not found",
       };
@@ -349,12 +391,17 @@ export const editMember = async (_prevState: any, formData: FormData) => {
     revalidatePath("/chapter/members");
   } catch (error) {
     console.error(error);
-    shouldRedirect = true;
     return {
       message: "Error Connecting to DB",
     };
   } finally {
-    if (shouldRedirect) redirect("/chapter/members");
+    if (shouldRedirect) {
+      if (checkRole(["member", "secretary"])) {
+        redirect("/chapter/members");
+      } else {
+        redirect(`/chapter/${data.chapterId}/members`);
+      }
+    }
   }
 };
 

@@ -36,6 +36,7 @@ import RemoveMemberButton from "./RemoveMemberButton";
 import { RankDocument } from "@/models/rank";
 import { StatusDocument } from "@/models/status";
 import { Roles } from "@/types/globals";
+import { useCheckRole } from "@/hooks/useCheckRole";
 
 type Props = {
   members: MemberDocument[];
@@ -51,13 +52,12 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
   };
 
   const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as Roles | null;
+  const checkRoleClient = useCheckRole();
 
   const allowedActions = (member: MemberDocument) => {
     if (
-      (userRole === "member" && user?.id === member.userId) ||
-      userRole === "secretary" ||
-      userRole === "grand-administrator"
+      (checkRoleClient("member") && user?.id === member.userId) ||
+      checkRoleClient(["secretary", "grand-administrator"])
     ) {
       return true;
     }
@@ -137,14 +137,16 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                         Dues
                       </Button>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <RemoveMemberButton
-                        memberId={member.userId}
-                        removeMemberHandler={removeMemberHandler}
-                      >
-                        {userRole === "member" ? "Leave" : "Remove"}
-                      </RemoveMemberButton>
-                    </TableCell>
+                    {checkRoleClient("grand-administrator") ? (
+                      <TableCell className="hidden lg:table-cell">
+                        <RemoveMemberButton
+                          memberId={member.userId}
+                          removeMemberHandler={removeMemberHandler}
+                        >
+                          Remove
+                        </RemoveMemberButton>
+                      </TableCell>
+                    ) : null}
                   </>
                 ) : null}
                 <TableCell className="table-cell lg:hidden">
@@ -174,13 +176,15 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                         <DropdownMenuItem className="justify-center">
                           Dues
                         </DropdownMenuItem>
-                        <RemoveMemberButton
-                          memberId={member.userId}
-                          removeMemberHandler={removeMemberHandler}
-                          className="p-1 !h-fit"
-                        >
-                          {userRole === "member" ? "Leave" : "Remove"}
-                        </RemoveMemberButton>
+                        {checkRoleClient("grand-administrator") ? (
+                          <RemoveMemberButton
+                            memberId={member.userId}
+                            removeMemberHandler={removeMemberHandler}
+                            className="p-1 !h-fit"
+                          >
+                            Remove
+                          </RemoveMemberButton>
+                        ) : null}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : null}
