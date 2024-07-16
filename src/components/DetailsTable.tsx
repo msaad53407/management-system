@@ -5,13 +5,7 @@ import { MoreHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,8 +29,17 @@ import { capitalize } from "@/utils";
 import RemoveMemberButton from "./RemoveMemberButton";
 import { RankDocument } from "@/models/rank";
 import { StatusDocument } from "@/models/status";
-import { Roles } from "@/types/globals";
 import { useCheckRole } from "@/hooks/useCheckRole";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 
 type Props = {
   members: MemberDocument[];
@@ -45,7 +48,6 @@ type Props = {
 };
 
 export default function DetailsTable({ members, ranks, statuses }: Props) {
-  //TODO Convert it into a server component and replace the event handler with a form and replace useUser hook with server side user fetching capability
   const removeMemberHandler = async (memberId: string) => {
     const { message } = await removeMember(memberId);
     alert(message);
@@ -139,12 +141,10 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                     </TableCell>
                     {checkRoleClient("grand-administrator") ? (
                       <TableCell className="hidden lg:table-cell">
-                        <RemoveMemberButton
-                          memberId={member.userId}
+                        <MemberRemoveAlert
+                          member={member}
                           removeMemberHandler={removeMemberHandler}
-                        >
-                          Remove
-                        </RemoveMemberButton>
+                        />
                       </TableCell>
                     ) : null}
                   </>
@@ -177,13 +177,10 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                           Dues
                         </DropdownMenuItem>
                         {checkRoleClient("grand-administrator") ? (
-                          <RemoveMemberButton
-                            memberId={member.userId}
+                          <MemberRemoveAlert
+                            member={member}
                             removeMemberHandler={removeMemberHandler}
-                            className="p-1 !h-fit"
-                          >
-                            Remove
-                          </RemoveMemberButton>
+                          />
                         ) : null}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -197,3 +194,41 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
     </Card>
   );
 }
+
+const MemberRemoveAlert = ({
+  member,
+  removeMemberHandler,
+}: {
+  member: MemberDocument;
+  removeMemberHandler: (memberId: string) => Promise<void>;
+}) => {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive" className={"w-full"}>
+          Remove
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will <strong>permanently</strong>{" "}
+            remove this Member from this Chapter and also{" "}
+            <strong>remove all user data</strong>.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <RemoveMemberButton
+            memberId={member.userId}
+            removeMemberHandler={removeMemberHandler}
+            className="w-fit"
+          >
+            Remove
+          </RemoveMemberButton>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
