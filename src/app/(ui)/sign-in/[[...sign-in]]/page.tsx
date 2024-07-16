@@ -1,4 +1,9 @@
 import { SignIn as ClerkSignIn } from "@clerk/nextjs";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In | Management System",
+};
 
 export default function SignIn() {
   return (

@@ -8,6 +8,11 @@ import AddMemberForm from "./components/AddMemberForm";
 import { State, StateDocument } from "@/models/state";
 import { Status, StatusDocument } from "@/models/status";
 import { connectDB } from "@/lib/db";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Add Member | Management System",
+};
 
 const AddMember = async ({
   searchParams,

@@ -8,6 +8,11 @@ import { capitalize } from "@/utils";
 import { connectDB } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Chapters | Management System",
+};
 
 const Chapter = async () => {
   const { userId } = auth();
@@ -128,7 +133,8 @@ const Chapter = async () => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-slate-600 text-lg">
-                  Total Chapters {chapters.length}
+                  Total Chapters{" "}
+                  <span className="text-pink-600">{chapters.length}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -139,7 +145,7 @@ const Chapter = async () => {
                       key={chapter._id.toHexString()}
                       className="w-full"
                     >
-                      <h2 className="text-lg font-semibold text-slate-600">
+                      <h2 className="text-md font-semibold text-slate-600">
                         {chapter.name}
                       </h2>
                     </Link>

@@ -15,6 +15,11 @@ import { RankDocument } from "@/models/rank";
 import { ReasonDocument } from "@/models/reason";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Edit Member | Management System",
+};
 
 type AggregationResult = {
   _id?: mongoose.Types.ObjectId;
@@ -244,7 +249,6 @@ const EditMember = async ({
         </Card>
       </section>
     );
-
   } catch (error) {
     console.error(error);
     return (

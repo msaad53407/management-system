@@ -5,9 +5,14 @@ import { checkRole } from "@/lib/role";
 import { MemberDocument } from "@/models/member";
 import { Rank } from "@/models/rank";
 import { Status } from "@/models/status";
+import { Metadata } from "next";
 import Link from "next/link";
 import { redirect, RedirectType } from "next/navigation";
 import React from "react";
+
+export const metadata: Metadata = {
+  title: "Chapter Members | Management System",
+};
 
 const ChapterMembers = async () => {
   if (checkRole(["grand-administrator", "grand-officer", "district-deputy"])) {

@@ -4,8 +4,8 @@ import {
   Banknote,
   Download,
   HomeIcon,
+  Landmark,
   MessageSquareIcon,
-  Settings,
   StickyNote,
   UsersRound,
 } from "lucide-react";
@@ -53,11 +53,17 @@ async function Sidebar() {
           roles: ["member", "secretary", "worthy-matron"],
         },
         {
-          title: "Chapter Roaster",
+          title: "Chapter Roster",
           href: "/chapter",
           Icon: <UsersRound />,
           roles: ["district-deputy", "grand-officer", "grand-administrator"],
         },
+        {
+          title: "District Roster",
+          href: "/district",
+          Icon: <Landmark />,
+          roles: ["grand-officer", "grand-administrator"],
+        }
       ],
       roles: [
         "secretary",

@@ -9,9 +9,14 @@ import { Rank } from "@/models/rank";
 import { Status } from "@/models/status";
 import { auth } from "@clerk/nextjs/server";
 import { Types } from "mongoose";
+import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import React from "react";
+
+export const metadata: Metadata = {
+  title: "Chapter Members | Management System",
+};
 
 const ChapterMembers = async ({
   params,
