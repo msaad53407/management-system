@@ -6,7 +6,7 @@ import { auth, clerkClient, User } from "@clerk/nextjs/server";
 import { Member, MemberDocument } from "@/models/member";
 import { checkRole } from "@/lib/role";
 import { isAuthenticated } from "@/lib/authorization";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { addMemberSchema, editFormSchema } from "@/lib/zod/member";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
@@ -155,6 +155,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
   if (!checkRole(["secretary", "grand-administrator"])) {
     redirect("/chapter/members");
   }
+  const { userId } = auth();
   const rawData = Object.fromEntries(formData);
 
   const { success, data, error } = addMemberSchema.safeParse(rawData);
@@ -197,6 +198,15 @@ export const addMember = async (_prevState: any, formData: FormData) => {
     if (!user) {
       return { message: "User not found" };
     }
+    let chapter;
+    if (!data.chapterId) {
+      if (checkRole("grand-administrator")) {
+        return {
+          message: "Please provide Chapter Id",
+        };
+      }
+      chapter = await Chapter.findOne({ secretaryId: userId });
+    }
 
     const member = await Member.create({
       userId: user.id,
@@ -205,7 +215,9 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       password: hashedPassword,
       email: data.email,
       photo: user.imageUrl,
-      chapterId: new Types.ObjectId(data.chapterId),
+      chapterId: data.chapterId
+        ? new Types.ObjectId(data.chapterId)
+        : chapter?._id,
       role: (user.publicMetadata?.role as string) || null,
       zipCode: data.zipCode,
       address1: data.address,
