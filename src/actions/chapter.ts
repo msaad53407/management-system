@@ -112,12 +112,7 @@ export const removeMember = async (
     };
   }
 
-  const { userId } = auth();
-
-  if (
-    !memberId ||
-    (!checkRole(["secretary", "grand-administrator"]) && memberId !== userId)
-  ) {
+  if (!checkRole("grand-administrator")) {
     return {
       data: null,
       message: "Unauthorized",
@@ -126,6 +121,13 @@ export const removeMember = async (
 
   try {
     await connectDB();
+    const deletedUser = await clerkClient().users.deleteUser(memberId);
+    if (!deletedUser) {
+      return {
+        data: null,
+        message: "Member not found",
+      };
+    }
     const member = await Member.findOneAndDelete({ userId: memberId });
     if (!member) {
       return {
@@ -133,8 +135,7 @@ export const removeMember = async (
         message: "Member not found",
       };
     }
-    revalidatePath("/chapter/members");
-    revalidatePath("/chapter/[chapterId]/members");
+    revalidatePath(`/chapter/${member.chapterId}/members`);
     return {
       data: JSON.parse(JSON.stringify(member)),
       message: "Member removed successfully",

@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import { Button } from "./ui/button";
 import LoadingSpinner from "./LoadingSpinner";
 import { cn } from "@/utils";
@@ -14,23 +13,27 @@ const RemoveMemberButton = ({
 }: {
   memberId: string;
   children: React.ReactNode;
-  removeMemberHandler: (memberId: string) => void;
+  removeMemberHandler: (memberId: string) => Promise<void>;
   className?: string;
 }) => {
-  const { pending } = useFormStatus();
-
+  const [isPending, setIsPending] = useState(false);
+  console.log(isPending);
   return (
     <Button
       variant="destructive"
-      disabled={pending}
+      disabled={isPending}
       className={cn(
         "w-full",
         className,
-        pending && "opacity-50 cursor-not-allowed"
+        isPending && "opacity-50 cursor-not-allowed"
       )}
-      onClick={async () => removeMemberHandler(memberId)}
+      onClick={async () => {
+        setIsPending(true);
+        await removeMemberHandler(memberId);
+        setIsPending(false);
+      }}
     >
-      {!pending ? (
+      {!isPending ? (
         children
       ) : (
         <LoadingSpinner
