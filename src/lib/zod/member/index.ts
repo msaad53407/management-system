@@ -228,3 +228,52 @@ export const editFormSchema = (role: Roles) =>
           .min(1, "Secretary notes is required")
       : z.string().optional(),
   });
+
+export const addDistrictSchema = z.object({
+  name: z
+    .string({
+      required_error: "Name is required",
+    })
+    .min(1, "Name is required"),
+  districtCharterDate: z
+    .string({
+      required_error: "District charter date is required",
+    })
+    .min(1, "District charter date should be in the future"),
+  districtMeet1: z
+    .string({
+      required_error: "District meet 1 is required",
+    })
+    .min(1, "District meet 1 is required"),
+  districtMeet2: z
+    .string({
+      required_error: "District meet 2 is required",
+    })
+    .min(1, "District meet 2 is required"),
+  firstName: z
+    .string({
+      required_error: "First name is required",
+    })
+    .min(1, "First name is required"),
+  lastName: z
+    .string({
+      required_error: "Last name is required",
+    })
+    .min(1, "Last name is required"),
+  username: z
+    .string({
+      required_error: "Username is required",
+    })
+    .min(1, "Username is required"),
+  email: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email("Email is invalid")
+    .min(1, "Email is required"),
+  password: z
+    .string({
+      required_error: "Password is required",
+    })
+    .min(1, "Password is required"),
+});

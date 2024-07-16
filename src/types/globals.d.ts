@@ -19,6 +19,10 @@ export type NavLink = {
   roles?: Roles[];
 };
 
+export type FormMessage = {
+  [key: string]: string[] | undefined;
+}
+
 declare global {
   interface CustomJwtSessionClaims {
     metadata: {
