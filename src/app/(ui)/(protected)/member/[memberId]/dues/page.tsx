@@ -1,10 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { connectDB } from "@/lib/db";
 import { Due } from "@/models/dues";
 import { Member } from "@/models/member";
 import { Types } from "mongoose";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
 import AddDuesForm from "./components/AddDuesForm";
@@ -112,6 +110,7 @@ const MemberDuesPage = async ({ params: { memberId } }: Props) => {
                 _id: 1,
                 memberId: 1,
                 amount: 1,
+                totalDues: 1,
                 dueDate: 1,
                 paymentStatus: 1,
               },
@@ -144,6 +143,7 @@ const MemberDuesPage = async ({ params: { memberId } }: Props) => {
         _id: newDue._id,
         memberId: newDue.memberId,
         amount: newDue.amount,
+        totalDues: newDue.totalDues,
         dueDate: newDue.dueDate,
         paymentStatus: newDue.paymentStatus,
       });

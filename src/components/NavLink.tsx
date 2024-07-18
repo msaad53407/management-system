@@ -14,8 +14,7 @@ interface Props {
 
 function NavLink({ href, title, Icon, className }: Props) {
   const pathname = usePathname();
-  // console.log(pathname.split("/")[0], pathname.split("/"));
-  const isActive = `/${pathname.split("/")[1]}` === href;
+  const isActive = pathname === href;
   return (
     <Link
       href={href}

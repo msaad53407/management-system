@@ -4,6 +4,7 @@ export interface DueDocument extends Document {
   _id: Types.ObjectId;
   memberId: Types.ObjectId;
   amount: number;
+  totalDues: number;
   dueDate: Date;
   paymentStatus: "unpaid" | "paid" | "overdue";
   createdAt?: Date;
@@ -18,6 +19,10 @@ const duesSchema = new mongoose.Schema(
       required: true,
     },
     amount: {
+      type: Number,
+      required: true,
+    },
+    totalDues: {
       type: Number,
       required: true,
     },

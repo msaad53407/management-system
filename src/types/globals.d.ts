@@ -28,6 +28,7 @@ export type MonthlyDue = {
   _id: Types.ObjectId;
   memberId: Types.ObjectId;
   amount: number;
+  totalDues: number;
   dueDate: Date;
   paymentStatus: "unpaid" | "paid" | "overdue";
 };

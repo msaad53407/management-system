@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
 import { updateDuesSchema } from "@/lib/zod/member";
 import { Due } from "@/models/dues";
+import { Member } from "@/models/member";
 import { redirect } from "next/navigation";
 
 export async function updateDues(_prevState: any, formData: FormData) {
@@ -21,12 +22,29 @@ export async function updateDues(_prevState: any, formData: FormData) {
 
     await connectDB();
 
-    const { memberId, amount, dueDate, paymentStatus } = data;
+    const { memberId, amount, dueDate, paymentStatus, totalDues } = data;
 
+    const extraDues =
+      Number(amount) > Number(totalDues)
+        ? Number(amount) - Number(totalDues)
+        : 0;
+
+    if (!!extraDues) {
+      const updatedMember = await Member.findByIdAndUpdate(memberId, {
+        extraDues,
+      });
+
+      if (!updatedMember) {
+        return {
+          message: "Could not top up extra Dues above monthly Dues.",
+        };
+      }
+    }
     const updatedDue = await Due.findOneAndUpdate(
       { memberId },
       {
-        amount: Number(amount),
+        totalDues: Number(totalDues),
+        amount: !!extraDues ? Number(totalDues) : Number(amount),
         dueDate,
         paymentStatus,
       },
@@ -35,9 +53,10 @@ export async function updateDues(_prevState: any, formData: FormData) {
 
     if (!updatedDue) {
       return {
-        message: "Due not found",
+        message: "Dues not found",
       };
     }
+
     shouldRedirect = true;
   } catch (error) {
     console.error(error);

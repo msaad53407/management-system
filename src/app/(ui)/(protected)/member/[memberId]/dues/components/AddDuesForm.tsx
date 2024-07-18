@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { FormMessage, MonthlyDue } from "@/types/globals";
 import React from "react";
 import { useFormState } from "react-dom";
@@ -23,10 +22,16 @@ type Props = {
 const AddDuesForm = ({ currentMonthDues }: Props) => {
   const fields = [
     {
-      label: "Amount",
+      label: "Amount Paid ($)",
       id: "amount",
       type: "number",
       defaultValue: currentMonthDues.amount,
+    },
+    {
+      label: "Total Dues ($)",
+      id: "totalDues",
+      type: "number",
+      defaultValue: currentMonthDues.totalDues,
     },
     {
       label: "Due Date",
@@ -64,7 +69,9 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
               ? ""
               : formState?.message?.memberId}
           </p>
-          <Label htmlFor="memberId">Member Id</Label>
+          <Label htmlFor="memberId" className="text-slate-600">
+            Member Id
+          </Label>
           <Input
             id="memberId"
             placeholder="Member Id"

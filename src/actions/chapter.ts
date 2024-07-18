@@ -13,8 +13,9 @@ import { Types } from "mongoose";
 import { Roles } from "@/types/globals";
 
 type GetDistrictParams =
-  | { secretaryId: string; chapterId?: never }
-  | { secretaryId?: never; chapterId: string };
+  | { secretaryId: string; chapterId?: never; matronId?: never }
+  | { secretaryId?: never; chapterId: string; matronId?: never }
+  | { secretaryId?: never; chapterId?: never; matronId: string };
 
 export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
   if (!(await isAuthenticated())) {

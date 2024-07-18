@@ -17,28 +17,39 @@ import { getDistrict } from "@/actions/district";
 import { DistrictDocument } from "@/models/district";
 import { ChapterDocument } from "@/models/chapter";
 import { getChapter } from "@/actions/chapter";
+import { checkRole } from "@/lib/role";
 
 async function Sidebar() {
   const role = auth().sessionClaims?.metadata?.role;
   const { userId } = auth();
   let district: DistrictDocument | null = null;
   let chapter: ChapterDocument | null = null;
-  if (role === "district-deputy") {
+  if (checkRole("district-deputy")) {
     const { data } = await getDistrict({
-      deputyId: userId as string,
+      deputyId: userId!,
     });
     if (data) {
       district = data;
     }
   }
 
-  if (role === "secretary") {
-    const { data } = await getChapter({
-      secretaryId: userId as string,
-    });
+  if (checkRole(["worthy-matron", "secretary"])) {
+    if (checkRole("worthy-matron")) {
+      const { data } = await getChapter({
+        matronId: userId!,
+      });
+      if (data) {
+        chapter = data;
+      }
+    }
 
-    if (data) {
-      chapter = data;
+    if (checkRole("secretary")) {
+      const { data } = await getChapter({
+        secretaryId: userId!,
+      });
+      if (data) {
+        chapter = data;
+      }
     }
   }
 
@@ -63,7 +74,7 @@ async function Sidebar() {
           href: "/district",
           Icon: <Landmark />,
           roles: ["grand-officer", "grand-administrator"],
-        }
+        },
       ],
       roles: [
         "secretary",
@@ -81,6 +92,25 @@ async function Sidebar() {
           title: "Finances",
           href: "/finances",
           Icon: <Banknote />,
+          roles: ["grand-administrator", "grand-officer"],
+        },
+        {
+          title: "Finances",
+          href: `/finances/member/${auth().userId}`,
+          Icon: <Banknote />,
+          roles: ["member"],
+        },
+        {
+          title: "Finances",
+          href: `/finances/chapter/${chapter?._id}`,
+          Icon: <Banknote />,
+          roles: ["secretary", "worthy-matron"],
+        },
+        {
+          title: "Finances",
+          href: `/finances/district/${district?._id}`,
+          Icon: <Banknote />,
+          roles: ["district-deputy"],
         },
       ],
       roles: [

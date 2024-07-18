@@ -289,6 +289,11 @@ export const updateDuesSchema = z.object({
       required_error: "Amount is required",
     })
     .min(1, "Amount is required"),
+  totalDues: z
+    .string({
+      required_error: "Total Dues are required",
+    })
+    .min(1, "Total Dues are required"),
   dueDate: z
     .string({
       required_error: "Due date is required",
