@@ -132,12 +132,14 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                       </Link>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <Button
-                        variant="destructive"
-                        className="w-full bg-blue-400 hover:bg-blue-300 text-white"
-                      >
-                        Dues
-                      </Button>
+                      <Link href={`/member/${member._id}/dues`}>
+                        <Button
+                          variant="destructive"
+                          className="w-full bg-blue-400 hover:bg-blue-300 text-white"
+                        >
+                          Dues
+                        </Button>
+                      </Link>
                     </TableCell>
                     {checkRoleClient("grand-administrator") ? (
                       <TableCell className="hidden lg:table-cell">
@@ -174,7 +176,7 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem className="justify-center">
-                          Dues
+                          <Link href={`/member/${member._id}/dues`}>Dues</Link>
                         </DropdownMenuItem>
                         {checkRoleClient("grand-administrator") ? (
                           <MemberRemoveAlert

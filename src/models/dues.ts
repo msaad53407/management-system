@@ -2,10 +2,10 @@ import mongoose, { Types, Document } from "mongoose";
 
 export interface DueDocument extends Document {
   _id: Types.ObjectId;
-  member_id: Types.ObjectId;
+  memberId: Types.ObjectId;
   amount: number;
   dueDate: Date;
-  paymentStatus: string;
+  paymentStatus: "unpaid" | "paid" | "overdue";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -27,6 +27,8 @@ const duesSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
+      enum: ["unpaid", "paid", "overdue"],
+      default: "unpaid",
       required: true,
     },
   },

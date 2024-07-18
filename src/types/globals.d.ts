@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export {};
 
 export type Roles =
@@ -21,7 +23,14 @@ export type NavLink = {
 
 export type FormMessage = {
   [key: string]: string[] | undefined;
-}
+};
+export type MonthlyDue = {
+  _id: Types.ObjectId;
+  memberId: Types.ObjectId;
+  amount: number;
+  dueDate: Date;
+  paymentStatus: "unpaid" | "paid" | "overdue";
+};
 
 declare global {
   interface CustomJwtSessionClaims {

@@ -277,3 +277,24 @@ export const addDistrictSchema = z.object({
     })
     .min(1, "Password is required"),
 });
+
+export const updateDuesSchema = z.object({
+  memberId: z
+    .string({
+      required_error: "Member ID is required",
+    })
+    .min(1, "Member ID is required"),
+  amount: z
+    .string({
+      required_error: "Amount is required",
+    })
+    .min(1, "Amount is required"),
+  dueDate: z
+    .string({
+      required_error: "Due date is required",
+    })
+    .min(1, "Due date is required"),
+  paymentStatus: z.enum(["unpaid", "paid", "overdue"], {
+    required_error: "Payment status is required",
+  }),
+});
