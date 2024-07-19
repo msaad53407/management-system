@@ -31,11 +31,12 @@ type Props = {
         chapter?: never;
         member: MemberDocument;
       };
+  date: { month?: number; year?: number };
 };
 
-const FinancesDetails = async ({ finances }: Props) => {
+const FinancesDetails = async ({ finances, date }: Props) => {
   if (finances.type === "all") {
-    const result = await getDistrictFinances(finances.district._id);
+    const result = await getDistrictFinances(finances.district._id, date);
     if (!result.data) {
       return (
         <TableRow className="text-red-500">Error: {result.message}</TableRow>
@@ -59,7 +60,7 @@ const FinancesDetails = async ({ finances }: Props) => {
   }
 
   if (finances.type === "district") {
-    const result = await getChapterFinances(finances.chapter._id);
+    const result = await getChapterFinances(finances.chapter._id, date);
     if (!result.data) {
       return (
         <TableRow className="text-red-500">Error: {result.message}</TableRow>
@@ -82,7 +83,7 @@ const FinancesDetails = async ({ finances }: Props) => {
     );
   }
 
-  const result = await getMemberFinances(finances.member._id);
+  const result = await getMemberFinances(finances.member._id, date);
   if (!result.data) {
     return (
       <TableRow className="text-red-500">Error: {result.message}</TableRow>

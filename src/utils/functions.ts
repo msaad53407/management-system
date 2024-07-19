@@ -20,6 +20,7 @@ type FinancesAggregationResult =
       middleName: string;
       email: string;
       phoneNumber1: string;
+      dueDate: string;
       totalDues: number;
       paidDues: number;
     }
@@ -27,13 +28,13 @@ type FinancesAggregationResult =
 
 export async function getDistrictFinances(
   districtId: Types.ObjectId,
-  month?: number
+  date: {
+    month?: number;
+    year?: number;
+  }
 ) {
-  const currentMonth = new Date().getMonth();
-  const isCurrentMonth = month === currentMonth;
   try {
     await connectDB();
-    // console.log(districtId);
     const districtFinances = await District.aggregate([
       {
         $match: {
@@ -61,13 +62,26 @@ export async function getDistrictFinances(
                           $expr: {
                             $eq: [
                               { $month: "$dueDate" },
-                              { $month: new Date() },
+                              {
+                                $month: new Date(
+                                  date.year || new Date().getFullYear(),
+                                  date.month || new Date().getMonth() + 1
+                                ),
+                              },
                             ],
                           },
                         },
                         {
                           $expr: {
-                            $eq: [{ $year: "$dueDate" }, { $year: new Date() }],
+                            $eq: [
+                              { $year: "$dueDate" },
+                              {
+                                $year: new Date(
+                                  date.year || new Date().getFullYear(),
+                                  date.month || new Date().getMonth() + 1
+                                ),
+                              },
+                            ],
                           },
                         },
                       ],
@@ -171,7 +185,13 @@ export async function getAllDistricts() {
   }
 }
 
-export async function getChapterFinances(chapterId: Types.ObjectId) {
+export async function getChapterFinances(
+  chapterId: Types.ObjectId,
+  date: {
+    month?: number;
+    year?: number;
+  }
+) {
   try {
     await connectDB();
     const chapterFinances = await Chapter.aggregate([
@@ -201,13 +221,26 @@ export async function getChapterFinances(chapterId: Types.ObjectId) {
                           $expr: {
                             $eq: [
                               { $month: "$dueDate" },
-                              { $month: new Date() },
+                              {
+                                $month: new Date(
+                                  date.year || new Date().getFullYear(),
+                                  date.month || new Date().getMonth() + 1
+                                ),
+                              },
                             ],
                           },
                         },
                         {
                           $expr: {
-                            $eq: [{ $year: "$dueDate" }, { $year: new Date() }],
+                            $eq: [
+                              { $year: "$dueDate" },
+                              {
+                                $year: new Date(
+                                  date.year || new Date().getFullYear(),
+                                  date.month || new Date().getMonth() + 1
+                                ),
+                              },
+                            ],
                           },
                         },
                       ],
@@ -297,13 +330,19 @@ export async function getAllChaptersByDistrict(districtId: Types.ObjectId) {
   }
 }
 
-export async function getMemberFinances(memberId: Types.ObjectId) {
+export async function getMemberFinances(
+  memberId: Types.ObjectId,
+  date: {
+    month?: number;
+    year?: number;
+  }
+) {
   try {
     await connectDB();
     const memberFinances = await Member.aggregate([
       {
         $match: {
-          _id: memberId,
+          _id: new Types.ObjectId(memberId),
         },
       },
       {
@@ -318,12 +357,28 @@ export async function getMemberFinances(memberId: Types.ObjectId) {
                 $and: [
                   {
                     $expr: {
-                      $eq: [{ $month: "$dueDate" }, { $month: new Date() }],
+                      $eq: [
+                        { $month: "$dueDate" },
+                        {
+                          $month: new Date(
+                            date.year || new Date().getFullYear(),
+                            date.month || new Date().getMonth() + 1
+                          ),
+                        },
+                      ],
                     },
                   },
                   {
                     $expr: {
-                      $eq: [{ $year: "$dueDate" }, { $year: new Date() }],
+                      $eq: [
+                        { $year: "$dueDate" },
+                        {
+                          $year: new Date(
+                            date.year || new Date().getFullYear(),
+                            date.month || new Date().getMonth() + 1
+                          ),
+                        },
+                      ],
                     },
                   },
                 ],
@@ -333,6 +388,7 @@ export async function getMemberFinances(memberId: Types.ObjectId) {
               $project: {
                 _id: 1,
                 memberId: 1,
+                dueDate: 1,
                 amount: 1,
                 totalDues: 1,
               },
@@ -346,6 +402,9 @@ export async function getMemberFinances(memberId: Types.ObjectId) {
           paidDues: {
             $sum: "$currentMonthDues.amount",
           },
+          dueDate: {
+            $first: "$currentMonthDues.dueDate",
+          },
         },
       },
       {
@@ -355,16 +414,15 @@ export async function getMemberFinances(memberId: Types.ObjectId) {
           middleName: 1,
           email: 1,
           phoneNumber1: 1,
+          dueDate: 1,
           totalDues: 1,
           paidDues: 1,
         },
       },
     ]);
-
     const result = JSON.parse(JSON.stringify(memberFinances))?.at(
       0
     ) as FinancesAggregationResult;
-
     if (!result) {
       return { data: null, message: "No member finances found" };
     }

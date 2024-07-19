@@ -19,11 +19,41 @@ export function formatDate(input?: string) {
   });
 }
 
-export function getMonth(input?: Date) {
+export function getMonth(input?: Date | string) {
   if (!input) return input;
   return new Date(input).toLocaleDateString("en-US", {
     month: "long",
   });
+}
+
+export function getMonthName(monthIndex?: string) {
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  if (monthIndex === undefined) {
+    const currentMonthIndex = new Date().getMonth();
+    return monthNames[currentMonthIndex];
+  }
+
+  const index = parseInt(monthIndex, 10) - 1;
+
+  if (isNaN(index) || index < 0 || index > 11) {
+    throw new Error("Invalid month index");
+  }
+
+  return monthNames[index];
 }
 
 export function getYear(input?: Date) {

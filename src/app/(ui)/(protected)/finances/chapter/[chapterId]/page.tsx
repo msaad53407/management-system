@@ -4,11 +4,18 @@ import { Types } from "mongoose";
 import { notFound } from "next/navigation";
 import React from "react";
 
+type Props = {
+  params: { chapterId?: Types.ObjectId };
+  searchParams: {
+    month?: string;
+    year?: string;
+  };
+};
+
 const ChapterFinances = ({
   params: { chapterId },
-}: {
-  params: { chapterId?: Types.ObjectId };
-}) => {
+  searchParams: { month, year },
+}: Props) => {
   if (!chapterId) {
     return notFound();
   }
@@ -28,7 +35,10 @@ const ChapterFinances = ({
           Chapter Finances
         </h3>
       </div>
-      <FinancesDetailsTable finances={{ type: "chapter", chapterId }} />
+      <FinancesDetailsTable
+        finances={{ type: "chapter", chapterId }}
+        date={{ month: Number(month), year: Number(year) }}
+      />
     </section>
   );
 };

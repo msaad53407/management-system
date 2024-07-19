@@ -8,7 +8,8 @@ export default async function Home() {
     redirect("/sign-in");
   }
 
-  const user = await clerkClient.users.getUser(userId);
+  const user = await clerkClient().users.getUser(userId);
+  console.log(new Date(new Date().getFullYear(), new Date().getMonth()));
 
   return (
     <div className="w-full flex items-center justify-center min-h-screen overflow-y-auto">

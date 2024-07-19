@@ -6,8 +6,10 @@ import React from "react";
 
 const DistrictFinances = ({
   params: { districtId },
+  searchParams: { month, year },
 }: {
   params: { districtId?: Types.ObjectId };
+  searchParams: { month?: string; year?: string };
 }) => {
   if (!districtId) {
     return notFound();
@@ -28,7 +30,10 @@ const DistrictFinances = ({
           District Finances
         </h3>
       </div>
-      <FinancesDetailsTable finances={{ type: "district", districtId }} />
+      <FinancesDetailsTable
+        finances={{ type: "district", districtId }}
+        date={{ month: Number(month), year: Number(year) }}
+      />
     </section>
   );
 };

@@ -303,3 +303,12 @@ export const updateDuesSchema = z.object({
     required_error: "Payment status is required",
   }),
 });
+
+export const dateFormSchema = z.object({
+  month: z
+    .string({ required_error: "Month is required" })
+    .min(1, "Month is required"),
+  year: z
+    .string({ required_error: "Year is required" })
+    .min(1, "Year is required"),
+});
