@@ -142,6 +142,7 @@ export async function getDistrictFinances(
     const result = JSON.parse(JSON.stringify(districtFinances))?.at(
       0
     ) as AggregationResult;
+    console.log(result);
 
     if (!result) {
       return { data: null, message: "No district finances found" };
@@ -298,6 +299,7 @@ export async function getChapterFinances(
     const result = JSON.parse(JSON.stringify(chapterFinances))?.at(
       0
     ) as AggregationResult;
+    console.log(result);
 
     if (!result) {
       return { data: null, message: "No chapter finances found" };
@@ -423,6 +425,9 @@ export async function getMemberFinances(
     const result = JSON.parse(JSON.stringify(memberFinances))?.at(
       0
     ) as FinancesAggregationResult;
+
+    console.log(result);
+
     if (!result) {
       return { data: null, message: "No member finances found" };
     }
