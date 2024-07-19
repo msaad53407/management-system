@@ -1,29 +1,48 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { BellIcon, SearchIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { capitalize } from "@/utils";
+import { Types } from "mongoose";
 
 const Header = () => {
   const pathname = usePathname();
+  const [isObjectId, setIsObjectId] = useState(false);
   const pathLength = pathname.split("/").filter((path) => path).length;
-  console.log(pathname.split("/").filter((path) => !path))
+
+  useEffect(() => {
+    try {
+      const lastPath = pathname.split("/").at(-1);
+      const objectId = new Types.ObjectId(lastPath);
+      if (Types.ObjectId.isValid(objectId)) {
+        setIsObjectId(true);
+      } else {
+        setIsObjectId(false);
+      }
+    } catch (error) {
+      setIsObjectId(false);
+    }
+  }, [pathname]);
 
   /**
    * Generating Path from the pathname
    * 1. If pathname contains less than 2 paths, it is rendered as it is.
    * 2. Otherwise, we only render last 2 paths.
+   * 3. If last path has an id, we render second last path.
    */
+
   const path =
     pathLength < 3
       ? pathname
           .split("/")
           .map((path) => capitalize(path))
           .join("/")
-      : `/.../${pathname.split("/").slice(-1).join("/")}`;
+      : `/.../${
+          isObjectId ? pathname.split("/").at(-2) : pathname.split("/").at(-1)
+        }`;
 
   return (
     <header className="flex items-center h-fit p-4 border-b shrink-0">

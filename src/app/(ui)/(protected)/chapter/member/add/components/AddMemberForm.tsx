@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
+import { FormMessage } from "@/types/globals";
 import React from "react";
 import { useFormState } from "react-dom";
 
@@ -92,10 +93,6 @@ const detailsFields = [
     type: "select",
   },
 ];
-
-interface FormMessage {
-  [key: string]: string[] | undefined;
-}
 
 interface Props {
   dropdownOptions: {

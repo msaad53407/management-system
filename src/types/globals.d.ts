@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export {};
 
 export type Roles =
@@ -17,6 +19,18 @@ export type NavLink = {
     roles?: Roles[];
   }[];
   roles?: Roles[];
+};
+
+export type FormMessage = {
+  [key: string]: string[] | undefined;
+};
+export type MonthlyDue = {
+  _id: Types.ObjectId;
+  memberId: Types.ObjectId;
+  amount: number;
+  totalDues: number;
+  dueDate: Date;
+  paymentStatus: "unpaid" | "paid" | "overdue";
 };
 
 declare global {

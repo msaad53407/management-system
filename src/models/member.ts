@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { Document, Types } from "mongoose";
 
 export interface MemberDocument extends Document {
-  __id: Types.ObjectId;
+  _id: Types.ObjectId;
   userId: string;
   status?: Types.ObjectId;
   greeting?: "Sis." | "Bro.";
@@ -53,6 +53,7 @@ export interface MemberDocument extends Document {
   districtId?: Types.ObjectId;
   regionId?: Types.ObjectId;
   chapterId?: Types.ObjectId;
+  extraDues?: number;
   spouseName?: string;
   spousePhone?: string;
   emergencyContact?: string;
@@ -99,6 +100,10 @@ const memberSchema = new mongoose.Schema(
     middleName: {
       type: String,
       default: null,
+    },
+    extraDues: {
+      type: Number,
+      default: 0,
     },
     lastName: {
       type: String,

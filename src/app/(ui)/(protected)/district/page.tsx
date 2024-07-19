@@ -43,14 +43,14 @@ const DistrictPage = async () => {
               All Districts
             </h3>
             {checkRole(["grand-administrator"]) && (
-              // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
-              <Button
-                variant={"destructive"}
-                className="bg-purple-800 hover:bg-purple-700"
-              >
-                Add District
-              </Button>
-              // </Link>
+              <Link href={`/district/add`}>
+                <Button
+                  variant={"destructive"}
+                  className="bg-purple-800 hover:bg-purple-700"
+                >
+                  Add District
+                </Button>
+              </Link>
             )}
           </div>
           <div className="flex flex-col gap-4 w-full">
