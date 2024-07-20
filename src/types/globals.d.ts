@@ -33,6 +33,42 @@ export type MonthlyDue = {
   paymentStatus: "unpaid" | "paid" | "overdue";
 };
 
+export type GetResult<T> = Promise<
+  | {
+      data: null;
+      message: string;
+    }
+  | {
+      data: T;
+      message: string;
+    }
+>;
+
+export type AggregationResult =
+  | {
+      name: string;
+      members: FinancesAggregationResult[];
+      totalDues: number;
+      paidDues: number;
+    }
+  | undefined;
+
+export type FinancesAggregationResult = {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  email: string;
+  phoneNumber1: string;
+  dueDate: string;
+  totalDues: number;
+  paidDues: number;
+};
+
+export type BirthdaysInput = {
+  districtId?: Types.ObjectId;
+  chapterId?: Types.ObjectId;
+} | null;
+
 declare global {
   interface CustomJwtSessionClaims {
     metadata: {

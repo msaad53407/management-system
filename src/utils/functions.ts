@@ -4,27 +4,13 @@ import { Types } from "mongoose";
 import { District } from "@/models/district";
 import { Chapter } from "@/models/chapter";
 import { Member } from "@/models/member";
-
-type AggregationResult =
-  | {
-      name: string;
-      totalDues: number;
-      paidDues: number;
-    }
-  | undefined;
-
-type FinancesAggregationResult =
-  | {
-      firstName: string;
-      lastName: string;
-      middleName: string;
-      email: string;
-      phoneNumber1: string;
-      dueDate: string;
-      totalDues: number;
-      paidDues: number;
-    }
-  | undefined;
+import { Rank, RankDocument } from "@/models/rank";
+import { Status, StatusDocument } from "@/models/status";
+import {
+  AggregationResult,
+  BirthdaysInput,
+  FinancesAggregationResult,
+} from "@/types/globals";
 
 export async function getDistrictFinances(
   districtId: Types.ObjectId,
@@ -290,6 +276,7 @@ export async function getChapterFinances(
       {
         $project: {
           name: 1,
+          members: 1,
           totalDues: 1,
           paidDues: 1,
         },
@@ -433,6 +420,83 @@ export async function getMemberFinances(
     }
 
     return { data: result, message: "Member Finances fetched Successfully" };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getMembersBirthdays(Input: BirthdaysInput) {
+  try {
+    const members = await Member.aggregate([
+      {
+        $match: {
+          $or: [
+            {
+              $and: [
+                { districtId: Input?.districtId },
+                { chapterId: Input?.chapterId },
+              ],
+            },
+            {
+              $and: [
+                { districtId: Input?.districtId },
+                { chapterId: { $exists: false } },
+              ],
+            },
+            {
+              $and: [
+                { districtId: { $exists: false } },
+                { chapterId: Input?.chapterId },
+              ],
+            },
+            {
+              $and: [
+                { districtId: { $exists: false } },
+                { chapterId: { $exists: false } },
+              ],
+            },
+          ],
+        },
+      },
+    ]);
+  } catch (error) {}
+}
+
+export async function getAllRanks() {
+  try {
+    await connectDB();
+    const ranks = await Rank.find();
+    if (!ranks) {
+      return { data: null, message: "No ranks found" };
+    }
+    return {
+      data: JSON.parse(JSON.stringify(ranks)) as RankDocument[],
+      message: "Ranks fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getAllStatuses() {
+  try {
+    await connectDB();
+    const statuses = await Status.find();
+    if (!statuses) {
+      return { data: null, message: "No statuses found" };
+    }
+    return {
+      data: JSON.parse(JSON.stringify(statuses)) as StatusDocument[],
+      message: "Statuses fetched successfully",
+    };
   } catch (error) {
     console.error(error);
     return {

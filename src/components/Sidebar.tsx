@@ -129,6 +129,19 @@ async function Sidebar() {
           title: "Reports",
           href: "/reports",
           Icon: <StickyNote />,
+          roles: ["grand-officer", "grand-administrator"],
+        },
+        {
+          title: "Reports",
+          href: `/reports/chapter/${chapter?._id}`,
+          Icon: <StickyNote />,
+          roles: ["secretary", "worthy-matron", "member"],
+        },
+        {
+          title: "Reports",
+          href: `/reports/district/${district?._id}`,
+          Icon: <StickyNote />,
+          roles: ["district-deputy"],
         },
         {
           title: "Forms",
@@ -207,6 +220,7 @@ async function Sidebar() {
       {/*@ts-ignore */}
       <SignOutButton className="w-full flex items-center justify-center text-white bg-pink-600 font-medium text-sm rounded-lg py-3"
         redirectUrl="/sign-in"
+        z
       >
         Logout
       </SignOutButton>
