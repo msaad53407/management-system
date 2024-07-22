@@ -53,6 +53,17 @@ export type AggregationResult =
     }
   | undefined;
 
+export type MemberDropdownAggregationResult = {
+  _id?: mongoose.Types.ObjectId;
+  member?: MemberDocument;
+  allStates?: StateDocument[];
+  allStatuses?: StatusDocument[];
+  allChapterOffices?: ChapterOfficeDocument[];
+  allGrandOffices?: GrandOfficeDocument[];
+  allRanks?: RankDocument[];
+  allReasons?: ReasonDocument[];
+};
+
 export type BirthdayAggregationResult = {
   firstName: string;
   lastName: string;
@@ -63,6 +74,10 @@ export type BirthdayAggregationResult = {
 };
 
 export type FinancesAggregationResult = {
+  _id?: Types.ObjectId;
+  memberId?: Types.ObjectId;
+  amount?: number;
+  paymentStatus?: "unpaid" | "paid" | "overdue";
   firstName: string;
   lastName: string;
   middleName: string;

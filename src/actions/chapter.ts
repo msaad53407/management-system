@@ -458,7 +458,9 @@ export const getChapter = async (params: GetDistrictParams) => {
     }
 
     const chapter: ChapterDocument | null = JSON.parse(
-      JSON.stringify(await Chapter.findById(params.chapterId))
+      JSON.stringify(
+        await Chapter.findById(new Types.ObjectId(params.chapterId))
+      )
     );
 
     if (!chapter) {

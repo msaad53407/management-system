@@ -1,12 +1,12 @@
-import { getChapterMembers } from "@/actions/chapter";
+import { getChapter, getChapterMembers } from "@/actions/chapter";
+import { getDistrict } from "@/actions/district";
 import DetailsTable from "@/components/DetailsTable";
 import { Button } from "@/components/ui/button";
 import { checkRole } from "@/lib/role";
-import { Chapter } from "@/models/chapter";
-import { District } from "@/models/district";
 import { MemberDocument } from "@/models/member";
-import { Rank } from "@/models/rank";
-import { Status } from "@/models/status";
+import { RankDocument } from "@/models/rank";
+import { StatusDocument } from "@/models/status";
+import { getAllRanks, getAllStatuses } from "@/utils/functions";
 import { auth } from "@clerk/nextjs/server";
 import { Types } from "mongoose";
 import { Metadata } from "next";
@@ -19,11 +19,11 @@ export const metadata: Metadata = {
 };
 
 const ChapterMembers = async ({
-  params,
+  params: { chapterId },
 }: {
   params: { chapterId?: Types.ObjectId };
 }) => {
-  if (!params.chapterId) {
+  if (!chapterId) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
         <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
@@ -38,79 +38,103 @@ const ChapterMembers = async ({
     redirect("/chapter/members");
   }
 
-  try {
-    if (checkRole("district-deputy")) {
-      const district = await District.findOne({ deputyId: userId });
+  if (checkRole("district-deputy")) {
+    const { data: district } = await getDistrict({
+      deputyId: userId!,
+    });
 
-      if (!district) {
-        return (
-          <section className="flex flex-col gap-6 p-4 w-full">
-            <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-              You are not assigned to any District.
-            </h3>
-          </section>
-        );
-      }
-
-      const chapter = await Chapter.findById(params.chapterId);
-
-      if (chapter?.districtId?.toString() !== district._id.toString()) {
-        return (
-          <section className="flex flex-col gap-6 p-4 w-full">
-            <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-              This Chapter is not included in your District.
-            </h3>
-          </section>
-        );
-      }
-    }
-
-    const { data, message } = await getChapterMembers(params.chapterId);
-
-    const parsedData = JSON.parse(JSON.stringify(data));
-
-    const ranks = JSON.parse(JSON.stringify(await Rank.find({})));
-    const statuses = JSON.parse(JSON.stringify(await Status.find({})));
-    return (
-      <section className="flex flex-col gap-6 p-4 w-full">
-        <div className="flex items-center justify-between w-full">
-          <h3 className="text-xl font-semibold text-slate-600">
-            Member Roster
+    if (!district) {
+      return (
+        <section className="flex flex-col gap-6 p-4 w-full">
+          <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+            You are not assigned to any District.
           </h3>
-          {checkRole(["secretary", "grand-administrator"]) && (
-            <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
-              <Button
-                variant={"destructive"}
-                className="bg-purple-800 hover:bg-purple-700"
-              >
-                Add Member
-              </Button>
-            </Link>
-          )}
-        </div>
-        {parsedData ? (
-          <DetailsTable
-            members={parsedData}
-            ranks={ranks}
-            statuses={statuses}
-          />
-        ) : (
+        </section>
+      );
+    }
+    const { data: chapter, message } = await getChapter({
+      chapterId: chapterId.toString(),
+    });
+
+    if (!chapter) {
+      return (
+        <section className="flex flex-col gap-6 p-4 w-full">
           <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
             {message}
           </h3>
-        )}
-      </section>
-    );
-  } catch (error) {
-    console.error(error);
+        </section>
+      );
+    }
+
+    if (chapter.districtId?.toString() !== district._id.toString()) {
+      return (
+        <section className="flex flex-col gap-6 p-4 w-full">
+          <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+            This Chapter is not included in your District.
+          </h3>
+        </section>
+      );
+    }
+  }
+
+  const [
+    { data: members, message: membersMessage },
+    { data: ranks, message: ranksMessage },
+    { data: statuses, message: statusesMessage },
+  ] = await Promise.all([
+    getChapterMembers(chapterId),
+    getAllRanks(),
+    getAllStatuses(),
+  ]);
+
+  if (
+    !members ||
+    members.length === 0 ||
+    !ranks ||
+    ranks.length === 0 ||
+    !statuses ||
+    statuses.length === 0
+  ) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
         <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-          Something went wrong
+          {(!members || members.length === 0) && membersMessage}{" "}
+          {(!ranks || ranks.length === 0) && ranksMessage}{" "}
+          {(!statuses || statuses.length === 0) && statusesMessage}
         </h3>
       </section>
     );
   }
+
+  const parsedMembers = JSON.parse(JSON.stringify(members)) as MemberDocument[];
+
+  const parsedRanks = JSON.parse(JSON.stringify(ranks)) as RankDocument[];
+  const parsedStatuses = JSON.parse(
+    JSON.stringify(statuses)
+  ) as StatusDocument[];
+
+  return (
+    <section className="flex flex-col gap-6 p-4 w-full">
+      <div className="flex items-center justify-between w-full">
+        <h3 className="text-xl font-semibold text-slate-600">Member Roster</h3>
+        {checkRole(["secretary", "grand-administrator"]) && (
+          <Link href={`/chapter/member/add?chapterId=${chapterId}`}>
+            <Button
+              variant={"destructive"}
+              className="bg-purple-800 hover:bg-purple-700"
+            >
+              Add Member
+            </Button>
+          </Link>
+        )}
+      </div>
+      <DetailsTable
+        members={parsedMembers}
+        ranks={parsedRanks}
+        statuses={parsedStatuses}
+      />
+    </section>
+  );
 };
 
 export default ChapterMembers;

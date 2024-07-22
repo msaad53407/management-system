@@ -9,6 +9,7 @@ import { State, StateDocument } from "@/models/state";
 import { Status, StatusDocument } from "@/models/status";
 import { connectDB } from "@/lib/db";
 import { Metadata } from "next";
+import { getAllStates, getAllStatuses } from "@/utils/functions";
 
 export const metadata: Metadata = {
   title: "Add Member | Management System",
@@ -23,45 +24,21 @@ const AddMember = async ({
     redirect("/");
   }
 
-  let states: StateDocument[];
-  let statuses: StatusDocument[];
-  try {
-    await connectDB();
-    states = JSON.parse(JSON.stringify(await State.find({})));
-    statuses = JSON.parse(JSON.stringify(await Status.find({})));
-  } catch (error) {
-    console.error(error);
+  const [
+    { data: states, message: statesMessage },
+    { data: statuses, message: statusesMessage },
+  ] = await Promise.all([getAllStates(), getAllStatuses()]);
+
+  if (!states || states.length === 0 || !statuses || statuses.length === 0) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
-        <Card>
-          <CardHeader className="flex items-center justify-between w-full flex-row">
-            <h3 className="text-xl font-semibold text-slate-600">Add Member</h3>
-            <Link
-              href={
-                searchParams?.chapterId
-                  ? `/chapter/${searchParams.chapterId}/members`
-                  : "/chapter/members"
-              }
-            >
-              <Button
-                variant={"destructive"}
-                className="bg-purple-800 hover:bg-purple-700"
-              >
-                Back
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-600">Something went wrong</p>
-          </CardContent>
-        </Card>
+        <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+          {(!states || states.length === 0) && statesMessage}{" "}
+          {(!statuses || statuses.length === 0) && statusesMessage}
+        </h3>
       </section>
     );
   }
-  const dropdownOptions = {
-    state: states,
-    memberStatus: statuses,
-  };
 
   return (
     <section className="flex flex-col gap-6 p-4 w-full">
@@ -84,7 +61,13 @@ const AddMember = async ({
           </Link>
         </CardHeader>
         <CardContent>
-          <AddMemberForm dropdownOptions={dropdownOptions} chapterId={searchParams?.chapterId}/>
+          <AddMemberForm
+            dropdownOptions={{
+              state: states,
+              memberStatus: statuses,
+            }}
+            chapterId={searchParams?.chapterId}
+          />
         </CardContent>
       </Card>
     </section>

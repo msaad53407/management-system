@@ -3,8 +3,9 @@ import DetailsTable from "@/components/DetailsTable";
 import { Button } from "@/components/ui/button";
 import { checkRole } from "@/lib/role";
 import { MemberDocument } from "@/models/member";
-import { Rank } from "@/models/rank";
-import { Status } from "@/models/status";
+import { Rank, RankDocument } from "@/models/rank";
+import { Status, StatusDocument } from "@/models/status";
+import { getAllRanks, getAllStatuses } from "@/utils/functions";
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect, RedirectType } from "next/navigation";
@@ -16,58 +17,63 @@ export const metadata: Metadata = {
 
 const ChapterMembers = async () => {
   if (checkRole(["grand-administrator", "grand-officer", "district-deputy"])) {
-    redirect("/chapter", RedirectType.push);
+    redirect("/chapter");
   }
 
-  try {
-    const { data, message } = await getChapterMembers();
+  const [
+    { data: members, message: membersMessage },
+    { data: ranks, message: ranksMessage },
+    { data: statuses, message: statusesMessage },
+  ] = await Promise.all([getChapterMembers(), getAllRanks(), getAllStatuses()]);
 
-    const parsedData: MemberDocument[] | null = JSON.parse(
-      JSON.stringify(data)
-    );
-
-    const ranks = JSON.parse(JSON.stringify(await Rank.find({})));
-    const statuses = JSON.parse(JSON.stringify(await Status.find({})));
-    return (
-      <section className="flex flex-col gap-6 p-4 w-full">
-        <div className="flex items-center justify-between w-full">
-          <h3 className="text-xl font-semibold text-slate-600">
-            Member Roster
-          </h3>
-          {checkRole("secretary") && (
-            <Link href="/chapter/member/add">
-              <Button
-                variant={"destructive"}
-                className="bg-purple-800 hover:bg-purple-700"
-              >
-                Add Member
-              </Button>
-            </Link>
-          )}
-        </div>
-        {parsedData ? (
-          <DetailsTable
-            members={parsedData}
-            ranks={ranks}
-            statuses={statuses}
-          />
-        ) : (
-          <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-            {message}
-          </h3>
-        )}
-      </section>
-    );
-  } catch (error) {
-    console.error(error);
+  if (
+    !members ||
+    members.length === 0 ||
+    !ranks ||
+    ranks.length === 0 ||
+    !statuses ||
+    statuses.length === 0
+  ) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
         <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-          Something went wrong
+          {(!members || members.length === 0) && membersMessage}{" "}
+          {(!ranks || ranks.length === 0) && ranksMessage}{" "}
+          {(!statuses || statuses.length === 0) && statusesMessage}
         </h3>
       </section>
     );
   }
+
+  const parsedMembers = JSON.parse(JSON.stringify(members)) as MemberDocument[];
+
+  const parsedRanks = JSON.parse(JSON.stringify(ranks)) as RankDocument[];
+  const parsedStatuses = JSON.parse(
+    JSON.stringify(statuses)
+  ) as StatusDocument[];
+
+  return (
+    <section className="flex flex-col gap-6 p-4 w-full">
+      <div className="flex items-center justify-between w-full">
+        <h3 className="text-xl font-semibold text-slate-600">Member Roster</h3>
+        {checkRole("secretary") && (
+          <Link href="/chapter/member/add">
+            <Button
+              variant={"destructive"}
+              className="bg-purple-800 hover:bg-purple-700"
+            >
+              Add Member
+            </Button>
+          </Link>
+        )}
+      </div>
+      <DetailsTable
+        members={parsedMembers}
+        ranks={parsedRanks}
+        statuses={parsedStatuses}
+      />
+    </section>
+  );
 };
 
 export default ChapterMembers;

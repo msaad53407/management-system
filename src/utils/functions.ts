@@ -2,8 +2,8 @@ import "server-only";
 import { connectDB } from "@/lib/db";
 import { Types } from "mongoose";
 import { District, DistrictDocument } from "@/models/district";
-import { Chapter } from "@/models/chapter";
-import { Member } from "@/models/member";
+import { Chapter, ChapterDocument } from "@/models/chapter";
+import { Member, MemberDocument } from "@/models/member";
 import { Rank, RankDocument } from "@/models/rank";
 import { Status, StatusDocument } from "@/models/status";
 import {
@@ -11,7 +11,12 @@ import {
   BirthdayAggregationResult,
   BirthdaysInput,
   FinancesAggregationResult,
+  MemberDropdownAggregationResult,
 } from "@/types/globals";
+import { State, StateDocument } from "@/models/state";
+import { ChapterOfficeDocument } from "@/models/chapterOffice";
+import { GrandOfficeDocument } from "@/models/grandOffice";
+import { ReasonDocument } from "@/models/reason";
 
 export async function getSystemFinances(date: {
   month?: number;
@@ -213,6 +218,31 @@ export async function getAllDistricts() {
   }
 }
 
+export async function getAllChapters() {
+  try {
+    await connectDB();
+    const chapters = await Chapter.find({});
+
+    if (chapters.length === 0) {
+      return {
+        data: null,
+        message: "No Chapters Found",
+      };
+    }
+
+    return {
+      data: chapters,
+      message: "Chapters fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
 export async function getChapterFinances(
   chapterId: Types.ObjectId,
   date: {
@@ -345,7 +375,9 @@ export async function getChapterFinances(
 export async function getAllChaptersByDistrict(districtId: Types.ObjectId) {
   try {
     await connectDB();
-    const chapters = await Chapter.find({ districtId });
+    const chapters = await Chapter.find({
+      districtId: new Types.ObjectId(districtId),
+    });
     if (chapters.length === 0) {
       return { data: null, message: "No chapters found for this district" };
     }
@@ -579,6 +611,263 @@ export async function getAllStatuses() {
     return {
       data: null,
       message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getAllStates() {
+  try {
+    await connectDB();
+    const states = await State.find();
+    if (!states) {
+      return { data: null, message: "No states found" };
+    }
+    return {
+      data: JSON.parse(JSON.stringify(states)) as StateDocument[],
+      message: "States fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getAllMemberDropdownOptions(memberId: string) {
+  try {
+    const result = await Member.aggregate([
+      {
+        $match: {
+          userId: memberId,
+        },
+      },
+      {
+        $lookup: {
+          from: "states",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allStates",
+        },
+      },
+      {
+        $lookup: {
+          from: "status",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allStatuses",
+        },
+      },
+      {
+        $lookup: {
+          from: "chapteroffices",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allChapterOffices",
+        },
+      },
+      {
+        $lookup: {
+          from: "grandoffices",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allGrandOffices",
+        },
+      },
+      {
+        $lookup: {
+          from: "ranks",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allRanks",
+        },
+      },
+      {
+        $lookup: {
+          from: "reasons",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allReasons",
+        },
+      },
+      {
+        $project: {
+          member: {
+            _id: "$_id",
+            userId: "$userId",
+            role: "$role",
+            greeting: "$greeting",
+            firstName: "$firstName",
+            middleName: "$middleName",
+            lastName: "$lastName",
+            status: "$status",
+            email: "$email",
+            photo: "$photo",
+            password: "$password",
+            phoneNumber1: "$phoneNumber1",
+            phoneNumber2: "$phoneNumber2",
+            address1: "$address1",
+            address2: "$address2",
+            city: "$city",
+            state: "$state",
+            zipCode: "$zipCode",
+            birthPlace: "$birthPlace",
+            birthDate: "$birthDate",
+            chapterOffice: "$chapterOffice",
+            grandOffice: "$grandOffice",
+            rank: "$rank",
+            dropReason: "$dropReason",
+            dropDate: "$dropDate",
+            expelReason: "$expelReason",
+            expelDate: "$expelDate",
+            suspendReason: "$suspendReason",
+            suspendDate: "$suspendDate",
+            deathDate: "$deathDate",
+            actualDeathDate: "$actualDeathDate",
+            deathPlace: "$deathPlace",
+            secretaryNotes: "$secretaryNotes",
+            enlightenDate: "$enlightenDate",
+            demitInDate: "$demitInDate",
+            demitOutDate: "$demitOutDate",
+            demitToChapter: "$demitToChapter",
+            investigationDate: "$investigationDate",
+            investigationAcceptOrRejectDate: "$investigationAcceptOrRejectDate",
+            sponsor1: "$sponsor1",
+            sponsor2: "$sponsor2",
+            sponsor3: "$sponsor3",
+            petitionDate: "$petitionDate",
+            petitionReceivedDate: "$petitionReceivedDate",
+            initiationDate: "$initiationDate",
+            amaranthDate: "$amaranthDate",
+            queenOfSouthDate: "$queenOfSouthDate",
+            districtId: "$districtId",
+            regionId: "$regionId",
+            chapterId: "$chapterId",
+            spouseName: "$spouseName",
+            spousePhone: "$spousePhone",
+            emergencyContact: "$emergencyContact",
+            emergencyContactPhone: "$emergencyContactPhone",
+          },
+          allStates: 1,
+          allStatuses: 1,
+          allChapterOffices: 1,
+          allGrandOffices: 1,
+          allRanks: 1,
+          allReasons: 1,
+        },
+      },
+    ]);
+
+    if (!result || result.length === 0) {
+      return {
+        data: null,
+        message: "No Member Found",
+      };
+    }
+
+    const {
+      member,
+      allStatuses,
+      allStates,
+      allChapterOffices,
+      allGrandOffices,
+      allRanks,
+      allReasons,
+    } = result[0] as MemberDropdownAggregationResult;
+    const parsedMember = JSON.parse(JSON.stringify(member)) as MemberDocument;
+    const dropdownOptions = {
+      state: JSON.parse(JSON.stringify(allStates)) as
+        | StateDocument[]
+        | undefined,
+      memberStatus: JSON.parse(JSON.stringify(allStatuses)) as
+        | StatusDocument[]
+        | undefined,
+      chapterOffice: JSON.parse(JSON.stringify(allChapterOffices)) as
+        | ChapterOfficeDocument[]
+        | undefined,
+      grandChapterOffice: JSON.parse(JSON.stringify(allGrandOffices)) as
+        | GrandOfficeDocument[]
+        | undefined,
+      memberRank: JSON.parse(JSON.stringify(allRanks)) as
+        | RankDocument[]
+        | undefined,
+      reasons: JSON.parse(JSON.stringify(allReasons)) as
+        | ReasonDocument[]
+        | undefined,
+    };
+
+    return {
+      data: {
+        member: parsedMember,
+        dropdownOptions,
+      },
+      message: "Member Found",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getMemberChapter(memberId: Types.ObjectId) {
+  try {
+    const memberChapterAggregation = await Member.aggregate([
+      {
+        $match: {
+          _id: new Types.ObjectId(memberId),
+        },
+      },
+      {
+        $lookup: {
+          from: "chapters",
+          localField: "chapterId",
+          foreignField: "_id",
+          as: "chapter",
+        },
+      },
+      {
+        $project: {
+          chapter: { $first: "$chapter" },
+        },
+      },
+    ]);
+
+    if (memberChapterAggregation.length === 0) {
+      return {
+        data: null,
+        message: "Invalid member Id",
+      };
+    }
+
+    const result = memberChapterAggregation[0] as {
+      chapter: ChapterDocument;
+    };
+
+    return {
+      data: result.chapter,
+      message: "Member Chapter Fetched",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database.",
     };
   }
 }
