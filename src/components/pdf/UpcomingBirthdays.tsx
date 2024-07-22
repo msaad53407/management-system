@@ -11,6 +11,9 @@ import {
 } from "@react-pdf/renderer";
 import LoadingSpinner from "../LoadingSpinner";
 import { Button } from "../ui/button";
+import { BirthdayAggregationResult } from "@/types/globals";
+import { formatDate, getMonth } from "@/utils";
+import { RankDocument } from "@/models/rank";
 
 // Create styles
 const styles = StyleSheet.create({
@@ -24,6 +27,11 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 24,
+  },
+  text: {
+    margin: 12,
+    fontSize: 12,
+    textAlign: "center",
   },
   table: {
     //@ts-expect-error
@@ -55,48 +63,80 @@ const styles = StyleSheet.create({
   },
 });
 
-// Mock data
-const month = "July";
-const upcomingBirthdays = [
-  { id: 1, name: "John Doe", rank: "Captain", birthday: "July 5" },
-  { id: 2, name: "Jane Smith", rank: "Lieutenant", birthday: "July 15" },
-];
+export const UpcomingBirthdaysPDFViewer = ({
+  upcomingBirthdays,
+  ranks,
+}: {
+  upcomingBirthdays: BirthdayAggregationResult[];
+  ranks: RankDocument[];
+}) => {
+  const month = getMonth(new Date());
 
-export const UpcomingBirthdaysPDFViewer = () => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>Upcoming Birthdays</Text>
-        <Text style={styles.heading}>{month}</Text>
-      </View>
-      <View style={styles.table}>
-        <View style={[styles.tableRow, styles.tableHeader]}>
-          <Text style={[styles.tableCol, styles.tableHeaderText]}>Name</Text>
-          <Text style={[styles.tableCol, styles.tableHeaderText]}>Rank</Text>
-          <Text style={[styles.tableCol, styles.tableHeaderText]}>
-            Birthday
-          </Text>
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.heading}>Upcoming Birthdays</Text>
+          <Text style={styles.heading}>{month}</Text>
         </View>
-        {upcomingBirthdays.map((member) => (
-          <View key={member.id} style={styles.tableRow}>
-            <Text style={styles.tableCol}>{member.name}</Text>
-            <Text style={styles.tableCol}>{member.rank}</Text>
-            <Text style={styles.tableCol}>{member.birthday}</Text>
+        {upcomingBirthdays.length > 0 ? (
+          <View style={styles.table}>
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <Text style={[styles.tableCol, styles.tableHeaderText]}>
+                Name
+              </Text>
+              <Text style={[styles.tableCol, styles.tableHeaderText]}>
+                Rank
+              </Text>
+              <Text style={[styles.tableCol, styles.tableHeaderText]}>
+                Birthday
+              </Text>
+            </View>
+            {upcomingBirthdays.map((birthday, indx) => (
+              <View key={indx} style={styles.tableRow}>
+                <Text style={styles.tableCol}>
+                  {birthday.firstName +
+                    " " +
+                    birthday.middleName +
+                    " " +
+                    birthday.lastName}
+                </Text>
+                <Text style={styles.tableCol}>
+                  {ranks.find((rank) => rank._id === birthday.rank)?.name}
+                </Text>
+                <Text style={styles.tableCol}>
+                  {formatDate(birthday.birthDate)}
+                </Text>
+              </View>
+            ))}
           </View>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
+        ) : (
+          <View>
+            <Text style={styles.text}>No Upcoming Birthdays in {month}</Text>
+          </View>
+        )}
+      </Page>
+    </Document>
+  );
+};
 
 export default function UpcomingBirthdaysPDF({
+  upcomingBirthdays,
+  ranks,
   children,
 }: {
+  upcomingBirthdays: BirthdayAggregationResult[];
+  ranks: RankDocument[];
   children: React.ReactNode;
 }) {
   return (
     <PDFDownloadLink
-      document={<UpcomingBirthdaysPDFViewer />}
+      document={
+        <UpcomingBirthdaysPDFViewer
+          upcomingBirthdays={upcomingBirthdays}
+          ranks={ranks}
+        />
+      }
       fileName="upcoming-birthdays.pdf"
     >
       {({ loading }) =>

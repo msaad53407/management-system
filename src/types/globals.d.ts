@@ -53,6 +53,15 @@ export type AggregationResult =
     }
   | undefined;
 
+export type BirthdayAggregationResult = {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  birthDate: string;
+  _id: Types.ObjectId;
+  rank: Types.ObjectId;
+};
+
 export type FinancesAggregationResult = {
   firstName: string;
   lastName: string;

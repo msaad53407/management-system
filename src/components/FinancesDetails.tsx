@@ -83,8 +83,8 @@ const FinancesDetails = async ({ finances, date }: Props) => {
     );
   }
 
-  const result = await getMemberFinances(finances.member._id, date);
-  if (!result.data) {
+  const result = await getMemberFinances(date, finances.member._id);
+  if (!result.data || Array.isArray(result.data)) {
     return (
       <TableRow className="text-red-500">Error: {result.message}</TableRow>
     );

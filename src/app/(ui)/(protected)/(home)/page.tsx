@@ -9,7 +9,6 @@ export default async function Home() {
   }
 
   const user = await clerkClient().users.getUser(userId);
-  console.log(new Date(new Date().getFullYear(), new Date().getMonth()));
 
   return (
     <div className="w-full flex items-center justify-center min-h-screen overflow-y-auto">

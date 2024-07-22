@@ -6,7 +6,6 @@ import { Member } from "@/models/member";
 import { auth, currentUser } from "@clerk/nextjs/server";
 
 export async function GET() {
-  console.log(await currentUser());
   if (!(await isAuthenticated())) {
     return Response.json(
       {

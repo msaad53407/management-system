@@ -8,6 +8,7 @@ import {
   getAllRanks,
   getAllStatuses,
   getDistrictFinances,
+  getMembersBirthdays,
 } from "@/utils/functions";
 import { Types } from "mongoose";
 import { notFound } from "next/navigation";
@@ -66,15 +67,23 @@ const DistrictReports = async ({ params: { districtId } }: Props) => {
   const { data: finances, message: financesMessage } =
     await getDistrictFinances(new Types.ObjectId(districtId), {});
 
-  if (!finances) {
+  const { data: upcomingBirthdays, message: upcomingBirthdaysMessage } =
+    await getMembersBirthdays({
+      districtId: new Types.ObjectId(districtId),
+    });
+
+  if (!finances || !upcomingBirthdays) {
     return (
       <main className="flex flex-col gap-6 p-4 w-full">
         <Card>
           <CardHeader>
-            <CardTitle>Chapter Reports</CardTitle>
+            <CardTitle>District Reports</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-500 text-center">Error: {financesMessage}</p>
+            <p className="text-red-500 text-center">
+              Error: {!finances && financesMessage}{" "}
+              {!upcomingBirthdays && upcomingBirthdaysMessage}
+            </p>
           </CardContent>
         </Card>
       </main>
@@ -101,7 +110,12 @@ const DistrictReports = async ({ params: { districtId } }: Props) => {
               <h4 className="text-lg text-slate-600 font-normal">
                 Upcoming Birthdays
               </h4>
-              <UpcomingBirthdaysPDF>Download</UpcomingBirthdaysPDF>
+              <UpcomingBirthdaysPDF
+                upcomingBirthdays={upcomingBirthdays}
+                ranks={ranks.data}
+              >
+                Download
+              </UpcomingBirthdaysPDF>
             </li>
           </ul>
         </CardContent>

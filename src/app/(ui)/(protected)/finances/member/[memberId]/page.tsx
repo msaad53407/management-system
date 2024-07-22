@@ -18,12 +18,15 @@ const MemberFinances = async ({
     return notFound();
   }
 
-  const { data, message } = await getMemberFinances(memberId, {
-    month: Number(month),
-    year: Number(year),
-  });
+  const { data, message } = await getMemberFinances(
+    {
+      month: Number(month),
+      year: Number(year),
+    },
+    memberId
+  );
 
-  if (!data) {
+  if (!data || Array.isArray(data)) {
     return (
       <main className="flex flex-col gap-4 items-center justify-center h-screen">
         <h1 className="text-slate-600 text-2xl">{message}</h1>

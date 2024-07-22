@@ -10,12 +10,15 @@ export function capitalize(input?: string) {
   return input?.charAt(0).toUpperCase() + input?.slice(1);
 }
 
-export function formatDate(input?: string) {
+export function formatDate(
+  input?: string,
+  options?: Intl.DateTimeFormatOptions
+) {
   if (!input) return input;
   return new Date(input).toLocaleDateString("en-US", {
-    year: "numeric",
     month: "long",
     day: "numeric",
+    ...options,
   });
 }
 

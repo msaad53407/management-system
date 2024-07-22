@@ -1,16 +1,58 @@
 import "server-only";
 import { connectDB } from "@/lib/db";
 import { Types } from "mongoose";
-import { District } from "@/models/district";
+import { District, DistrictDocument } from "@/models/district";
 import { Chapter } from "@/models/chapter";
 import { Member } from "@/models/member";
 import { Rank, RankDocument } from "@/models/rank";
 import { Status, StatusDocument } from "@/models/status";
 import {
   AggregationResult,
+  BirthdayAggregationResult,
   BirthdaysInput,
   FinancesAggregationResult,
 } from "@/types/globals";
+
+export async function getSystemFinances(date: {
+  month?: number;
+  year?: number;
+}) {
+  try {
+    await connectDB();
+
+    const { data: districts, message } = await getAllDistricts();
+    if (!districts || districts.length === 0) {
+      return {
+        data: null,
+        message,
+      };
+    }
+
+    const { data: finances, message: financesMessage } =
+      await getMemberFinances(date);
+
+    if (!finances || !Array.isArray(finances)) {
+      return {
+        data: null,
+        message: financesMessage,
+      };
+    }
+
+    return {
+      data: {
+        districts: JSON.parse(JSON.stringify(districts)) as DistrictDocument[],
+        finances,
+      },
+      message: "Members Finances fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to DB",
+    };
+  }
+}
 
 export async function getDistrictFinances(
   districtId: Types.ObjectId,
@@ -128,7 +170,6 @@ export async function getDistrictFinances(
     const result = JSON.parse(JSON.stringify(districtFinances))?.at(
       0
     ) as AggregationResult;
-    console.log(result);
 
     if (!result) {
       return { data: null, message: "No district finances found" };
@@ -286,7 +327,6 @@ export async function getChapterFinances(
     const result = JSON.parse(JSON.stringify(chapterFinances))?.at(
       0
     ) as AggregationResult;
-    console.log(result);
 
     if (!result) {
       return { data: null, message: "No chapter finances found" };
@@ -320,20 +360,23 @@ export async function getAllChaptersByDistrict(districtId: Types.ObjectId) {
 }
 
 export async function getMemberFinances(
-  memberId: Types.ObjectId,
   date: {
     month?: number;
     year?: number;
-  }
+  },
+  memberId?: Types.ObjectId
 ) {
   try {
     await connectDB();
-    const memberFinances = await Member.aggregate([
-      {
+    const pipeline = [];
+    if (memberId) {
+      pipeline.push({
         $match: {
           _id: new Types.ObjectId(memberId),
         },
-      },
+      });
+    }
+    pipeline.push(
       {
         $lookup: {
           from: "dues",
@@ -407,16 +450,22 @@ export async function getMemberFinances(
           totalDues: 1,
           paidDues: 1,
         },
-      },
-    ]);
-    const result = JSON.parse(JSON.stringify(memberFinances))?.at(
-      0
-    ) as FinancesAggregationResult;
-
-    console.log(result);
+      }
+    );
+    const memberFinances = await Member.aggregate(pipeline);
+    const result = JSON.parse(
+      JSON.stringify(memberFinances)
+    ) as FinancesAggregationResult[];
 
     if (!result) {
       return { data: null, message: "No member finances found" };
+    }
+
+    if (memberId) {
+      return {
+        data: result[0],
+        message: "Member Finances fetched Successfully",
+      };
     }
 
     return { data: result, message: "Member Finances fetched Successfully" };
@@ -431,39 +480,67 @@ export async function getMemberFinances(
 
 export async function getMembersBirthdays(Input: BirthdaysInput) {
   try {
-    const members = await Member.aggregate([
-      {
+    const pipeline = [];
+
+    if (Input) {
+      pipeline.push({
         $match: {
           $or: [
-            {
-              $and: [
-                { districtId: Input?.districtId },
-                { chapterId: Input?.chapterId },
-              ],
-            },
-            {
-              $and: [
-                { districtId: Input?.districtId },
-                { chapterId: { $exists: false } },
-              ],
-            },
-            {
-              $and: [
-                { districtId: { $exists: false } },
-                { chapterId: Input?.chapterId },
-              ],
-            },
-            {
-              $and: [
-                { districtId: { $exists: false } },
-                { chapterId: { $exists: false } },
-              ],
-            },
+            { districtId: Input.districtId },
+            { chapterId: Input.chapterId },
           ],
         },
+      });
+    }
+
+    pipeline.push(
+      {
+        $addFields: {
+          currentDate: new Date(),
+          month: { $month: new Date() },
+          day: { $dayOfMonth: new Date() },
+        },
       },
-    ]);
-  } catch (error) {}
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $eq: [{ $month: "$birthDate" }, "$month"] },
+              { $gte: [{ $dayOfMonth: "$birthDate" }, "$day"] },
+            ],
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          birthDate: 1,
+          firstName: 1,
+          lastName: 1,
+          middleName: 1,
+          rank: 1,
+        },
+      }
+    );
+
+    const membersBirthdays = await Member.aggregate(pipeline);
+
+    const result = JSON.parse(
+      JSON.stringify(membersBirthdays)
+    ) as BirthdayAggregationResult[];
+
+    if (!result) {
+      return { data: null, message: "No upcoming birthdays found" };
+    }
+
+    return { data: result, message: "Members Birthdays fetched Successfully" };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
 }
 
 export async function getAllRanks() {

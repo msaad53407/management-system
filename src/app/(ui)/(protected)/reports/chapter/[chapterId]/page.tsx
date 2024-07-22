@@ -8,6 +8,7 @@ import {
   getAllRanks,
   getAllStatuses,
   getChapterFinances,
+  getMembersBirthdays,
 } from "@/utils/functions";
 import { Types } from "mongoose";
 import { notFound } from "next/navigation";
@@ -39,7 +40,8 @@ const ChapterReports = async ({ params: { chapterId } }: Props) => {
           </CardHeader>
           <CardContent>
             <p className="text-red-500 text-center">
-              Error: {message} {ranks.message} {statuses.message}
+              Error: {!data && message} {!ranks.data && ranks.message}{" "}
+              {!statuses.data && statuses.message}
             </p>
           </CardContent>
         </Card>
@@ -52,8 +54,12 @@ const ChapterReports = async ({ params: { chapterId } }: Props) => {
     new Types.ObjectId(chapterId),
     {}
   );
+  const { data: upcomingBirthdays, message: upcomingBirthdaysMessage } =
+    await getMembersBirthdays({
+      chapterId: new Types.ObjectId(chapterId),
+    });
 
-  if (!finances) {
+  if (!finances || !upcomingBirthdays) {
     return (
       <main className="flex flex-col gap-6 p-4 w-full">
         <Card>
@@ -61,7 +67,10 @@ const ChapterReports = async ({ params: { chapterId } }: Props) => {
             <CardTitle>Chapter Reports</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-500 text-center">Error: {financesMessage}</p>
+            <p className="text-red-500 text-center">
+              Error: {!finances && financesMessage}{" "}
+              {!upcomingBirthdays && upcomingBirthdaysMessage}
+            </p>
           </CardContent>
         </Card>
       </main>
@@ -93,7 +102,12 @@ const ChapterReports = async ({ params: { chapterId } }: Props) => {
               <h4 className="text-lg text-slate-600 font-normal">
                 Upcoming Birthdays
               </h4>
-              <UpcomingBirthdaysPDF>Download</UpcomingBirthdaysPDF>
+              <UpcomingBirthdaysPDF
+                upcomingBirthdays={upcomingBirthdays}
+                ranks={ranks.data}
+              >
+                Download
+              </UpcomingBirthdaysPDF>
             </li>
           </ul>
         </CardContent>

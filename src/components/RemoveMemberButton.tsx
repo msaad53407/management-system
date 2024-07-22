@@ -17,7 +17,6 @@ const RemoveMemberButton = ({
   className?: string;
 }) => {
   const [isPending, setIsPending] = useState(false);
-  console.log(isPending);
   return (
     <Button
       variant="destructive"
