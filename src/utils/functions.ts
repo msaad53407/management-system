@@ -637,6 +637,7 @@ export async function getAllStates() {
 
 export async function getAllMemberDropdownOptions(memberId: string) {
   try {
+    await connectDB();
     const result = await Member.aggregate([
       {
         $match: {
