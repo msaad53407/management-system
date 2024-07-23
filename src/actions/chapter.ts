@@ -7,12 +7,17 @@ import { Member, MemberDocument } from "@/models/member";
 import { checkRole } from "@/lib/role";
 import { isAuthenticated } from "@/lib/authorization";
 import { revalidatePath } from "next/cache";
-import { addMemberSchema, editFormSchema } from "@/lib/zod/member";
+import {
+  addChapterSchema,
+  addMemberSchema,
+  editFormSchema,
+} from "@/lib/zod/member";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 import { Roles } from "@/types/globals";
 import { createDue } from "./dues";
 import { Due } from "@/models/dues";
+import ChapterDetailsPDF from "@/components/pdf/ChapterDetails";
 
 type GetDistrictParams =
   | { secretaryId: string; chapterId?: never; matronId?: never }
@@ -531,5 +536,108 @@ export const getChapter = async (params: GetDistrictParams) => {
       data: null,
       message: "Error Connecting to DB",
     };
+  }
+};
+
+export const addChapter = async (_prevState: any, formData: FormData) => {
+  let shouldRedirect: boolean = false;
+
+  try {
+    await connectDB();
+
+    const rawFormData = Object.fromEntries(formData);
+
+    const { success, data, error } = addChapterSchema.safeParse(rawFormData);
+
+    if (!success) {
+      console.error(error);
+      return {
+        message: error.flatten().fieldErrors,
+      };
+    }
+
+    const hashedPasswordSecretary = await bcrypt.hash(
+      data.secretaryPassword,
+      10
+    );
+    const hashedPasswordMatron = await bcrypt.hash(data.matronPassword, 10);
+
+    let secretary: User | null = null;
+    let matron: User | null = null;
+    try {
+      secretary = await clerkClient().users.createUser({
+        firstName: data.secretaryFirstName,
+        lastName: data.secretaryLastName,
+        username: data.secretaryUsername,
+        emailAddress: [data.secretaryEmail],
+        publicMetadata: {
+          role: "secretary",
+        },
+        passwordHasher: "bcrypt",
+        passwordDigest: hashedPasswordSecretary,
+        skipPasswordRequirement: true,
+        skipPasswordChecks: true,
+      });
+      matron = await clerkClient().users.createUser({
+        firstName: data.matronFirstName,
+        lastName: data.matronLastName,
+        username: data.matronUsername,
+        emailAddress: [data.matronEmail],
+        publicMetadata: {
+          role: "worthy-matron",
+        },
+        passwordHasher: "bcrypt",
+        passwordDigest: hashedPasswordMatron,
+        skipPasswordRequirement: true,
+        skipPasswordChecks: true,
+      });
+    } catch (error) {
+      console.error(JSON.stringify(error));
+      return {
+        message:
+          "Provide all required User details or Email or Username may already exist",
+      };
+    }
+
+    if (!secretary || !matron) {
+      return { message: "Could not create Secretary or Worthy Matron" };
+    }
+
+    const chapter = await Chapter.create({
+      name: data.name,
+      chapterNumber: Number(data.chapterNumber),
+      chapterAddress1: data.chapterAddress1,
+      chapterAddress2: data.chapterAddress2,
+      chapterCity: data.chapterCity,
+      chapterState: data.chapterState,
+      chapterZip: data.chapterZipCode,
+      matronId: matron.id,
+      secretaryId: secretary.id,
+      chapterChartDate: new Date(data.chapterChartDate),
+      chapterMeet1: data.chapterMeet1,
+      chapterMeet2: data.chapterMeet2,
+      chpMonDues: data.chpMonDues,
+      chpYrDues: data.chpYrDues,
+    });
+
+    if (!chapter) {
+      return {
+        data: null,
+        message: "Could not add Chapter",
+      };
+    }
+
+    shouldRedirect = true;
+    revalidatePath("/chapter");
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to DB",
+    };
+  } finally {
+    if (shouldRedirect) {
+      redirect("/chapter");
+    }
   }
 };

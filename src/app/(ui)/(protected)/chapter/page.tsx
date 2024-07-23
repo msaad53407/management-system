@@ -61,14 +61,14 @@ const Chapter = async () => {
             Chapters
           </h3>
           {checkRole(["grand-administrator"]) && (
-            // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
-            <Button
-              variant={"destructive"}
-              className="bg-purple-800 hover:bg-purple-700"
-            >
-              Add Chapter
-            </Button>
-            // </Link>
+            <Link href={`/chapter/add`}>
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
+              >
+                Add Chapter
+              </Button>
+            </Link>
           )}
         </div>
         <div className="flex flex-col gap-4 w-full">
@@ -116,14 +116,14 @@ const Chapter = async () => {
       <div className="flex items-center justify-between w-full">
         <h3 className="text-xl font-semibold text-slate-600">All Chapters</h3>
         {checkRole(["grand-administrator"]) && (
-          // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
-          <Button
-            variant={"destructive"}
-            className="bg-purple-800 hover:bg-purple-700"
-          >
-            Add Chapter
-          </Button>
-          // </Link>
+          <Link href={`/chapter/add`}>
+            <Button
+              variant={"destructive"}
+              className="bg-purple-800 hover:bg-purple-700"
+            >
+              Add Chapter
+            </Button>
+          </Link>
         )}
       </div>
       <div className="flex flex-col gap-4 w-full">

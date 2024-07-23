@@ -7,7 +7,7 @@ export interface ChapterDocument extends Document {
   chapterAddress1?: string;
   chapterAddress2?: string;
   chapterCity?: string;
-  chapterState?: string;
+  chapterState?: Types.ObjectId;
   chapterEmail?: string;
   chapterZipCode?: string;
   chapterChartDate?: Date;
@@ -16,8 +16,8 @@ export interface ChapterDocument extends Document {
   secretaryId?: string;
   districtId?: Types.ObjectId;
   regionId?: Types.ObjectId;
-  chpYrDues?: Types.ObjectId;
-  chpMonDues?: Types.ObjectId;
+  chpYrDues?: number;
+  chpMonDues?: number;
   matronId?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -74,12 +74,12 @@ const chapterSchema = new mongoose.Schema(
       ref: "Region",
     },
     chpYrDues: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Due",
+      type: Number,
+      default: 10,
     },
     chpMonDues: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Due",
+      type: Number,
+      default: 10,
     },
   },
   {

@@ -278,6 +278,117 @@ export const addDistrictSchema = z.object({
     .min(1, "Password is required"),
 });
 
+export const addChapterSchema = z.object({
+  name: z
+    .string({
+      required_error: "Name is required",
+    })
+    .min(1, "Name is required"),
+  chapterNumber: z
+    .string({
+      required_error: "Chapter number is required",
+    })
+    .min(1, "Chapter number is required"),
+  chapterAddress1: z
+    .string({
+      required_error: "Address 1 is required",
+    })
+    .min(1, "Address 1 is required"),
+  chapterAddress2: z.string(),
+  chapterCity: z
+    .string({
+      required_error: "City is required",
+    })
+    .min(1, "City is required"),
+  chapterState: z
+    .string({
+      required_error: "State is required",
+    })
+    .min(1, "State is required"),
+  chapterEmail: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email("Email is invalid")
+    .min(1, "Email is required"),
+  chapterZipCode: z
+    .string({
+      required_error: "Zip code is required",
+    })
+    .min(1, "Zip code is required"),
+  chapterChartDate: z
+    .string({
+      required_error: "Chart date is required",
+    })
+    .min(1, "Chart date is required"),
+  chapterMeet1: z
+    .string({
+      required_error: "Meet 1 is required",
+    })
+    .min(1, "Meet 1 is required"),
+  chapterMeet2: z.string(),
+  chpMonDues: z
+    .string({
+      required_error: "Monthly dues is required",
+    })
+    .min(1, "Monthly dues is required"),
+  chpYrDues: z
+    .string({
+      required_error: "Yearly dues is required",
+    })
+    .min(1, "Yearly dues is required"),
+  secretaryFirstName: z
+    .string({
+      required_error: "First name is required",
+    })
+    .min(1, "First name is required"),
+  secretaryLastName: z
+    .string({
+      required_error: "Last name is required",
+    })
+    .min(1, "Last name is required"),
+  secretaryEmail: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email("Email is invalid")
+    .min(1, "Email is required"),
+  secretaryUsername: z
+    .string({
+      required_error: "Username is required",
+    })
+    .min(1, "Username is required"),
+  secretaryPassword: z
+    .string({
+      required_error: "Password is required",
+    })
+    .min(1, "Password is required"),
+  matronFirstName: z
+    .string({
+      required_error: "First name is required",
+    })
+    .min(1, "First name is required"),
+  matronLastName: z
+    .string({
+      required_error: "Last name is required",
+    })
+    .min(1, "Last name is required"),
+  matronEmail: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email("Email is invalid")
+    .min(1, "Email is required"),
+  matronUsername: z
+    .string({
+      required_error: "Username is required",
+    })
+    .min(1, "Username is required"),
+  matronPassword: z.string({
+    required_error: "Password is required",
+  }),
+});
+
 export const updateDuesSchema = z.object({
   memberId: z
     .string({
