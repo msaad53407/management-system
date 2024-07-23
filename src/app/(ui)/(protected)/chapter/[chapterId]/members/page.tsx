@@ -97,11 +97,28 @@ const ChapterMembers = async ({
   ) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
-        <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-          {(!members || members.length === 0) && membersMessage}{" "}
-          {(!ranks || ranks.length === 0) && ranksMessage}{" "}
-          {(!statuses || statuses.length === 0) && statusesMessage}
-        </h3>
+        <div className="flex items-center justify-between w-full">
+          <h3 className="text-xl font-semibold text-slate-600">
+            Member Roster
+          </h3>
+          {checkRole(["secretary", "grand-administrator"]) && (
+            <Link href={`/chapter/member/add?chapterId=${chapterId}`}>
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
+              >
+                Add Member
+              </Button>
+            </Link>
+          )}
+        </div>
+        <div className="flex flex-col gap-6 p-4 w-full">
+          <h3 className="text-xl font-semibold text-slate-600">
+            {(!members || members.length === 0) && membersMessage}
+            {(!ranks || ranks.length === 0) && ranksMessage}
+            {(!statuses || statuses.length === 0) && statusesMessage}
+          </h3>
+        </div>
       </section>
     );
   }

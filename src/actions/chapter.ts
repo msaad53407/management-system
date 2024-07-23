@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 import { Roles } from "@/types/globals";
 import { createDue } from "./dues";
+import { Due } from "@/models/dues";
 
 type GetDistrictParams =
   | { secretaryId: string; chapterId?: never; matronId?: never }
@@ -137,6 +138,15 @@ export const removeMember = async (
         message: "Member not found",
       };
     }
+    const deletedDues = await Due.deleteMany({ memberId: member._id });
+
+    if (!deletedDues) {
+      return {
+        data: null,
+        message: "Member not found",
+      };
+    }
+
     revalidatePath(`/chapter/${member.chapterId}/members`);
     return {
       data: JSON.parse(JSON.stringify(member)),
@@ -211,6 +221,15 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       chapter = await Chapter.findOne({ secretaryId: userId });
     }
 
+    if (checkRole("grand-administrator")) {
+      chapter = await Chapter.findById(new Types.ObjectId(data.chapterId));
+      if (!chapter) {
+        return {
+          message: "Chapter not found",
+        };
+      }
+    }
+
     const member = await Member.create({
       userId: user.id,
       firstName: data.firstName,
@@ -232,6 +251,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       sponsor2: data.petitioner2,
       sponsor3: data.petitioner3,
       greeting: data.greeting,
+      districtId: chapter?.districtId || null,
     });
 
     if (!member) {

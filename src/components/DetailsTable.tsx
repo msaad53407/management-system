@@ -40,6 +40,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
+import { useState } from "react";
 
 type Props = {
   members: MemberDocument[];
@@ -48,8 +49,10 @@ type Props = {
 };
 
 export default function DetailsTable({ members, ranks, statuses }: Props) {
+  const [open, setOpen] = useState(false);
   const removeMemberHandler = async (memberId: string) => {
     const { message } = await removeMember(memberId);
+    setOpen(false);
     alert(message);
   };
 
@@ -144,6 +147,8 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                     {checkRoleClient("grand-administrator") ? (
                       <TableCell className="hidden lg:table-cell">
                         <MemberRemoveAlert
+                          open={open}
+                          setOpen={setOpen}
                           member={member}
                           removeMemberHandler={removeMemberHandler}
                         />
@@ -180,6 +185,8 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                         </DropdownMenuItem>
                         {checkRoleClient("grand-administrator") ? (
                           <MemberRemoveAlert
+                            open={open}
+                            setOpen={setOpen}
                             member={member}
                             removeMemberHandler={removeMemberHandler}
                           />
@@ -200,12 +207,16 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
 const MemberRemoveAlert = ({
   member,
   removeMemberHandler,
+  open,
+  setOpen,
 }: {
   member: MemberDocument;
   removeMemberHandler: (memberId: string) => Promise<void>;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" className={"w-full"}>
           Remove
