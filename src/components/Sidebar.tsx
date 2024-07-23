@@ -18,12 +18,15 @@ import { DistrictDocument } from "@/models/district";
 import { ChapterDocument } from "@/models/chapter";
 import { getChapter } from "@/actions/chapter";
 import { checkRole } from "@/lib/role";
+import { MemberDocument } from "@/models/member";
+import { getMemberByUserId } from "@/utils/functions";
 
 async function Sidebar() {
   const role = auth().sessionClaims?.metadata?.role;
   const { userId } = auth();
   let district: DistrictDocument | null = null;
   let chapter: ChapterDocument | null = null;
+  let member: MemberDocument | null = null;
   if (checkRole("district-deputy")) {
     const { data } = await getDistrict({
       deputyId: userId!,
@@ -33,23 +36,29 @@ async function Sidebar() {
     }
   }
 
-  if (checkRole(["worthy-matron", "secretary"])) {
-    if (checkRole("worthy-matron")) {
-      const { data } = await getChapter({
-        matronId: userId!,
-      });
-      if (data) {
-        chapter = data;
-      }
+  if (checkRole("worthy-matron")) {
+    const { data } = await getChapter({
+      matronId: userId!,
+    });
+    if (data) {
+      chapter = data;
     }
+  }
 
-    if (checkRole("secretary")) {
-      const { data } = await getChapter({
-        secretaryId: userId!,
-      });
-      if (data) {
-        chapter = data;
-      }
+  if (checkRole("secretary")) {
+    const { data } = await getChapter({
+      secretaryId: userId!,
+    });
+    if (data) {
+      chapter = data;
+    }
+  }
+
+  if (checkRole("member")) {
+    const { data } = await getMemberByUserId(userId!);
+
+    if (data) {
+      member = data;
     }
   }
 
@@ -96,7 +105,7 @@ async function Sidebar() {
         },
         {
           title: "Finances",
-          href: `/finances/member/${auth().userId}`,
+          href: `/finances/member/${member?._id}`,
           Icon: <Banknote />,
           roles: ["member"],
         },
@@ -133,7 +142,7 @@ async function Sidebar() {
         },
         {
           title: "Reports",
-          href: `/reports/chapter/${chapter?._id}`,
+          href: `/reports/chapter/${chapter?._id || member?.chapterId}`,
           Icon: <StickyNote />,
           roles: ["secretary", "worthy-matron", "member"],
         },

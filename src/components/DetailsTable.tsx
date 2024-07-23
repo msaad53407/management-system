@@ -104,7 +104,8 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                   />
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
-                  {member?.firstName} {member?.middleName} {member?.lastName}
+                  {member?.firstName} {member?.middleName && member.middleName}{" "}
+                  {member?.lastName}
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
                   {capitalize(

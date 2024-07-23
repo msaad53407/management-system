@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { BellIcon, SearchIcon, SettingsIcon, UserIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { capitalize } from "@/utils";
 import { Types } from "mongoose";
+import { UserButton } from "@clerk/nextjs";
 
 const Header = () => {
   const pathname = usePathname();
@@ -88,7 +89,7 @@ const Header = () => {
           className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
           size="icon"
         >
-          <SettingsIcon />
+          <UserButton />
         </Button>
         <Button
           className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"

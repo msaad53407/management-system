@@ -162,7 +162,7 @@ const MemberDuesPage = async ({ params: { memberId } }: Props) => {
             <h3 className="text-xl font-semibold text-slate-600">
               <span className="text-pink-600">
                 {`${capitalize(firstName)} ${capitalize(
-                  middleName
+                  middleName && middleName
                 )} ${capitalize(lastName)}`}
                 &apos;s
               </span>{" "}

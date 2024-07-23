@@ -40,7 +40,8 @@ const MemberFinances = async ({
         <Card>
           <CardHeader className="flex items-center justify-between w-full flex-row">
             <h3 className="text-xl capitalize font-semibold text-pink-600">
-              {data.firstName + " " + data.middleName + " " + data.lastName}{" "}
+              {data.firstName + " " + data?.middleName &&
+                data.middleName + " " + data.lastName}{" "}
               <span className="text-slate-600">Finances</span>
             </h3>
             <DateForm />

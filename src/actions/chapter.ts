@@ -73,9 +73,7 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
           message: "You are not a member of any chapter",
         };
       }
-      members = await Member.find({ chapterId: member.chapterId }, null, {
-        sort: { createdAt: -1 },
-      });
+      members = await Member.find({ chapterId: member.chapterId }, null);
     } else {
       return {
         data: null,

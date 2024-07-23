@@ -872,3 +872,25 @@ export async function getMemberChapter(memberId: Types.ObjectId) {
     };
   }
 }
+
+export async function getMemberByUserId(userId: string) {
+  try {
+    const member = await Member.findOne({ userId });
+    if (!member) {
+      return {
+        data: null,
+        message: "No Member Found",
+      };
+    }
+    return {
+      data: member,
+      message: "Member Found",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
