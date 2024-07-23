@@ -449,6 +449,30 @@ export const getChapter = async (params: GetDistrictParams) => {
         message: "Chapter fetched successfully",
       };
     }
+    if (checkRole("worthy-matron")) {
+      if (!("matronId" in params) || !params.matronId) {
+        return {
+          data: null,
+          message: "Please provide a valid Worthy Matron Id",
+        };
+      }
+
+      const chapter: ChapterDocument | null = JSON.parse(
+        JSON.stringify(await Chapter.findOne({ matronId: params.matronId }))
+      );
+
+      if (!chapter) {
+        return {
+          data: null,
+          message: "Chapter not found",
+        };
+      }
+
+      return {
+        data: chapter,
+        message: "Chapter fetched successfully",
+      };
+    }
 
     if (!("chapterId" in params) || !params.chapterId) {
       return {
