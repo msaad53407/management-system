@@ -11,6 +11,7 @@ import { addMemberSchema, editFormSchema } from "@/lib/zod/member";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
 import { Roles } from "@/types/globals";
+import { createDue } from "./dues";
 
 type GetDistrictParams =
   | { secretaryId: string; chapterId?: never; matronId?: never }
@@ -239,7 +240,15 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       };
     }
 
+    const { data: dues, message } = await createDue(member._id);
+
+    if (!dues) {
+      return {
+        message,
+      };
+    }
     shouldRedirect = true;
+
     if (checkRole(["secretary", "member"])) {
       revalidatePath("/chapter/members");
     } else {

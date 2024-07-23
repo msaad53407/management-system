@@ -137,6 +137,7 @@ const MemberDuesPage = async ({ params: { memberId } }: Props) => {
         memberId: new Types.ObjectId(memberId),
         amount: 0,
         dueDate: new Date(),
+        totalDues: 10,
         paymentStatus: "unpaid",
       });
       currentMonthDues.push({

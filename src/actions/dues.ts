@@ -78,7 +78,7 @@ export async function createDue(memberId: Types.ObjectId) {
     const newDue = await Due.create({
       memberId,
       amount: 0,
-      totalDues: 0,
+      totalDues: 10,
       dueDate: new Date(),
       paymentStatus: "unpaid",
     });
@@ -86,7 +86,8 @@ export async function createDue(memberId: Types.ObjectId) {
     if (!newDue) {
       return {
         data: null,
-        message: "Error Creating Due",
+        message:
+          "Error Creating Due, Create manually by Visiting member's Dues page.",
       };
     }
 
