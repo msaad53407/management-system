@@ -311,7 +311,6 @@ export const editMember = async (_prevState: any, formData: FormData) => {
       message: error.flatten().fieldErrors,
     };
   }
-
   if (
     !checkRole(["secretary", "grand-administrator"]) &&
     userId !== data.memberId
@@ -323,9 +322,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
     await connectDB();
     if (checkRole(["secretary", "grand-administrator"])) {
       const member = await Member.findOneAndUpdate(
-        checkRole("secretary")
-          ? { userId: data.memberId }
-          : { chapterId: new Types.ObjectId(data.chapterId) },
+        { userId: data.memberId },
         {
           firstName: data.firstName,
           middleName: data.middleName,
@@ -394,6 +391,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
             ? new Date(data.reinstatedDate)
             : null,
           status: new Types.ObjectId(data.memberStatus) || null,
+          chapter: new Types.ObjectId(data.chapterId) || null,
         },
         {
           new: true,

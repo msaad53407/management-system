@@ -88,7 +88,18 @@ export type FinancesAggregationResult = {
   paidDues: number;
 };
 
-export type BirthdaysInput = {
+export type CurrentYearMemberGrowthAggregation = {
+  month: number;
+  count: number;
+}[];
+
+export type MonthlyMemberGrowthAggregation = {
+  currentMonthCount: number;
+  previousMonthCount: number;
+  percentageChange: number;
+};
+
+export type ChapterOrDistrictType = {
   districtId?: Types.ObjectId;
   chapterId?: Types.ObjectId;
 } | null;

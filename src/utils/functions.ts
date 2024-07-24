@@ -9,9 +9,11 @@ import { Status, StatusDocument } from "@/models/status";
 import {
   AggregationResult,
   BirthdayAggregationResult,
-  BirthdaysInput,
+  ChapterOrDistrictType,
+  CurrentYearMemberGrowthAggregation,
   FinancesAggregationResult,
   MemberDropdownAggregationResult,
+  MonthlyMemberGrowthAggregation,
 } from "@/types/globals";
 import { State, StateDocument } from "@/models/state";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
@@ -71,7 +73,7 @@ export async function getDistrictFinances(
     const districtFinances = await District.aggregate([
       {
         $match: {
-          _id: districtId,
+          _id: new Types.ObjectId(districtId),
         },
       },
       {
@@ -255,7 +257,7 @@ export async function getChapterFinances(
     const chapterFinances = await Chapter.aggregate([
       {
         $match: {
-          _id: chapterId,
+          _id: new Types.ObjectId(chapterId),
         },
       },
       {
@@ -510,22 +512,20 @@ export async function getMemberFinances(
   }
 }
 
-export async function getMembersBirthdays(Input: BirthdaysInput) {
+export async function getMembersBirthdays(Input: ChapterOrDistrictType) {
   try {
-    const pipeline = [];
-
-    if (Input) {
-      pipeline.push({
-        $match: {
-          $or: [
-            { districtId: Input.districtId },
-            { chapterId: Input.chapterId },
-          ],
-        },
-      });
-    }
-
-    pipeline.push(
+    await connectDB();
+    const membersBirthdays = await Member.aggregate([
+      {
+        $match: Input
+          ? {
+              $or: [
+                { districtId: new Types.ObjectId(Input.districtId) },
+                { chapterId: new Types.ObjectId(Input.chapterId) },
+              ],
+            }
+          : {},
+      },
       {
         $addFields: {
           currentDate: new Date(),
@@ -552,10 +552,8 @@ export async function getMembersBirthdays(Input: BirthdaysInput) {
           middleName: 1,
           rank: 1,
         },
-      }
-    );
-
-    const membersBirthdays = await Member.aggregate(pipeline);
+      },
+    ]);
 
     const result = JSON.parse(
       JSON.stringify(membersBirthdays)
@@ -828,6 +826,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
 
 export async function getMemberChapter(memberId: Types.ObjectId) {
   try {
+    await connectDB();
     const memberChapterAggregation = await Member.aggregate([
       {
         $match: {
@@ -875,7 +874,8 @@ export async function getMemberChapter(memberId: Types.ObjectId) {
 
 export async function getMemberByUserId(userId: string) {
   try {
-    const member = await Member.findOne({ userId });
+    await connectDB();
+    const member = await Member.findOne({ userId: new Types.ObjectId(userId) });
     if (!member) {
       return {
         data: null,
@@ -885,6 +885,360 @@ export async function getMemberByUserId(userId: string) {
     return {
       data: member,
       message: "Member Found",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getRegularAndSpecialMembersCount(
+  Input: ChapterOrDistrictType
+) {
+  try {
+    await connectDB();
+    const { data: statuses, message } = await getAllStatuses();
+
+    if (!statuses) {
+      return {
+        data: null,
+        message,
+      };
+    }
+    const regularStatusId = statuses.find(
+      (status) => status.name === "Regular"
+    )?._id;
+
+    const specialStatusId = statuses.find(
+      (status) => status.name === "Special"
+    )?._id;
+
+    if (!regularStatusId || !specialStatusId) {
+      return {
+        data: null,
+        message: "Status Not Found",
+      };
+    }
+    let pipeline = [];
+    if (Input) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { districtId: new Types.ObjectId(Input.districtId) },
+            { chapterId: new Types.ObjectId(Input.chapterId) },
+          ],
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $match: {
+          status: {
+            $in: [
+              new Types.ObjectId(regularStatusId),
+              new Types.ObjectId(specialStatusId),
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          status: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      }
+    );
+
+    const result = await Member.aggregate(pipeline);
+
+    if (!result || result.length === 0) {
+      return {
+        data: null,
+        message: "No Members Found",
+      };
+    }
+
+    const counts: { regularMembersCount: number; specialMembersCount: number } =
+      result.reduce(
+        (acc, { status, count }) => {
+          if (status?.equals(regularStatusId)) {
+            acc.regularMembersCount = count;
+          } else if (status?.equals(specialStatusId)) {
+            acc.specialMembersCount = count;
+          }
+          return acc;
+        },
+        { regularMembersCount: 0, specialMembersCount: 0 }
+      );
+
+    return {
+      data: counts,
+      message: "Regular and Special Members Count Fetched",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getCurrentYearMemberGrowth(Input: ChapterOrDistrictType) {
+  try {
+    await connectDB();
+    console.log(Input?.chapterId);
+    const memberGrowth = (await Member.aggregate([
+      {
+        $match: Input
+          ? {
+              $or: [
+                { districtId: new Types.ObjectId(Input.districtId) },
+                { chapterId: new Types.ObjectId(Input.chapterId) },
+              ],
+            }
+          : {},
+      },
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(new Date().getFullYear(), 0, 1),
+            $lt: new Date(new Date().getFullYear() + 1, 0, 1),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          month: "$_id",
+          count: 1,
+        },
+      },
+      {
+        $facet: {
+          data: [{ $sort: { month: 1 } }],
+          months: [
+            {
+              $addFields: {
+                months: {
+                  $range: [1, new Date().getMonth() + 2],
+                },
+              },
+            },
+            { $unwind: "$months" },
+          ],
+        },
+      },
+      {
+        $project: {
+          result: {
+            $map: {
+              input: "$months.months",
+              as: "month",
+              in: {
+                month: "$$month",
+                count: {
+                  $let: {
+                    vars: {
+                      monthData: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$data",
+                              as: "data",
+                              cond: { $eq: ["$$data.month", "$$month"] },
+                            },
+                          },
+                          0,
+                        ],
+                      },
+                    },
+                    in: { $ifNull: ["$$monthData.count", 0] },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      { $unwind: "$result" },
+      { $replaceRoot: { newRoot: "$result" } },
+    ])) as CurrentYearMemberGrowthAggregation;
+    
+    if (!memberGrowth || memberGrowth.length === 0) {
+      return {
+        data: null,
+        message: "No Member Growth Found",
+      };
+    }
+
+    return {
+      data: memberGrowth.slice(0, new Date().getMonth() + 1),
+      message: "Current Year Member Growth Fetched",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getMonthlyMemberGrowth(Input: ChapterOrDistrictType) {
+  try {
+    await connectDB();
+
+    const currentMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
+    const previousMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() - 1,
+      1
+    );
+    const nextMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      1
+    );
+
+    const pipeline = [
+      {
+        $match: Input
+          ? {
+              $or: [
+                { districtId: new Types.ObjectId(Input.districtId) },
+                { chapterId: new Types.ObjectId(Input.chapterId) },
+              ],
+            }
+          : {},
+      },
+      {
+        $facet: {
+          currentMonth: [
+            {
+              $match: {
+                createdAt: {
+                  $gte: currentMonthStart,
+                  $lt: nextMonthStart,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              },
+            },
+          ],
+          previousMonth: [
+            {
+              $match: {
+                createdAt: {
+                  $gte: previousMonthStart,
+                  $lt: currentMonthStart,
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          currentMonthCount: {
+            $ifNull: [{ $arrayElemAt: ["$currentMonth.count", 0] }, 0],
+          },
+          previousMonthCount: {
+            $ifNull: [{ $arrayElemAt: ["$previousMonth.count", 0] }, 0],
+          },
+        },
+      },
+      {
+        $addFields: {
+          percentageChange: {
+            $cond: {
+              if: { $eq: ["$previousMonthCount", 0] },
+              then: {
+                $cond: {
+                  if: { $eq: ["$currentMonthCount", 0] },
+                  then: 0,
+                  else: 100,
+                },
+              },
+              else: {
+                $multiply: [
+                  {
+                    $divide: [
+                      {
+                        $subtract: [
+                          "$currentMonthCount",
+                          "$previousMonthCount",
+                        ],
+                      },
+                      "$previousMonthCount",
+                    ],
+                  },
+                  100,
+                ],
+              },
+            },
+          },
+        },
+      },
+    ];
+
+    const memberGrowth = (await Member.aggregate(
+      pipeline
+    )) as MonthlyMemberGrowthAggregation[];
+
+    if (!memberGrowth || memberGrowth.length === 0) {
+      return {
+        data: null,
+        message: "No Member Growth Found",
+      };
+    }
+
+    return {
+      data: memberGrowth[0],
+      message: "Current Month Member Growth Fetched",
     };
   } catch (error) {
     console.error(error);

@@ -85,12 +85,7 @@ const Header = () => {
         >
           <UserIcon />
         </Button>
-        <Button
-          className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
-          size="icon"
-        >
-          <UserButton />
-        </Button>
+        <UserButton />
         <Button
           className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
           size="icon"
