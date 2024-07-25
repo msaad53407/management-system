@@ -135,16 +135,18 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                         </Button>
                       </Link>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <Link href={`/member/${member._id}/dues`}>
-                        <Button
-                          variant="destructive"
-                          className="w-full bg-blue-400 hover:bg-blue-300 text-white"
-                        >
-                          Dues
-                        </Button>
-                      </Link>
-                    </TableCell>
+                    {checkRoleClient(["secretary", "grand-administrator"]) && (
+                      <TableCell className="hidden lg:table-cell">
+                        <Link href={`/member/${member._id}/dues`}>
+                          <Button
+                            variant="destructive"
+                            className="w-full bg-blue-400 hover:bg-blue-300 text-white"
+                          >
+                            Dues
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    )}
                     {checkRoleClient("grand-administrator") ? (
                       <TableCell className="hidden lg:table-cell">
                         <MemberRemoveAlert
@@ -181,9 +183,16 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="justify-center">
-                          <Link href={`/member/${member._id}/dues`}>Dues</Link>
-                        </DropdownMenuItem>
+                        {checkRoleClient([
+                          "secretary",
+                          "grand-administrator",
+                        ]) && (
+                          <DropdownMenuItem className="justify-center">
+                            <Link href={`/member/${member._id}/dues`}>
+                              Dues
+                            </Link>
+                          </DropdownMenuItem>
+                        )}
                         {checkRoleClient("grand-administrator") ? (
                           <MemberRemoveAlert
                             open={open}

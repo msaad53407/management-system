@@ -17,7 +17,9 @@ export async function getDistrict(params: GetDistrictParams) {
   try {
     await connectDB();
     //TODO Decide whether to keep this check or not.
-    if (!checkRole(["district-deputy", "grand-administrator"])) {
+    if (
+      !checkRole(["district-deputy", "grand-administrator", "grand-officer"])
+    ) {
       return {
         data: null,
         message: "Unauthorized",

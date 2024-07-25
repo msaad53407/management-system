@@ -93,6 +93,7 @@ const FilterDropdown = ({ chapters, districts, className }: Props) => {
                   ? "c" + searchParams.get("chapterId")
                   : "d" + searchParams.get("districtId")
               }
+              required
             >
               <SelectTrigger className="w-[280px]">
                 <SelectValue placeholder="Select a month" />

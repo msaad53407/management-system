@@ -9,60 +9,64 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { checkRole } from "@/lib/role";
-import { FilterProps, MonthlyMemberGrowthAggregation } from "@/types/globals";
-import { getMonthlyMemberGrowth } from "@/utils/functions";
+import { FilterProps, MonthlyActiveMemberAggregation } from "@/types/globals";
+import { getMonthlyActiveMembers } from "@/utils/functions";
 import { auth } from "@clerk/nextjs/server";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { Types } from "mongoose";
 
-const NewMembersCard = async ({ type, chapterId, districtId }: FilterProps) => {
+const ActiveMembersCard = async ({
+  chapterId,
+  districtId,
+  type,
+}: FilterProps) => {
   const { userId } = auth();
 
-  let memberGrowth: MonthlyMemberGrowthAggregation | null = null;
+  let activeMembers: MonthlyActiveMemberAggregation | null = null;
   let errorMessage = "";
 
   if (checkRole("secretary")) {
     const { data: chapter } = await getChapter({
       secretaryId: userId!,
     });
-    const { data, message } = await getMonthlyMemberGrowth({
+    const { data, message } = await getMonthlyActiveMembers({
       chapterId: chapter?._id,
     });
-    memberGrowth = data;
+    activeMembers = data;
     errorMessage = message;
   } else if (checkRole("worthy-matron")) {
     const { data: chapter } = await getChapter({ matronId: userId! });
-    const { data, message } = await getMonthlyMemberGrowth({
+    const { data, message } = await getMonthlyActiveMembers({
       chapterId: chapter?._id,
     });
-    memberGrowth = data;
+    activeMembers = data;
     errorMessage = message;
   } else if (checkRole("district-deputy")) {
     const { data: district } = await getDistrict({ deputyId: userId! });
-    const { data, message } = await getMonthlyMemberGrowth({
+    const { data, message } = await getMonthlyActiveMembers({
       districtId: district?._id,
     });
-    memberGrowth = data;
+    activeMembers = data;
     errorMessage = message;
   } else {
-    const { data, message } = await getMonthlyMemberGrowth(
+    const { data, message } = await getMonthlyActiveMembers(
       type
         ? type === "chapter"
           ? { chapterId: new Types.ObjectId(chapterId) }
           : { districtId: new Types.ObjectId(districtId) }
         : null
     );
-    memberGrowth = data;
+    activeMembers = data;
     errorMessage = message;
   }
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm">New Members</CardTitle>
+        <CardTitle className="text-sm">Active Members</CardTitle>
       </CardHeader>
       <CardContent>
-        {memberGrowth ? (
-          <MonthMembersChart data={memberGrowth} />
+        {activeMembers ? (
+          <MonthMembersChart data={activeMembers} />
         ) : (
           <div className="w-full flex items-center justify-center">
             <p className="text-red-500 text-sm font-normal">{errorMessage}</p>
@@ -71,20 +75,20 @@ const NewMembersCard = async ({ type, chapterId, districtId }: FilterProps) => {
       </CardContent>
       <CardFooter className="flex flex-col gap-2 text-sm">
         <div className="flex items-center text-black gap-2 font-medium leading-none">
-          Trending {(memberGrowth?.percentageChange || 0) > 0 ? "up" : "down"}{" "}
-          by {memberGrowth?.percentageChange}% this month{" "}
-          {(memberGrowth?.percentageChange || 0) > 0 ? (
+          Trending {(activeMembers?.percentageChange || 0) > 0 ? "up" : "down"}{" "}
+          by {activeMembers?.percentageChange}% this month{" "}
+          {(activeMembers?.percentageChange || 0) > 0 ? (
             <TrendingUp className="h-4 w-4" />
           ) : (
             <TrendingDown className="h-4 w-4" />
           )}
         </div>
         <div className="leading-none text-black">
-          Showing total New Members for the last 2 months
+          Showing total Active Members for the last 2 months
         </div>
       </CardFooter>
     </Card>
   );
 };
 
-export default NewMembersCard;
+export default ActiveMembersCard;

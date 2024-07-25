@@ -3,14 +3,20 @@ import { checkRole } from "@/lib/role";
 import { ChapterDocument } from "@/models/chapter";
 import { DistrictDocument } from "@/models/district";
 import { capitalize } from "@/utils";
-import { getAllChapters, getAllDistricts } from "@/utils/functions";
+import {
+  getAllChapters,
+  getAllDistricts,
+  getMonthlyMoneyDetails,
+} from "@/utils/functions";
 import { auth } from "@clerk/nextjs/server";
 import { Suspense } from "react";
+import ActiveMembersCard from "./components/ActiveMembersCard";
 import FilterDropdown from "./components/FilterDropdown";
 import MemberBirthdaysCard from "./components/MemberBirthdaysCard";
 import MemberDistributionCard from "./components/MemberDistributionCard";
 import MemberGrowthCard from "./components/MemberGrowthCard";
 import NewMembersCard from "./components/NewMembersCard";
+import MoneyDetailsCard from "./components/MoneyDetailsCard";
 
 type Props = {
   searchParams?: {
@@ -67,7 +73,47 @@ const Dashboard = async ({ searchParams }: Props) => {
         </div>
       </div>
       <section className="w-full space-y-3">
-        <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Suspense
+            fallback={
+              <LoadingSpinner
+                className="w-full h-[300px]"
+                spinnerClassName="size-14"
+              />
+            }
+          >
+            <MoneyDetailsCard
+              {...(!searchParams || !searchParams.filter
+                ? { moneyType: "in" }
+                : searchParams.filter === "chapter"
+                ? {
+                    type: "chapter",
+                    chapterId: searchParams.chapterId!,
+                    moneyType: "in",
+                  }
+                : {
+                    type: "district",
+                    districtId: searchParams.districtId!,
+                    moneyType: "in",
+                  })}
+            />
+          </Suspense>
+          <Suspense
+            fallback={
+              <LoadingSpinner
+                className="w-full h-[300px]"
+                spinnerClassName="size-14"
+              />
+            }
+          >
+            <ActiveMembersCard
+              {...(!searchParams || !searchParams.filter
+                ? {}
+                : searchParams.filter === "chapter"
+                ? { type: "chapter", chapterId: searchParams.chapterId! }
+                : { type: "district", districtId: searchParams.districtId! })}
+            />
+          </Suspense>
           <Suspense
             fallback={
               <LoadingSpinner

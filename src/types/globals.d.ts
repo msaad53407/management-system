@@ -99,10 +99,32 @@ export type MonthlyMemberGrowthAggregation = {
   percentageChange: number;
 };
 
+export type MonthlyActiveMemberAggregation = MonthlyMemberGrowthAggregation;
+
 export type ChapterOrDistrictType = {
   districtId?: Types.ObjectId;
   chapterId?: Types.ObjectId;
 } | null;
+
+interface BaseProps {
+  type?: never;
+  chapterId?: never;
+  districtId?: never;
+}
+
+interface ChapterProps {
+  type: "chapter";
+  chapterId: string;
+  districtId?: never;
+}
+
+interface DistrictProps {
+  type: "district";
+  districtId: string;
+  chapterId?: never;
+}
+
+export type FilterProps = BaseProps | ChapterProps | DistrictProps;
 
 declare global {
   interface CustomJwtSessionClaims {

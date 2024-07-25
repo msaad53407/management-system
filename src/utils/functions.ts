@@ -1,10 +1,12 @@
-import "server-only";
 import { connectDB } from "@/lib/db";
-import { Types } from "mongoose";
-import { District, DistrictDocument } from "@/models/district";
 import { Chapter, ChapterDocument } from "@/models/chapter";
+import { ChapterOfficeDocument } from "@/models/chapterOffice";
+import { District, DistrictDocument } from "@/models/district";
+import { GrandOfficeDocument } from "@/models/grandOffice";
 import { Member, MemberDocument } from "@/models/member";
 import { Rank, RankDocument } from "@/models/rank";
+import { ReasonDocument } from "@/models/reason";
+import { State, StateDocument } from "@/models/state";
 import { Status, StatusDocument } from "@/models/status";
 import {
   AggregationResult,
@@ -13,12 +15,12 @@ import {
   CurrentYearMemberGrowthAggregation,
   FinancesAggregationResult,
   MemberDropdownAggregationResult,
+  MonthlyActiveMemberAggregation,
   MonthlyMemberGrowthAggregation,
 } from "@/types/globals";
-import { State, StateDocument } from "@/models/state";
-import { ChapterOfficeDocument } from "@/models/chapterOffice";
-import { GrandOfficeDocument } from "@/models/grandOffice";
-import { ReasonDocument } from "@/models/reason";
+import { Types } from "mongoose";
+import "server-only";
+import { number } from "zod";
 
 export async function getSystemFinances(date: {
   month?: number;
@@ -398,11 +400,28 @@ export async function getMemberFinances(
     month?: number;
     year?: number;
   },
-  memberId?: Types.ObjectId
+  memberId?: Types.ObjectId,
+  Input?: ChapterOrDistrictType
 ) {
   try {
     await connectDB();
     const pipeline = [];
+
+    if (Input) {
+      pipeline.push({
+        $match: {
+          $or: [
+            {
+              districtId: new Types.ObjectId(Input.districtId),
+            },
+            {
+              chapterId: new Types.ObjectId(Input.chapterId),
+            },
+          ],
+        },
+      });
+    }
+
     if (memberId) {
       pipeline.push({
         $match: {
@@ -875,7 +894,7 @@ export async function getMemberChapter(memberId: Types.ObjectId) {
 export async function getMemberByUserId(userId: string) {
   try {
     await connectDB();
-    const member = await Member.findOne({ userId: new Types.ObjectId(userId) });
+    const member = await Member.findOne({ userId });
     if (!member) {
       return {
         data: null,
@@ -1081,7 +1100,7 @@ export async function getCurrentYearMemberGrowth(Input: ChapterOrDistrictType) {
       { $unwind: "$result" },
       { $replaceRoot: { newRoot: "$result" } },
     ])) as CurrentYearMemberGrowthAggregation;
-    
+
     if (!memberGrowth || memberGrowth.length === 0) {
       return {
         data: null,
@@ -1238,6 +1257,283 @@ export async function getMonthlyMemberGrowth(Input: ChapterOrDistrictType) {
 
     return {
       data: memberGrowth[0],
+      message: "Current Month Member Growth Fetched",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getMonthlyActiveMembers(Input: ChapterOrDistrictType) {
+  try {
+    await connectDB();
+
+    const currentMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
+    const previousMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() - 1,
+      1
+    );
+    const nextMonthStart = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      1
+    );
+
+    const pipeline = [
+      {
+        $match: Input
+          ? {
+              $or: [
+                { districtId: new Types.ObjectId(Input.districtId) },
+                { chapterId: new Types.ObjectId(Input.chapterId) },
+              ],
+            }
+          : {},
+      },
+      {
+        $facet: {
+          currentMonth: [
+            {
+              $match: {
+                createdAt: {
+                  $gte: currentMonthStart,
+                  $lt: nextMonthStart,
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "status",
+                localField: "status",
+                foreignField: "_id",
+                as: "statuses",
+              },
+            },
+            {
+              $match: {
+                "statuses.name": {
+                  $in: ["Regular", "Special", "special", "regular"],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              },
+            },
+          ],
+          previousMonth: [
+            {
+              $match: {
+                createdAt: {
+                  $gte: previousMonthStart,
+                  $lt: currentMonthStart,
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "status",
+                localField: "status",
+                foreignField: "_id",
+                as: "statuses",
+              },
+            },
+            {
+              $match: {
+                "statuses.name": {
+                  $in: ["Regular", "Special", "special", "regular"],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          currentMonthCount: {
+            $ifNull: [{ $arrayElemAt: ["$currentMonth.count", 0] }, 0],
+          },
+          previousMonthCount: {
+            $ifNull: [{ $arrayElemAt: ["$previousMonth.count", 0] }, 0],
+          },
+        },
+      },
+      {
+        $addFields: {
+          percentageChange: {
+            $cond: {
+              if: { $eq: ["$previousMonthCount", 0] },
+              then: {
+                $cond: {
+                  if: { $eq: ["$currentMonthCount", 0] },
+                  then: 0,
+                  else: 100,
+                },
+              },
+              else: {
+                $multiply: [
+                  {
+                    $divide: [
+                      {
+                        $subtract: [
+                          "$currentMonthCount",
+                          "$previousMonthCount",
+                        ],
+                      },
+                      "$previousMonthCount",
+                    ],
+                  },
+                  100,
+                ],
+              },
+            },
+          },
+        },
+      },
+    ];
+
+    const activeMembers = (await Member.aggregate(
+      pipeline
+    )) as MonthlyActiveMemberAggregation[];
+
+    if (!activeMembers || activeMembers.length === 0) {
+      return {
+        data: null,
+        message: "No Member Growth Found",
+      };
+    }
+
+    return {
+      data: activeMembers[0],
+      message: "Current Month Member Growth Fetched",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getMonthlyMoneyDetails(
+  moneyType: "in" | "out",
+  Input: ChapterOrDistrictType
+) {
+  try {
+    await connectDB();
+
+    if (moneyType === "in") {
+      const { data: currentMonthFinances } = await getMemberFinances(
+        {
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+        },
+        undefined,
+        Input
+      );
+      const { data: previousMonthFinances } = await getMemberFinances(
+        {
+          month: new Date().getMonth(),
+          year: new Date().getFullYear(),
+        },
+        undefined,
+        Input
+      );
+
+      let [
+        currentMonthMoneyPaid,
+        previousMonthMoneyPaid,
+        previousMonthMoneyTotal,
+        currentMonthMoneyTotal,
+        percentageChange,
+      ]: number[] = [0, 0, 0, 0, 0];
+      if (!currentMonthFinances || !Array.isArray(currentMonthFinances)) {
+        currentMonthMoneyPaid = 0;
+        currentMonthMoneyTotal = 0;
+      }
+      if (!previousMonthFinances || !Array.isArray(previousMonthFinances)) {
+        previousMonthMoneyPaid = 0;
+        previousMonthMoneyTotal = 0;
+      }
+      if (currentMonthFinances && Array.isArray(currentMonthFinances)) {
+        currentMonthMoneyPaid = currentMonthFinances.reduce(
+          (acc, curr) => acc + curr.paidDues,
+          0
+        );
+        currentMonthMoneyTotal = currentMonthFinances.reduce(
+          (acc, curr) => acc + curr.totalDues,
+          0
+        );
+      }
+      if (previousMonthFinances && Array.isArray(previousMonthFinances)) {
+        previousMonthMoneyPaid = previousMonthFinances.reduce(
+          (acc, curr) => acc + curr.paidDues,
+          0
+        );
+        previousMonthMoneyTotal = previousMonthFinances.reduce(
+          (acc, curr) => acc + curr.totalDues,
+          0
+        );
+      }
+      if (previousMonthMoneyPaid === 0) {
+        percentageChange = 0;
+      } else {
+        percentageChange = Math.round(
+          ((currentMonthMoneyPaid - previousMonthMoneyPaid) /
+            previousMonthMoneyPaid) *
+            100
+        );
+      }
+      return {
+        data: {
+          currentMonthMoneyPaid,
+          previousMonthMoneyPaid,
+          previousMonthMoneyTotal,
+          currentMonthMoneyTotal,
+          percentageChange,
+        },
+        message: "Current Month Money Details Fetched",
+      };
+    }
+
+    return {
+      data: {
+        currentMonthMoneyPaid: 0,
+        previousMonthMoneyPaid: 0,
+        previousMonthMoneyTotal: 0,
+        currentMonthMoneyTotal: 0,
+        percentageChange: 0,
+      },
       message: "Current Month Member Growth Fetched",
     };
   } catch (error) {
