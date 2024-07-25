@@ -389,6 +389,61 @@ export const addChapterSchema = z.object({
   }),
 });
 
+export const updateChapterSchema = z.object({
+  chapterAddress1: z
+    .string({
+      required_error: "Address 1 is required",
+    })
+    .min(1, "Address 1 is required"),
+  chapterAddress2: z.string(),
+  chapterCity: z
+    .string({
+      required_error: "City is required",
+    })
+    .min(1, "City is required"),
+  chapterEmail: z
+    .string({
+      required_error: "Email is required",
+    })
+    .email("Email is invalid")
+    .min(1, "Email is required"),
+  chapterZipCode: z
+    .string({
+      required_error: "Zip code is required",
+    })
+    .min(1, "Zip code is required"),
+  chapterChartDate: z
+    .string({
+      required_error: "Chart date is required",
+    })
+    .min(1, "Chart date is required"),
+  chapterMeet1: z
+    .string({
+      required_error: "Meet 1 is required",
+    })
+    .min(1, "Meet 1 is required"),
+  chapterMeet2: z
+    .string({
+      required_error: "Meet 2 is required",
+    })
+    .min(1, "Meet 2 is required"),
+  chpMonDues: z
+    .string({
+      required_error: "Monthly dues is required",
+    })
+    .min(1, "Monthly dues is required"),
+  chpYrDues: z
+    .string({
+      required_error: "Yearly dues is required",
+    })
+    .min(1, "Yearly dues is required"),
+  chapterId: z
+    .string({
+      required_error: "Chapter ID is required",
+    })
+    .min(1, "Chapter ID is required"),
+});
+
 export const updateDuesSchema = z.object({
   memberId: z
     .string({

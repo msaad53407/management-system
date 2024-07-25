@@ -1,13 +1,9 @@
 "use client";
 
+import { editMember } from "@/actions/chapter";
+import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { editMember } from "@/actions/chapter";
-import { MemberDocument } from "@/models/member";
-import SubmitButton from "@/components/SubmitButton";
-import { useFormState } from "react-dom";
-import { StateDocument } from "@/models/state";
 import {
   Select,
   SelectContent,
@@ -15,13 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { StatusDocument } from "@/models/status";
+import { Textarea } from "@/components/ui/textarea";
+import { useCheckRole } from "@/hooks/useCheckRole";
+import { ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { GrandOfficeDocument } from "@/models/grandOffice";
+import { MemberDocument } from "@/models/member";
 import { RankDocument } from "@/models/rank";
 import { ReasonDocument } from "@/models/reason";
+import { StateDocument } from "@/models/state";
+import { StatusDocument } from "@/models/status";
 import { Roles } from "@/types/globals";
-import { useCheckRole } from "@/hooks/useCheckRole";
+import { useFormState } from "react-dom";
 
 interface FormMessage {
   [key: string]: string[] | undefined;
@@ -37,6 +38,7 @@ interface Props {
       | GrandOfficeDocument[]
       | RankDocument[]
       | ReasonDocument[]
+      | ChapterDocument[]
       | undefined;
   };
 }
@@ -47,7 +49,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
   const [formState, formAction] = useFormState(editMember, initialState);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
-
+  console.log(member);
   const fields = [
     {
       label: "First Name",
@@ -297,7 +299,13 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       label: "Demit to Chapter",
       id: "demitToChapter",
       placeholder: "Demit to Chapter",
-      type: "text",
+      type: "select",
+      dropdownType: "chapters",
+      defaultValue:
+        dropdownOptions?.chapters &&
+        dropdownOptions?.chapters.find(
+          (chapter: ChapterDocument) => chapter._id === member.demitToChapter
+        )?._id,
       roles: ["secretary", "grand-administrator"],
     },
     {
@@ -383,7 +391,9 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       id: "reinstatedDate",
       placeholder: "mm/dd/yyyy",
       type: "date",
-      defaultValue: member.reinstatedDate,
+      defaultValue: member.reinstatedDate
+        ? new Date(member.reinstatedDate)?.toISOString().split("T")[0]
+        : "",
       roles: ["secretary", "grand-administrator"],
     },
     {
@@ -495,11 +505,23 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {dropdownOptions &&
-                      dropdownOptions[dropdownType!]!.map((state, indx) => (
-                        <SelectItem key={indx} value={state._id?.toString()}>
-                          {state.name}
-                        </SelectItem>
-                      ))}
+                    dropdownType &&
+                    dropdownType !== "chapters"
+                      ? dropdownOptions[dropdownType]!.map((state, indx) => (
+                          <SelectItem key={indx} value={state._id?.toString()}>
+                            {state.name}
+                          </SelectItem>
+                        ))
+                      : dropdownOptions[dropdownType!]!.filter(
+                          (chapter) => chapter._id !== member.chapterId
+                        ).map((chapter, indx) => (
+                          <SelectItem
+                            key={indx}
+                            value={chapter._id?.toString()}
+                          >
+                            {chapter.name}
+                          </SelectItem>
+                        ))}
                   </SelectContent>
                 </Select>
               </div>

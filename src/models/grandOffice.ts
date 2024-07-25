@@ -3,7 +3,7 @@ import mongoose, { Document } from "mongoose";
 export interface GrandOfficeDocument extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
-  description: string;
+  description?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

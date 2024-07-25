@@ -663,6 +663,16 @@ export async function getAllMemberDropdownOptions(memberId: string) {
       },
       {
         $lookup: {
+          from: "chapters",
+          pipeline: [
+            { $match: {} },
+            { $project: { _id: 1, name: 1, description: 1 } },
+          ],
+          as: "allChapters",
+        },
+      },
+      {
+        $lookup: {
           from: "states",
           pipeline: [
             { $match: {} },
@@ -778,6 +788,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
             spousePhone: "$spousePhone",
             emergencyContact: "$emergencyContact",
             emergencyContactPhone: "$emergencyContactPhone",
+            reinstatedDate: "$reinstatedDate",
           },
           allStates: 1,
           allStatuses: 1,
@@ -785,6 +796,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
           allGrandOffices: 1,
           allRanks: 1,
           allReasons: 1,
+          allChapters: 1,
         },
       },
     ]);
@@ -804,6 +816,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
       allGrandOffices,
       allRanks,
       allReasons,
+      allChapters,
     } = result[0] as MemberDropdownAggregationResult;
     const parsedMember = JSON.parse(JSON.stringify(member)) as MemberDocument;
     const dropdownOptions = {
@@ -824,6 +837,9 @@ export async function getAllMemberDropdownOptions(memberId: string) {
         | undefined,
       reasons: JSON.parse(JSON.stringify(allReasons)) as
         | ReasonDocument[]
+        | undefined,
+      chapters: JSON.parse(JSON.stringify(allChapters)) as
+        | ChapterDocument[]
         | undefined,
     };
 

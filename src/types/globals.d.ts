@@ -1,3 +1,4 @@
+import { ChapterDocument } from "@/models/chapter";
 import { Types } from "mongoose";
 
 export {};
@@ -62,6 +63,7 @@ export type MemberDropdownAggregationResult = {
   allGrandOffices?: GrandOfficeDocument[];
   allRanks?: RankDocument[];
   allReasons?: ReasonDocument[];
+  allChapters?: ChapterDocument[];
 };
 
 export type BirthdayAggregationResult = {

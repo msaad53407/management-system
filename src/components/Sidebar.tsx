@@ -6,6 +6,7 @@ import {
   HomeIcon,
   Landmark,
   MessageSquareIcon,
+  Settings,
   StickyNote,
   UsersRound,
 } from "lucide-react";
@@ -184,6 +185,17 @@ async function Sidebar() {
         "grand-officer",
         "grand-administrator",
       ],
+    },
+    {
+      heading: "Manage Chapter",
+      links: [
+        {
+          title: "Chapter Settings",
+          href: `/chapter/${chapter?._id}/settings`,
+          Icon: <Settings />,
+        },
+      ],
+      roles: ["grand-administrator", "secretary"],
     },
   ];
 

@@ -11,6 +11,7 @@ import {
   addChapterSchema,
   addMemberSchema,
   editFormSchema,
+  updateChapterSchema,
 } from "@/lib/zod/member";
 import { redirect } from "next/navigation";
 import { Types } from "mongoose";
@@ -392,6 +393,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
             : null,
           status: new Types.ObjectId(data.memberStatus) || null,
           chapter: new Types.ObjectId(data.chapterId) || null,
+          demitToChapter: new Types.ObjectId(data.demitToChapter) || null,
         },
         {
           new: true,
@@ -637,5 +639,86 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
     if (shouldRedirect) {
       redirect("/chapter");
     }
+  }
+};
+
+export const editChapter = async (_prevState: any, formData: FormData) => {
+  const { userId } = auth();
+
+  const rawData = Object.fromEntries(formData);
+  const { success, data, error } = updateChapterSchema.safeParse(rawData);
+
+  if (!success) {
+    console.error(JSON.stringify(error));
+    return {
+      success: false,
+      message: error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await connectDB();
+    if (checkRole("secretary")) {
+      const chapter = await Chapter.findOneAndUpdate(
+        { secretaryId: userId },
+        {
+          chapterAddress1: data.chapterAddress1,
+          chapterAddress2: data.chapterAddress2,
+          chapterCity: data.chapterCity,
+          chapterZip: data.chapterZipCode,
+          chapterChartDate: new Date(data.chapterChartDate),
+          chapterMeet1: data.chapterMeet1,
+          chapterMeet2: data.chapterMeet2,
+          chpMonDues: data.chpMonDues,
+          chpYrDues: data.chpYrDues,
+        },
+        {
+          new: true,
+        }
+      );
+
+      if (!chapter) {
+        return {
+          success: false,
+          message: "Error: Chapter not found",
+        };
+      }
+    }
+
+    const chapter = await Chapter.findByIdAndUpdate(
+      data.chapterId,
+      {
+        chapterAddress1: data.chapterAddress1,
+        chapterAddress2: data.chapterAddress2,
+        chapterCity: data.chapterCity,
+        chapterZip: data.chapterZipCode,
+        chapterChartDate: new Date(data.chapterChartDate),
+        chapterMeet1: data.chapterMeet1,
+        chapterMeet2: data.chapterMeet2,
+        chpMonDues: data.chpMonDues,
+        chpYrDues: data.chpYrDues,
+      },
+      { new: true }
+    );
+
+    if (!chapter) {
+      return {
+        success: false,
+        message: "Error: Chapter not found",
+      };
+    }
+
+    return {
+      success: true,
+      message: "Chapter Updated",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "Error Connecting to DB",
+    };
+  } finally {
+    revalidatePath(`/chapter/${data.chapterId}/settings`);
   }
 };
