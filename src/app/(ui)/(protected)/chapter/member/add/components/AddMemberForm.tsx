@@ -4,6 +4,7 @@ import { addMember } from "@/actions/chapter";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ const introductoryFields = [
   {
     label: "Greeting",
     id: "greeting",
+    options: ["Sis.", "Bro."],
   },
   {
     label: "First Name",
@@ -125,19 +127,40 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
           readOnly
           className="sr-only max-w-fit"
         />
-        {introductoryFields.map(({ id, label }, indx) => (
-          <div className="w-full flex flex-col gap-1" key={indx}>
-            <p className="text-red-500 text-xs font-medium">
-              {typeof formMessage === "string"
-                ? ""
-                : formMessage && formMessage[id]}
-            </p>
-            <Label htmlFor={id} className="text-slate-600">
-              {label}
-            </Label>
-            <Input id={id} type="text" name={id} />
-          </div>
-        ))}
+        {introductoryFields.map(({ id, label, options }, indx) =>
+          id === "greeting" ? (
+            <RadioGroup key={indx} name={id} className="flex flex-col gap-4">
+              <Label className="text-slate-600">{label}</Label>
+              <div className="flex gap-2">
+                {options &&
+                  options.map((option, i) => (
+                    <div className="flex items-center space-x-2" key={i}>
+                      <RadioGroupItem
+                        value={option}
+                        id={option}
+                        className="text-slate-600"
+                      />
+                      <Label htmlFor={option} className="text-slate-600">
+                        {option}
+                      </Label>
+                    </div>
+                  ))}
+              </div>
+            </RadioGroup>
+          ) : (
+            <div className="w-full flex flex-col gap-1" key={indx}>
+              <p className="text-red-500 text-xs font-medium">
+                {typeof formMessage === "string"
+                  ? ""
+                  : formMessage && formMessage[id]}
+              </p>
+              <Label htmlFor={id} className="text-slate-600">
+                {label}
+              </Label>
+              <Input id={id} type="text" name={id} />
+            </div>
+          )
+        )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {detailsFields.map(({ id, label, type }, indx) =>

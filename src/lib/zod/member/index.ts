@@ -2,7 +2,9 @@ import { Roles } from "@/types/globals";
 import { z } from "zod";
 
 export const addMemberSchema = z.object({
-  greeting: z.string(),
+  greeting: z.enum(["Sis.", "Bro."], {
+    required_error: "Greeting is required",
+  }),
   chapterId: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -28,6 +30,9 @@ export const editFormSchema = (role: Roles) =>
       })
       .min(1, "Member ID is required"),
     chapterId: z.string(),
+    greeting: z.enum(["Sis.", "Bro."], {
+      required_error: "Greeting is required",
+    }),
     firstName: z.string().min(1, "First name is required"),
     middleName: z
       .string({

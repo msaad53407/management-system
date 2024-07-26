@@ -1,24 +1,23 @@
 "use server";
-import { Chapter, ChapterDocument } from "@/models/chapter";
-import bcrypt from "bcrypt";
-import { connectDB } from "@/lib/db";
-import { auth, clerkClient, User } from "@clerk/nextjs/server";
-import { Member, MemberDocument } from "@/models/member";
-import { checkRole } from "@/lib/role";
 import { isAuthenticated } from "@/lib/authorization";
-import { revalidatePath } from "next/cache";
+import { connectDB } from "@/lib/db";
+import { checkRole } from "@/lib/role";
 import {
   addChapterSchema,
   addMemberSchema,
   editFormSchema,
   updateChapterSchema,
 } from "@/lib/zod/member";
-import { redirect } from "next/navigation";
-import { Types } from "mongoose";
-import { Roles } from "@/types/globals";
-import { createDue } from "./dues";
+import { Chapter, ChapterDocument } from "@/models/chapter";
 import { Due } from "@/models/dues";
-import ChapterDetailsPDF from "@/components/pdf/ChapterDetails";
+import { Member, MemberDocument } from "@/models/member";
+import { Roles } from "@/types/globals";
+import { auth, clerkClient, User } from "@clerk/nextjs/server";
+import bcrypt from "bcrypt";
+import { Types } from "mongoose";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { createDue } from "./dues";
 
 type GetDistrictParams =
   | { secretaryId: string; chapterId?: never; matronId?: never }
@@ -329,6 +328,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
           middleName: data.middleName,
           lastName: data.lastName,
           email: data.emailAddress,
+          greeting: data.greeting,
           zipCode: data.zipcode,
           address1: data.address,
           city: data.city,

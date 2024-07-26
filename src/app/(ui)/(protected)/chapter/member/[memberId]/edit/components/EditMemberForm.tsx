@@ -4,6 +4,7 @@ import { editMember } from "@/actions/chapter";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -49,8 +50,15 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
   const [formState, formAction] = useFormState(editMember, initialState);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
-  console.log(member);
   const fields = [
+    {
+      label: "Greeting",
+      id: "greeting",
+      defaultValue: member.greeting,
+      options: ["Sis.", "Bro."],
+      roles: ["member", "secretary", "grand-administrator"],
+      type: "radio",
+    },
     {
       label: "First Name",
       id: "firstName",
@@ -454,7 +462,9 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
               ? ""
               : formState?.message?.memberId}
           </p>
-          <Label htmlFor="memberId">Member Id</Label>
+          <Label htmlFor="memberId" className="text-slate-600">
+            Member Id
+          </Label>
           <Input
             id="memberId"
             placeholder="Member Id"
@@ -474,7 +484,16 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
         </div>
         {fields.map(
           (
-            { id, label, placeholder, type, defaultValue, dropdownType, roles },
+            {
+              id,
+              label,
+              placeholder,
+              type,
+              defaultValue,
+              dropdownType,
+              roles,
+              options,
+            },
             indx
           ) =>
             type === "select" ? (
@@ -525,6 +544,36 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                   </SelectContent>
                 </Select>
               </div>
+            ) : type === "radio" ? (
+              <RadioGroup
+                key={indx}
+                name={id}
+                className="flex flex-col gap-5 mt-2"
+                defaultValue={defaultValue as string}
+              >
+                <Label className="text-slate-600">{label}</Label>
+                <div className="flex gap-2">
+                  {options &&
+                    options.map((option, i) => (
+                      <div className="flex items-center space-x-2" key={i}>
+                        <RadioGroupItem
+                          id={option}
+                          value={option}
+                          className="text-slate-600"
+                          {...(checkRoleClient(roles as Roles[])
+                            ? {}
+                            : {
+                                className: "cursor-not-allowed opacity-75",
+                                readOnly: true,
+                              })}
+                        />
+                        <Label htmlFor={option} className="text-slate-600">
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+              </RadioGroup>
             ) : (
               <div className="space-y-2" key={indx}>
                 <p className="text-red-500 text-xs font-medium">
