@@ -263,7 +263,10 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       };
     }
 
-    const { data: dues, message } = await createDue(member._id);
+    const { data: dues, message } = await createDue(
+      member._id,
+      chapter?.chpMonDues
+    );
 
     if (!dues) {
       return {
@@ -608,9 +611,10 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
       chapterNumber: Number(data.chapterNumber),
       chapterAddress1: data.chapterAddress1,
       chapterAddress2: data.chapterAddress2,
+      chapterEmail: data.chapterEmail,
       chapterCity: data.chapterCity,
       chapterState: new Types.ObjectId(data.chapterState),
-      chapterZip: data.chapterZipCode,
+      chapterZipCode: data.chapterZipCode,
       matronId: matron.id,
       secretaryId: secretary.id,
       chapterChartDate: new Date(data.chapterChartDate),
@@ -692,7 +696,8 @@ export const editChapter = async (_prevState: any, formData: FormData) => {
         chapterAddress1: data.chapterAddress1,
         chapterAddress2: data.chapterAddress2,
         chapterCity: data.chapterCity,
-        chapterZip: data.chapterZipCode,
+        chapterZipCode: data.chapterZipCode,
+        chapterEmail: data.chapterEmail,
         chapterChartDate: new Date(data.chapterChartDate),
         chapterMeet1: data.chapterMeet1,
         chapterMeet2: data.chapterMeet2,

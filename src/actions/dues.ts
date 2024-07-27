@@ -72,13 +72,13 @@ export async function updateDues(_prevState: any, formData: FormData) {
   }
 }
 
-export async function createDue(memberId: Types.ObjectId) {
+export async function createDue(memberId: Types.ObjectId, totalDues?: number) {
   try {
     await connectDB();
     const newDue = await Due.create({
       memberId,
       amount: 0,
-      totalDues: 10,
+      totalDues: totalDues || 10,
       dueDate: new Date(),
       paymentStatus: "unpaid",
     });

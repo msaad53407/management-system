@@ -195,7 +195,7 @@ async function Sidebar() {
           Icon: <Settings />,
         },
       ],
-      roles: ["grand-administrator", "secretary"],
+      roles: ["secretary"],
     },
   ];
 

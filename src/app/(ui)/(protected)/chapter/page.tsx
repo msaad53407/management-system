@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Metadata } from "next";
 import { getDistrict } from "@/actions/district";
 import { getAllChapters, getAllChaptersByDistrict } from "@/utils/functions";
+import { Settings } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Chapters | Management System",
@@ -83,8 +84,8 @@ const Chapter = async () => {
                 {chapters.map((chapter) => (
                   <Link
                     href={`/chapter/${chapter._id}/members`}
-                    key={chapter._id.toHexString()}
                     className="w-full"
+                    key={chapter._id.toHexString()}
                   >
                     <h2 className="text-lg font-semibold text-slate-600">
                       {chapter.name}
@@ -137,15 +138,22 @@ const Chapter = async () => {
           <CardContent>
             <div className="flex flex-col gap-4 w-full">
               {chapters.map((chapter) => (
-                <Link
-                  href={`/chapter/${chapter._id}/members`}
+                <div
                   key={chapter._id.toHexString()}
-                  className="w-full"
+                  className="w-full flex items-center justify-between"
                 >
-                  <h2 className="text-md font-semibold text-slate-600">
-                    {chapter.name}
-                  </h2>
-                </Link>
+                  <Link
+                    href={`/chapter/${chapter._id}/members`}
+                    className="w-full"
+                  >
+                    <h2 className="text-md font-semibold text-slate-600">
+                      {chapter.name}
+                    </h2>
+                  </Link>
+                  <Link href={`/chapter/${chapter._id}/settings`}>
+                    <Settings className="w-6 h-6" />
+                  </Link>
+                </div>
               ))}
             </div>
           </CardContent>
