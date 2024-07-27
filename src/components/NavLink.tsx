@@ -5,14 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
-interface Props {
+interface Props extends React.ComponentPropsWithoutRef<"a"> {
   href: string;
   title: string;
   Icon: React.ReactNode;
   className?: string;
 }
 
-function NavLink({ href, title, Icon, className }: Props) {
+function NavLink({ href, title, Icon, className, ...props }: Props) {
   const pathname = usePathname();
   const isActive = pathname === href;
   return (
@@ -23,6 +23,7 @@ function NavLink({ href, title, Icon, className }: Props) {
         isActive && "shadow-sm shadow-slate-400",
         className
       )}
+      {...props}
     >
       <div
         className={cn(
