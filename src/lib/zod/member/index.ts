@@ -310,6 +310,11 @@ export const addChapterSchema = z.object({
       required_error: "State is required",
     })
     .min(1, "State is required"),
+  chapterDistrict: z
+    .string({
+      required_error: "District is required",
+    })
+    .min(1, "District is required"),
   chapterEmail: z
     .string({
       required_error: "Email is required",

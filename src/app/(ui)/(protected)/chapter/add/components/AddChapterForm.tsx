@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DistrictDocument } from "@/models/district";
 import { StateDocument } from "@/models/state";
 import { FormMessage } from "@/types/globals";
 import { useFormState } from "react-dom";
@@ -42,6 +43,12 @@ const chapterFormFields = [
     id: "chapterState",
     type: "select",
     dropdownType: "states",
+  },
+  {
+    label: "District",
+    id: "chapterDistrict",
+    type: "select",
+    dropdownType: "districts",
   },
   {
     label: "Email",
@@ -128,7 +135,9 @@ const matronFormFields = [
 ];
 
 type Props = {
-  dropdownOptions: { [key: string]: StateDocument[] | null };
+  dropdownOptions: {
+    [key: string]: StateDocument[] | DistrictDocument[] | null;
+  };
 };
 
 const AddChapterForm = ({ dropdownOptions }: Props) => {

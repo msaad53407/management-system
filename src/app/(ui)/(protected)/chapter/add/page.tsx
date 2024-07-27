@@ -3,12 +3,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Link from "next/link";
 import React from "react";
 import AddChapterForm from "./components/AddChapterForm";
-import { getAllStates } from "@/utils/functions";
+import { getAllDistricts, getAllStates } from "@/utils/functions";
+import { DistrictDocument } from "@/models/district";
 
 const AddChapter = async () => {
-  const { data: states, message } = await getAllStates();
+  const [states, districts] = await Promise.all([
+    getAllStates(),
+    getAllDistricts(),
+  ]);
 
-  if (!states) {
+  if (!states.data || !districts.data) {
     <section className="flex flex-col gap-6 p-4 w-full">
       <Card>
         <CardHeader className="flex items-center justify-between w-full flex-row">
@@ -24,7 +28,8 @@ const AddChapter = async () => {
         </CardHeader>
         <CardContent className="w-full flex items-center justify-center">
           <p className="text-red-500 text-lg font-medium text-center">
-            {message}
+            {!states.data && states.message}
+            {!districts.data && districts.message}
           </p>
         </CardContent>
       </Card>
@@ -32,7 +37,8 @@ const AddChapter = async () => {
   }
 
   const dropdownOptions = {
-    states,
+    states: states.data,
+    districts: JSON.parse(JSON.stringify(districts.data)) as DistrictDocument[],
   };
 
   return (

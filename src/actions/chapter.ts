@@ -254,7 +254,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       sponsor2: data.petitioner2,
       sponsor3: data.petitioner3,
       greeting: data.greeting,
-      districtId: chapter?.districtId || null,
+      districtId: new Types.ObjectId(chapter?.districtId) || null,
     });
 
     if (!member) {
@@ -609,11 +609,12 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
       chapterAddress1: data.chapterAddress1,
       chapterAddress2: data.chapterAddress2,
       chapterCity: data.chapterCity,
-      chapterState: data.chapterState,
+      chapterState: new Types.ObjectId(data.chapterState),
       chapterZip: data.chapterZipCode,
       matronId: matron.id,
       secretaryId: secretary.id,
       chapterChartDate: new Date(data.chapterChartDate),
+      districtId: new Types.ObjectId(data.chapterDistrict),
       chapterMeet1: data.chapterMeet1,
       chapterMeet2: data.chapterMeet2,
       chpMonDues: data.chpMonDues,
