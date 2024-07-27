@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
+import Image from "next/image";
 
+import { removeMember } from "@/actions/chapter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,15 +22,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
+import { useCheckRole } from "@/hooks/useCheckRole";
 import { MemberDocument } from "@/models/member";
-import { removeMember } from "@/actions/chapter";
-import { useUser } from "@clerk/nextjs";
-import { capitalize } from "@/utils";
-import RemoveMemberButton from "./RemoveMemberButton";
 import { RankDocument } from "@/models/rank";
 import { StatusDocument } from "@/models/status";
-import { useCheckRole } from "@/hooks/useCheckRole";
+import { capitalize } from "@/utils";
+import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
+import { useState } from "react";
+import RemoveMemberButton from "./RemoveMemberButton";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -40,7 +41,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import { useState } from "react";
 
 type Props = {
   members: MemberDocument[];

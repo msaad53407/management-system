@@ -78,7 +78,16 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
           message: "You are not a member of any chapter",
         };
       }
-      members = await Member.find({ chapterId: member.chapterId }, null);
+      // members = await Member.find(
+      //   {
+      //     $or: [
+      //       { chapterId: member.chapterId },
+      //       { demitToChapter: member.chapterId },
+      //     ],
+      //   },
+      //   null
+      // );
+      members = await Member.find({ chapterId: member.chapterId });
     } else {
       return {
         data: null,

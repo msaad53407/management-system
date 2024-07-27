@@ -7,7 +7,6 @@ import {
   getMembersBirthdays,
   getSystemFinances,
 } from "@/utils/functions";
-import React from "react";
 
 const ReportsPage = async () => {
   if (!checkRole(["grand-administrator", "grand-officer"])) {

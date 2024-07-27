@@ -87,13 +87,7 @@ export const editFormSchema = (role: Roles) =>
           .string({ required_error: "Chapter office is required" })
           .min(1, "Chapter office is required")
       : z.string().optional(),
-    grandChapterOffice: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({
-            required_error: "Grand chapter office is required",
-          })
-          .min(1, "Grand chapter office is required")
-      : z.string().optional(),
+    grandChapterOffice: z.string().optional(),
     memberRank: ["secretary", "grand-administrator"].includes(role)
       ? z
           .string({ required_error: "Member rank is required" })
@@ -109,114 +103,24 @@ export const editFormSchema = (role: Roles) =>
           .string({ required_error: "Initiation date is required" })
           .min(1, "Initiation date is required")
       : z.string().optional(),
-    queenOfTheSouth: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({
-            required_error: "Queen of the South is required",
-          })
-          .min(1, "Queen of the South is required")
-      : z.string().optional(),
-    amarant: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Amarant is required" })
-          .min(1, "Amarant is required")
-      : z.string().optional(),
-    petitionDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Petition date is required" })
-          .min(1, "Petition date is required")
-      : z.string().optional(),
-    petitionReceived: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({
-            required_error: "Petition received is required",
-          })
-          .min(1, "Petition received is required")
-      : z.string().optional(),
-    demitIn: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Demit in is required" })
-          .min(1, "Demit in is required")
-      : z.string().optional(),
-    demitOut: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Demit out is required" })
-          .min(1, "Demit out is required")
-      : z.string().optional(),
-    demitToChapter: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Demit to chapter is required" })
-          .min(1, "Demit to chapter is required")
-      : z.string().optional(),
-    investigationDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({
-            required_error: "Investigation date is required",
-          })
-          .min(1, "Investigation date is required")
-      : z.string().optional(),
-    investigationAcceptReject: ["secretary", "grand-administrator"].includes(
-      role
-    )
-      ? z
-          .string({
-            required_error: "Investigation accept/reject is required",
-          })
-          .min(1, "Investigation accept/reject is required")
-      : z.string().optional(),
-    enlightenedDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Enlightened date is required" })
-          .min(1, "Enlightened date is required")
-      : z.string().optional(),
-    droppedDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Dropped date is required" })
-          .min(1, "Dropped date is required")
-      : z.string().optional(),
-    dropReason: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Drop reason is required" })
-          .min(1, "Drop reason is required")
-      : z.string().optional(),
-    suspensionExpelledDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({
-            required_error: "Suspension/expulsion date is required",
-          })
-          .min(1, "Suspension/expulsion date is required")
-      : z.string().optional(),
-    suspensionExpelledReason: ["secretary", "grand-administrator"].includes(
-      role
-    )
-      ? z
-          .string({
-            required_error: "Suspension/expulsion reason is required",
-          })
-          .min(1, "Suspension/expulsion reason is required")
-      : z.string().optional(),
-    reinstatedDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Reinstated date is required" })
-          .min(1, "Reinstated date is required")
-      : z.string().optional(),
-    dateOfDeath: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Date of death is required" })
-          .min(1, "Date of death is required")
-      : z.string().optional(),
-    actualDateOfDeath: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({
-            required_error: "Actual date of death is required",
-          })
-          .min(1, "Actual date of death is required")
-      : z.string().optional(),
-    placeOfDeath: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Place of death is required" })
-          .min(1, "Place of death is required")
-      : z.string().optional(),
+    queenOfTheSouth: z.string().optional(),
+    amarant: z.string().optional(),
+    petitionDate: z.string().optional(),
+    petitionReceived: z.string().optional(),
+    demitIn: z.string().optional(),
+    demitOut: z.string().optional(),
+    demitToChapter: z.string().optional(),
+    investigationDate: z.string().optional(),
+    investigationAcceptReject: z.string().optional(),
+    enlightenedDate: z.string().optional(),
+    droppedDate: z.string().optional(),
+    dropReason: z.string().optional(),
+    suspensionExpelledDate: z.string().optional(),
+    suspensionExpelledReason: z.string().optional(),
+    reinstatedDate: z.string().optional(),
+    dateOfDeath: z.string().optional(),
+    actualDateOfDeath: z.string().optional(),
+    placeOfDeath: z.string().optional(),
     emergencyContact: z
       .string({
         required_error: "Emergency contact is required",
@@ -227,11 +131,7 @@ export const editFormSchema = (role: Roles) =>
         required_error: "Emergency contact phone is required",
       })
       .min(1, "Emergency contact phone is required"),
-    secretaryNotes: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Secretary notes is required" })
-          .min(1, "Secretary notes is required")
-      : z.string().optional(),
+    secretaryNotes: z.string().optional(),
   });
 
 export const addDistrictSchema = z.object({

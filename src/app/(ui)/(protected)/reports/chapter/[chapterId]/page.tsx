@@ -2,7 +2,6 @@ import { getChapterMembers } from "@/actions/chapter";
 import ChapterDetailsPDF from "@/components/pdf/ChapterDetails";
 import UpcomingBirthdaysPDF from "@/components/pdf/UpcomingBirthdays";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { checkRole } from "@/lib/role";
 import { MemberDocument } from "@/models/member";
 import {
   getAllRanks,
@@ -12,7 +11,6 @@ import {
 } from "@/utils/functions";
 import { Types } from "mongoose";
 import { notFound } from "next/navigation";
-import React from "react";
 
 type Props = {
   params: {

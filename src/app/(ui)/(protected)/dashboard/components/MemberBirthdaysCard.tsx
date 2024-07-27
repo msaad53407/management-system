@@ -21,25 +21,33 @@ const MemberBirthdaysCard = async () => {
       chapterId: chapter?._id,
     });
     birthdays = data;
-    errorMessage = message;
+    if (!birthdays) {
+      errorMessage = message;
+    }
   } else if (checkRole("worthy-matron")) {
     const { data: chapter } = await getChapter({ matronId: userId! });
     const { data, message } = await getMembersBirthdays({
       chapterId: chapter?._id,
     });
     birthdays = data;
-    errorMessage = message;
+    if (!birthdays) {
+      errorMessage = message;
+    }
   } else if (checkRole("district-deputy")) {
     const { data: district } = await getDistrict({ deputyId: userId! });
     const { data, message } = await getMembersBirthdays({
       districtId: district?._id,
     });
     birthdays = data;
-    errorMessage = message;
+    if (!birthdays) {
+      errorMessage = message;
+    }
   } else {
     const { data, message } = await getMembersBirthdays(null);
     birthdays = data;
-    errorMessage = message;
+    if (!birthdays) {
+      errorMessage = message;
+    }
   }
 
   return (
@@ -51,7 +59,9 @@ const MemberBirthdaysCard = async () => {
       <CardContent className="size-full">
         {!birthdays || birthdays.length === 0 ? (
           <div className="w-full flex items-center justify-center">
-            <p className="text-red-500 text-sm font-normal">{errorMessage}</p>
+            <p className="text-red-500 text-sm font-normal">
+              {errorMessage || "No Upcoming Birthdays"}
+            </p>
           </div>
         ) : (
           <div className="w-full border border-slate-600 divide-y divide-slate-600 rounded-lg">
