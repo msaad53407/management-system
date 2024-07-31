@@ -11,11 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Roles } from "@/types/globals";
-import { capitalizeRole } from "@/utils";
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
-import { Eye, EyeOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const roles: Roles[] = [
   "member",
@@ -28,31 +26,6 @@ const roles: Roles[] = [
 
 export default function SignInPage() {
   const [role, setRole] = useState<Roles | "">("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-
-  // useEffect(() => {
-  //   if (emailError) {
-  //     console.log(emailError)
-  //     const timeout = setTimeout(() => {
-  //       setEmailError(null);
-  //     }, 3000);
-
-  //     return () => clearTimeout(timeout);
-  //   }
-  // }, [emailError]);
-
-  // useEffect(() => {
-  //   if (passwordError) {
-  //     console.log(passwordError)
-  //     const timeout = setTimeout(() => {
-  //       setPasswordError(null);
-  //     }, 3000);
-
-  //     return () => clearTimeout(timeout);
-  //   }
-  // }, [passwordError]);
 
   return (
     <SignIn.Root>
@@ -78,7 +51,7 @@ export default function SignInPage() {
                   <SelectContent>
                     {roles.map((r) => (
                       <SelectItem key={r} value={r}>
-                        {capitalizeRole(r)}
+                        {r}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -96,10 +69,9 @@ export default function SignInPage() {
                       <Input />
                     </Clerk.Input>
                     <Clerk.FieldError className="inline-block text-sm text-destructive">
-                      {({ message, code }) => {
-                        if (message !== emailError) setEmailError(message);
-                        return <span data-error-code={code}>{message}</span>;
-                      }}
+                      {({ message, code }) => (
+                        <span data-error-code={code}>{message}</span>
+                      )}
                     </Clerk.FieldError>
                   </Clerk.Field>
 
@@ -107,33 +79,13 @@ export default function SignInPage() {
                     <Clerk.Label asChild>
                       <Label>Password</Label>
                     </Clerk.Label>
-                    <div className="relative">
-                      <Clerk.Input
-                        asChild
-                        type={showPassword ? "text" : "password"}
-                        required
-                      >
-                        <Input />
-                      </Clerk.Input>
-                      {!showPassword ? (
-                        <Eye
-                          className="absolute right-2 top-1/4 cursor-pointer"
-                          onClick={() => setShowPassword(true)}
-                        />
-                      ) : (
-                        <EyeOff
-                          className="absolute right-2 top-1/4 cursor-pointer"
-                          onClick={() => setShowPassword(false)}
-                        />
+                    <Clerk.Input asChild type="password" required>
+                      <Input />
+                    </Clerk.Input>
+                    <Clerk.FieldError className="inline-block text-sm text-destructive">
+                      {({ message, code }) => (
+                        <span data-error-code={code}>{message}</span>
                       )}
-                    </div>
-
-                    <Clerk.FieldError className="inline-block text-sm text-destructive max-w-[315px]">
-                      {({ message, code }) => {
-                        if (message !== passwordError)
-                          setPasswordError(message);
-                        return <span data-error-code={code}>{message}</span>;
-                      }}
                     </Clerk.FieldError>
                   </Clerk.Field>
                   <SignIn.Action
