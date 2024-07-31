@@ -27,6 +27,8 @@ type Props = {
 };
 
 const Dashboard = async ({ searchParams }: Props) => {
+  const { userId } = auth();
+
   if (checkRole("member")) {
     return (
       <main className="flex flex-col items-center justify-center gap-6 p-4 w-full h-screen">
@@ -35,23 +37,54 @@ const Dashboard = async ({ searchParams }: Props) => {
     );
   }
 
-  const role = auth().sessionClaims?.metadata.role!;
-
   let chapters: ChapterDocument[] | null = null;
   let districts: DistrictDocument[] | null = null;
 
-  if (checkRole(["grand-administrator", "grand-officer"])) {
-    await Promise.all([getAllChapters(), getAllDistricts()]).then(
-      ([rawChapters, rawDistricts]) => {
-        chapters = JSON.parse(
-          JSON.stringify(rawChapters?.data)
-        ) as ChapterDocument[];
-        districts = JSON.parse(
-          JSON.stringify(rawDistricts?.data)
-        ) as DistrictDocument[];
-      }
-    );
-  }
+  await Promise.all([getAllChapters(), getAllDistricts()]).then(
+    ([rawChapters, rawDistricts]) => {
+      chapters = JSON.parse(
+        JSON.stringify(rawChapters?.data)
+      ) as ChapterDocument[];
+      districts = JSON.parse(
+        JSON.stringify(rawDistricts?.data)
+      ) as DistrictDocument[];
+    }
+  );
+
+  const displayGreeting = () => {
+    if (checkRole("secretary")) {
+      const chapter = chapters?.find(
+        (chapter) => chapter.secretaryId === userId
+      );
+      return (
+        <h3 className="text-slate-600 text-lg font-semibold">
+          Welcome &apos;{chapter?.name} {chapter?.chapterNumber}&apos; Secretary
+        </h3>
+      );
+    }
+
+    if (checkRole("worthy-matron")) {
+      const chapter = chapters?.find((chapter) => chapter.matronId === userId);
+
+      return (
+        <h3 className="text-slate-600 text-lg font-semibold">
+          Welcome &apos;{chapter?.name} {chapter?.chapterNumber}&apos; Worthy
+          Matron
+        </h3>
+      );
+    }
+
+    if (checkRole("district-deputy")) {
+      const district = districts?.find(
+        (district) => district.deputyId === userId
+      );
+      return (
+        <h3 className="text-slate-600 text-lg font-semibold">
+          Welcome &apos;{district?.name}&apos; Deputy
+        </h3>
+      );
+    }
+  };
 
   return (
     <main className="flex flex-col gap-6 p-4 w-full">
@@ -59,7 +92,7 @@ const Dashboard = async ({ searchParams }: Props) => {
         <h2 className="text-xl font-bold">Dashboard</h2>
         <div className="flex flex-row w-full items-center justify-between">
           <h3 className="text-slate-600 text-lg font-semibold">
-            Welcome to the dashboard, {capitalize(role.split("-").join(" "))}
+            {displayGreeting()}
           </h3>
           {checkRole(["grand-administrator", "grand-officer"]) && (
             <FilterDropdown

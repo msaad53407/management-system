@@ -1,3 +1,4 @@
+import { Roles } from "@/types/globals";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -8,6 +9,11 @@ export function cn(...inputs: ClassValue[]) {
 export function capitalize(input?: string) {
   if (!input) return input;
   return input?.charAt(0).toUpperCase() + input?.slice(1);
+}
+
+export function capitalizeRole(input: Roles) {
+  const splittedRole = input.split("-");
+  return capitalize(splittedRole[0]) + " " + (splittedRole[1] || "");
 }
 
 export function formatDate(
