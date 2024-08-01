@@ -1,38 +1,20 @@
 "use client";
 
 import { editChapter } from "@/actions/chapter";
+import InfoMessageCard from "@/components/InfoMessageCard";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import useFormAction from "@/hooks/useFormAction";
 import { ChapterDocument } from "@/models/chapter";
-import { FormMessage } from "@/types/globals";
-import { useEffect } from "react";
-import { useFormState } from "react-dom";
 
 type Props = {
   chapter: ChapterDocument;
 };
 
 const EditChapterForm = ({ chapter }: Props) => {
-  const initialState = {
-    message: "",
-    success: false,
-  };
-
-  const { toast } = useToast();
-  const [formState, formAction] = useFormState(editChapter, initialState);
-
-  useEffect(() => {
-    if (formState.success) {
-      toast({
-        title: formState?.success ? "Success" : "Error",
-        description:
-          typeof formState?.message === "object" ? "" : formState?.message,
-      });
-      formState.success = false;
-    }
-  }, [formState, toast]);
+  const { formAction, formMessage, formState, infoMessage, setInfoMessage } =
+    useFormAction(editChapter);
 
   const fields = [
     {
@@ -109,45 +91,58 @@ const EditChapterForm = ({ chapter }: Props) => {
     },
   ];
 
-  const formMessage: FormMessage | string | undefined = formState?.message;
   return (
-    <form className="flex flex-col gap-4 overflow-x-hidden" action={formAction}>
-      <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" || formState?.success
-          ? ""
-          : formState?.message.includes("Error") && formState?.message}
-      </p>
-      <Input
-        type={"text"}
-        name={"chapterId"}
-        defaultValue={chapter._id?.toString()}
-        className="sr-only w-min"
-      />
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {fields.map(({ id, label, placeholder, type, defaultValue }, indx) => (
-          <div className="space-y-2" key={indx}>
-            <p className="text-red-500 text-xs font-medium">
-              {typeof formMessage === "string"
-                ? ""
-                : formMessage && formMessage[id]}
-            </p>
-            <Label htmlFor={id} className="text-slate-600">
-              {label}
-            </Label>
-            <Input
-              id={id}
-              placeholder={placeholder}
-              type={type}
-              name={id}
-              defaultValue={defaultValue?.toString()}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="w-1/2 mx-auto">
-        <SubmitButton>Update Chapter</SubmitButton>
-      </div>
-    </form>
+    <>
+      {infoMessage.message && (
+        <InfoMessageCard
+          message={infoMessage.message}
+          clearMessage={setInfoMessage}
+          variant={infoMessage.variant}
+        />
+      )}
+      <form
+        className="flex flex-col gap-4 overflow-x-hidden p-2"
+        action={formAction}
+      >
+        <p className="text-red-500 text-xs font-medium">
+          {typeof formState?.message === "object" || formState?.success
+            ? ""
+            : formState?.message.includes("Error") && formState?.message}
+        </p>
+        <Input
+          type={"text"}
+          name={"chapterId"}
+          defaultValue={chapter._id?.toString()}
+          className="sr-only w-min"
+        />
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+          {fields.map(
+            ({ id, label, placeholder, type, defaultValue }, indx) => (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Input
+                  id={id}
+                  placeholder={placeholder}
+                  type={type}
+                  name={id}
+                  defaultValue={defaultValue?.toString()}
+                />
+              </div>
+            )
+          )}
+        </div>
+        <div className="w-1/2 mx-auto">
+          <SubmitButton>Update Chapter</SubmitButton>
+        </div>
+      </form>
+    </>
   );
 };
 

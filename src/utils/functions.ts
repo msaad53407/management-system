@@ -680,9 +680,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
           from: "states",
           pipeline: [
             {
-              $match: {
-                name: { $in: ["Regular", "Special", "Petitioner"] },
-              },
+              $match: {},
             },
             { $project: { _id: 1, name: 1, description: 1 } },
           ],
@@ -693,7 +691,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
         $lookup: {
           from: "status",
           pipeline: [
-            { $match: {} },
+            { $match: { name: { $in: ["Regular", "Special", "Petitioner"] } } },
             { $project: { _id: 1, name: 1, description: 1 } },
           ],
           as: "allStatuses",

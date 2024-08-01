@@ -50,12 +50,13 @@ type Props = {
 
 export default function DetailsTable({ members, ranks, statuses }: Props) {
   const [open, setOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
   const removeMemberHandler = async (memberId: string) => {
     const { message } = await removeMember(memberId);
     setOpen(false);
     alert(message);
   };
-
   const { user } = useUser();
   const checkRoleClient = useCheckRole();
 

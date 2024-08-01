@@ -1,6 +1,7 @@
 "use client";
 
 import { editMember } from "@/actions/chapter";
+import InfoMessageCard from "@/components/InfoMessageCard";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
 import { useCheckRole } from "@/hooks/useCheckRole";
+import useFormAction from "@/hooks/useFormAction";
 import { ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { GrandOfficeDocument } from "@/models/grandOffice";
@@ -23,13 +24,6 @@ import { RankDocument } from "@/models/rank";
 import { ReasonDocument } from "@/models/reason";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
-import { Roles } from "@/types/globals";
-import { useEffect } from "react";
-import { useFormState } from "react-dom";
-
-interface FormMessage {
-  [key: string]: string[] | undefined;
-}
 
 interface Props {
   member: MemberDocument;
@@ -47,23 +41,9 @@ interface Props {
 }
 
 export default function EditMemberForm({ member, dropdownOptions }: Props) {
-  const initialState = { message: "", success: false };
   const checkRoleClient = useCheckRole();
-  const [formState, formAction] = useFormState(editMember, initialState);
-
-  const formMessage: FormMessage | string | undefined = formState?.message;
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (formState.success) {
-      toast({
-        title: formState?.success ? "Success" : "Error",
-        description:
-          typeof formState?.message === "object" ? "" : formState?.message,
-      });
-      formState.success = false;
-    }
-  }, [formState, toast]);
+  const { formAction, formState, setInfoMessage, formMessage, infoMessage } =
+    useFormAction(editMember);
 
   const fields = [
     {
@@ -487,206 +467,216 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
   ];
 
   return (
-    <form className="flex flex-col gap-4 overflow-x-hidden" action={formAction}>
-      <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" || formState?.success
-          ? ""
-          : formState?.message.includes("Error") && formState?.message}
-      </p>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        <div className="space-y-2">
-          <p className="text-red-500 text-xs font-medium">
-            {typeof formState?.message === "string"
-              ? ""
-              : formState?.message?.memberId}
-          </p>
-          <Label htmlFor="memberId" className="text-slate-600">
-            Member Id
-          </Label>
-          <Input
-            id="memberId"
-            placeholder="Member Id"
-            type="text"
-            name="memberId"
-            value={member.userId}
-            readOnly
-            className="cursor-not-allowed opacity-75"
-          />
-          <Input
-            type="text"
-            name="chapterId"
-            value={member.chapterId?.toString()}
-            readOnly
-            className="sr-only max-w-fit"
-          />
-        </div>
-        {fields.map(
-          (
-            {
-              id,
-              label,
-              placeholder,
-              type,
-              defaultValue,
-              dropdownType,
-              roles,
-              options,
-              required,
-            },
-            indx
-          ) =>
-            type === "select" ? (
-              <div className="space-y-2" key={indx}>
-                <p className="text-red-500 text-xs font-medium">
-                  {typeof formMessage === "string"
-                    ? ""
-                    : formMessage && formMessage[id]}
-                </p>
-                <Label htmlFor={id} className="text-slate-600 relative">
-                  {label}
-                  {required && (
-                    <span
-                      className="text-red-500 absolute -right-3 top-[2px]
+    <>
+      {infoMessage.message && (
+        <InfoMessageCard
+          message={infoMessage.message}
+          clearMessage={setInfoMessage}
+          variant={infoMessage.variant}
+        />
+      )}
+      <form
+        className="flex flex-col gap-4 overflow-x-hidden p-2"
+        action={formAction}
+      >
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="space-y-2">
+            <p className="text-red-500 text-xs font-medium">
+              {typeof formState?.message === "string"
+                ? ""
+                : formState?.message?.memberId}
+            </p>
+            <Label htmlFor="memberId" className="text-slate-600">
+              Member Id
+            </Label>
+            <Input
+              id="memberId"
+              placeholder="Member Id"
+              type="text"
+              name="memberId"
+              value={member.userId}
+              readOnly
+              className="cursor-not-allowed opacity-75"
+            />
+            <Input
+              type="text"
+              name="chapterId"
+              value={member.chapterId?.toString()}
+              readOnly
+              className="sr-only max-w-fit"
+            />
+          </div>
+          {fields.map(
+            (
+              {
+                id,
+                label,
+                placeholder,
+                type,
+                defaultValue,
+                dropdownType,
+                roles,
+                options,
+                required,
+              },
+              indx
+            ) =>
+              type === "select" ? (
+                <div className="space-y-2" key={indx}>
+                  <p className="text-red-500 text-xs font-medium">
+                    {typeof formMessage === "string"
+                      ? ""
+                      : formMessage && formMessage[id]}
+                  </p>
+                  <Label htmlFor={id} className="text-slate-600 relative">
+                    {label}
+                    {required && (
+                      <span
+                        className="text-red-500 absolute -right-3 top-[2px]
                     "
-                    >
-                      *
-                    </span>
-                  )}
-                </Label>
-                <Select
-                  name={id}
-                  {...(checkRoleClient(roles as Roles[])
-                    ? { defaultValue: defaultValue?.toString() }
-                    : {
-                        value: defaultValue?.toString(),
-                        open: false,
-                      })}
-                >
-                  <SelectTrigger
+                      >
+                        *
+                      </span>
+                    )}
+                  </Label>
+                  <Select
+                    name={id}
                     {...(checkRoleClient(roles as Roles[])
-                      ? {}
-                      : { className: "cursor-not-allowed opacity-75" })}
+                      ? { defaultValue: defaultValue?.toString() }
+                      : {
+                          value: defaultValue?.toString(),
+                          open: false,
+                        })}
                   >
-                    <SelectValue placeholder="Select a State" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dropdownOptions &&
-                    dropdownType &&
-                    dropdownType !== "chapters"
-                      ? dropdownOptions[dropdownType]!.map((state, indx) => (
-                          <SelectItem key={indx} value={state._id?.toString()}>
-                            {state.name}
-                          </SelectItem>
-                        ))
-                      : dropdownOptions[dropdownType!]!.filter(
-                          (chapter) => chapter._id !== member.chapterId
-                        ).map((chapter, indx) => (
-                          <SelectItem
-                            key={indx}
-                            value={chapter._id?.toString()}
-                          >
-                            {chapter.name}
-                          </SelectItem>
-                        ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : type === "radio" ? (
-              <RadioGroup
-                key={indx}
-                name={id}
-                className="flex flex-col gap-5 mt-2"
-                defaultValue={defaultValue as string}
-              >
-                <Label className="text-slate-600 relative w-min">
-                  {label}
-                  {required && (
-                    <span
-                      className="text-red-500 absolute -right-3 top-[2px]
-                            "
+                    <SelectTrigger
+                      {...(checkRoleClient(roles as Roles[])
+                        ? {}
+                        : { className: "cursor-not-allowed opacity-75" })}
                     >
-                      *
-                    </span>
-                  )}
-                </Label>
-                <div className="flex gap-2">
-                  {options &&
-                    options.map((option, i) => (
-                      <div className="flex items-center space-x-2" key={i}>
-                        <RadioGroupItem
-                          id={option}
-                          value={option}
-                          className="text-slate-600"
-                          {...(checkRoleClient(roles as Roles[])
-                            ? {}
-                            : {
-                                className: "cursor-not-allowed opacity-75",
-                                readOnly: true,
-                              })}
-                        />
-                        <Label htmlFor={option} className="text-slate-600">
-                          {option}
-                        </Label>
-                      </div>
-                    ))}
+                      <SelectValue placeholder="Select a State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownOptions &&
+                      dropdownType &&
+                      dropdownType !== "chapters"
+                        ? dropdownOptions[dropdownType]!.map((state, indx) => (
+                            <SelectItem
+                              key={indx}
+                              value={state._id?.toString()}
+                            >
+                              {state.name}
+                            </SelectItem>
+                          ))
+                        : dropdownOptions[dropdownType!]!.filter(
+                            (chapter) => chapter._id !== member.chapterId
+                          ).map((chapter, indx) => (
+                            <SelectItem
+                              key={indx}
+                              value={chapter._id?.toString()}
+                            >
+                              {chapter.name}
+                            </SelectItem>
+                          ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </RadioGroup>
-            ) : (
-              <div className="space-y-2" key={indx}>
-                <p className="text-red-500 text-xs font-medium">
-                  {typeof formMessage === "string"
-                    ? ""
-                    : formMessage && formMessage[id]}
-                </p>
-                <Label htmlFor={id} className="text-slate-600 relative">
-                  {label}
-                  {required && (
-                    <span
-                      className="text-red-500 absolute -right-3 top-[2px]
-                    "
-                    >
-                      *
-                    </span>
-                  )}
-                </Label>
-                <Input
-                  id={id}
-                  placeholder={placeholder}
-                  type={type}
+              ) : type === "radio" ? (
+                <RadioGroup
+                  key={indx}
                   name={id}
-                  {...(checkRoleClient(roles as Roles[])
-                    ? { defaultValue: defaultValue?.toString() }
-                    : {
-                        value: defaultValue?.toString(),
-                        className: "cursor-not-allowed opacity-75",
-                        readOnly: true,
-                      })}
-                />
-              </div>
-            )
-        )}
-        <div className="col-span-full space-y-2">
-          <Label htmlFor="secretaryNotes">Secretary Notes</Label>
-          <Textarea
-            id="secretaryNotes"
-            placeholder="Secretary Notes"
-            name="secretaryNotes"
-            {...(checkRoleClient(["secretary", "grand-administrator"])
-              ? {
-                  defaultValue: member.secretaryNotes,
-                  className: "min-h-[100px]",
-                }
-              : {
-                  value: member.secretaryNotes,
-                  readOnly: true,
-                  className: "min-h-[100px] cursor-not-allowed opacity-75",
-                })}
-          />
+                  className="flex flex-col gap-5 mt-2"
+                  defaultValue={defaultValue as string}
+                >
+                  <Label className="text-slate-600 relative w-min">
+                    {label}
+                    {required && (
+                      <span
+                        className="text-red-500 absolute -right-3 top-[2px]
+                            "
+                      >
+                        *
+                      </span>
+                    )}
+                  </Label>
+                  <div className="flex gap-2">
+                    {options &&
+                      options.map((option, i) => (
+                        <div className="flex items-center space-x-2" key={i}>
+                          <RadioGroupItem
+                            id={option}
+                            value={option}
+                            className="text-slate-600"
+                            {...(checkRoleClient(roles as Roles[])
+                              ? {}
+                              : {
+                                  className: "cursor-not-allowed opacity-75",
+                                  readOnly: true,
+                                })}
+                          />
+                          <Label htmlFor={option} className="text-slate-600">
+                            {option}
+                          </Label>
+                        </div>
+                      ))}
+                  </div>
+                </RadioGroup>
+              ) : (
+                <div className="space-y-2" key={indx}>
+                  <p className="text-red-500 text-xs font-medium">
+                    {typeof formMessage === "string"
+                      ? ""
+                      : formMessage && formMessage[id]}
+                  </p>
+                  <Label htmlFor={id} className="text-slate-600 relative">
+                    {label}
+                    {required && (
+                      <span
+                        className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                      >
+                        *
+                      </span>
+                    )}
+                  </Label>
+                  <Input
+                    id={id}
+                    placeholder={placeholder}
+                    type={type}
+                    name={id}
+                    {...(checkRoleClient(roles as Roles[])
+                      ? { defaultValue: defaultValue?.toString() }
+                      : {
+                          value: defaultValue?.toString(),
+                          className: "cursor-not-allowed opacity-75",
+                          readOnly: true,
+                        })}
+                  />
+                </div>
+              )
+          )}
+          <div className="col-span-full space-y-2">
+            <Label htmlFor="secretaryNotes">Secretary Notes</Label>
+            <Textarea
+              id="secretaryNotes"
+              placeholder="Secretary Notes"
+              name="secretaryNotes"
+              {...(checkRoleClient(["secretary", "grand-administrator"])
+                ? {
+                    defaultValue: member.secretaryNotes,
+                    className: "min-h-[100px]",
+                  }
+                : {
+                    value: member.secretaryNotes,
+                    readOnly: true,
+                    className: "min-h-[100px] cursor-not-allowed opacity-75",
+                  })}
+            />
+          </div>
         </div>
-      </div>
-      <div className="w-1/2 mx-auto">
-        <SubmitButton>Update Member</SubmitButton>
-      </div>
-    </form>
+        <div className="w-1/2 mx-auto">
+          <SubmitButton>Update Member</SubmitButton>
+        </div>
+      </form>
+    </>
   );
 }

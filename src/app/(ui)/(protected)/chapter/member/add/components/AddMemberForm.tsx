@@ -1,6 +1,7 @@
 "use client";
 
 import { addMember } from "@/actions/chapter";
+import InfoMessageCard from "@/components/InfoMessageCard";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,13 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import useFormAction from "@/hooks/useFormAction";
 import { MemberDocument } from "@/models/member";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
-import { FormMessage } from "@/types/globals";
-import React, { useEffect } from "react";
-import { useFormState } from "react-dom";
 
 const introductoryFields = [
   {
@@ -124,108 +122,39 @@ interface Props {
 }
 
 const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
-  const initialState = {
-    message: "",
-    success: false,
-  };
-  const [formState, formAction] = useFormState(addMember, initialState);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (formState.success) {
-      toast({
-        title: formState?.success ? "Success" : "Error",
-        description:
-          typeof formState?.message === "object" ? "" : formState?.message,
-      });
-      formState.success = false;
-    }
-  }, [formState, toast]);
-
-  const formMessage: FormMessage | string | undefined = formState?.message;
+  const { formAction, formState, formMessage, infoMessage, setInfoMessage } =
+    useFormAction(addMember);
 
   return (
-    <form
-      className="grid grid-cols-1 gap-4 w-full overflow-x-hidden px-2"
-      action={formAction}
-    >
-      <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" || formState?.success
-          ? ""
-          : formState?.message.includes("Error") && formState?.message}
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
-        <Input
-          type="text"
-          name="chapterId"
-          value={chapterId}
-          readOnly
-          className="sr-only max-w-fit"
+    <>
+      {infoMessage.message && (
+        <InfoMessageCard
+          message={infoMessage.message}
+          clearMessage={setInfoMessage}
+          variant={infoMessage.variant}
         />
-        {introductoryFields.map(({ id, label, options, required }, indx) =>
-          id === "greeting" ? (
-            <RadioGroup key={indx} name={id} className="flex flex-col gap-4">
-              <Label className="text-slate-600 relative w-fit">
-                {label}
-                {required && (
-                  <span
-                    className="text-red-500 absolute -right-3 top-[2px]
-                    "
-                  >
-                    *
-                  </span>
-                )}
-              </Label>
-              <div className="flex gap-2">
-                {options &&
-                  options.map((option, i) => (
-                    <div className="flex items-center space-x-2" key={i}>
-                      <RadioGroupItem
-                        value={option}
-                        id={option}
-                        className="text-slate-600"
-                      />
-                      <Label htmlFor={option} className="text-slate-600">
-                        {option}
-                      </Label>
-                    </div>
-                  ))}
-              </div>
-            </RadioGroup>
-          ) : (
-            <div className="w-full flex flex-col gap-1" key={indx}>
-              <p className="text-red-500 text-xs font-medium">
-                {typeof formMessage === "string"
-                  ? ""
-                  : formMessage && formMessage[id]}
-              </p>
-              <Label htmlFor={id} className="text-slate-600 relative w-fit">
-                {label}
-                {required && (
-                  <span
-                    className="text-red-500 absolute -right-3 top-[2px]
-                    "
-                  >
-                    *
-                  </span>
-                )}
-              </Label>
-              <Input id={id} type="text" name={id} />
-            </div>
-          )
-        )}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {detailsFields.map(
-          ({ id, label, type, placeholder, dropdownType, required }, indx) =>
-            type === "select" ? (
-              <div className="w-full flex flex-col gap-1" key={indx}>
-                <p className="text-red-500 text-xs font-medium">
-                  {typeof formMessage === "string"
-                    ? ""
-                    : formMessage && formMessage[id]}
-                </p>
-                <Label htmlFor={id} className="text-slate-600 relative w-fit">
+      )}
+      <form
+        className="grid grid-cols-1 gap-4 w-full overflow-x-hidden p-2"
+        action={formAction}
+      >
+        <p className="text-red-500 text-xs font-medium">
+          {typeof formState?.message === "object" || formState?.success
+            ? ""
+            : formState?.message.includes("Error") && formState?.message}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+          <Input
+            type="text"
+            name="chapterId"
+            value={chapterId}
+            readOnly
+            className="sr-only max-w-fit"
+          />
+          {introductoryFields.map(({ id, label, options, required }, indx) =>
+            id === "greeting" ? (
+              <RadioGroup key={indx} name={id} className="flex flex-col gap-4">
+                <Label className="text-slate-600 relative w-fit">
                   {label}
                   {required && (
                     <span
@@ -236,32 +165,22 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
                     </span>
                   )}
                 </Label>
-                <Select name={id}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={placeholder} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dropdownOptions[dropdownType!]?.map((state: any) => {
-                      console.log(dropdownType);
-                      return dropdownType === "petitioners" ? (
-                        <SelectItem
-                          key={state._id?.toString()}
-                          value={state._id?.toString()}
-                        >
-                          {state?.firstName} {state?.lastName}
-                        </SelectItem>
-                      ) : (
-                        <SelectItem
-                          key={state._id?.toString()}
-                          value={state._id?.toString()}
-                        >
-                          {state?.name}
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="flex gap-2">
+                  {options &&
+                    options.map((option, i) => (
+                      <div className="flex items-center space-x-2" key={i}>
+                        <RadioGroupItem
+                          value={option}
+                          id={option}
+                          className="text-slate-600"
+                        />
+                        <Label htmlFor={option} className="text-slate-600">
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                </div>
+              </RadioGroup>
             ) : (
               <div className="w-full flex flex-col gap-1" key={indx}>
                 <p className="text-red-500 text-xs font-medium">
@@ -280,13 +199,84 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
                     </span>
                   )}
                 </Label>
-                <Input id={id} type={type} name={id} />
+                <Input id={id} type="text" name={id} />
               </div>
             )
-        )}
-      </div>
-      <SubmitButton>Add Member</SubmitButton>
-    </form>
+          )}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {detailsFields.map(
+            ({ id, label, type, placeholder, dropdownType, required }, indx) =>
+              type === "select" ? (
+                <div className="w-full flex flex-col gap-1" key={indx}>
+                  <p className="text-red-500 text-xs font-medium">
+                    {typeof formMessage === "string"
+                      ? ""
+                      : formMessage && formMessage[id]}
+                  </p>
+                  <Label htmlFor={id} className="text-slate-600 relative w-fit">
+                    {label}
+                    {required && (
+                      <span
+                        className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                      >
+                        *
+                      </span>
+                    )}
+                  </Label>
+                  <Select name={id}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={placeholder} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownOptions[dropdownType!]?.map((state: any) => {
+                        console.log(dropdownType);
+                        return dropdownType === "petitioners" ? (
+                          <SelectItem
+                            key={state._id?.toString()}
+                            value={state._id?.toString()}
+                          >
+                            {state?.firstName} {state?.lastName}
+                          </SelectItem>
+                        ) : (
+                          <SelectItem
+                            key={state._id?.toString()}
+                            value={state._id?.toString()}
+                          >
+                            {state?.name}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="w-full flex flex-col gap-1" key={indx}>
+                  <p className="text-red-500 text-xs font-medium">
+                    {typeof formMessage === "string"
+                      ? ""
+                      : formMessage && formMessage[id]}
+                  </p>
+                  <Label htmlFor={id} className="text-slate-600 relative w-fit">
+                    {label}
+                    {required && (
+                      <span
+                        className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                      >
+                        *
+                      </span>
+                    )}
+                  </Label>
+                  <Input id={id} type={type} name={id} />
+                </div>
+              )
+          )}
+        </div>
+        <SubmitButton>Add Member</SubmitButton>
+      </form>
+    </>
   );
 };
 

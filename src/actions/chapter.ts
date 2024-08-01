@@ -16,7 +16,7 @@ import { auth, clerkClient, User } from "@clerk/nextjs/server";
 import bcrypt from "bcrypt";
 import { Types } from "mongoose";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { createDue } from "./dues";
 import { getAllStatuses } from "@/utils/functions";
 
@@ -218,8 +218,6 @@ export const addMember = async (_prevState: any, formData: FormData) => {
     };
   }
 
-  let shouldRedirect: boolean = false;
-
   try {
     await connectDB();
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -313,7 +311,6 @@ export const addMember = async (_prevState: any, formData: FormData) => {
         success: false,
       };
     }
-    shouldRedirect = true;
 
     if (checkRole(["secretary", "member"])) {
       revalidatePath("/chapter/members");
@@ -331,14 +328,6 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       message: "Error Connecting to DB",
       success: false,
     };
-  } finally {
-    if (shouldRedirect) {
-      if (checkRole(["member", "secretary"])) {
-        redirect("/chapter/members");
-      } else {
-        redirect(`/chapter/${data.chapterId}/members`);
-      }
-    }
   }
 };
 
@@ -363,7 +352,6 @@ export const editMember = async (_prevState: any, formData: FormData) => {
   ) {
     redirect("/");
   }
-  let shouldRedirect: boolean = false;
   try {
     await connectDB();
     if (checkRole(["secretary", "grand-administrator"])) {
@@ -452,7 +440,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
           success: false,
         };
       }
-      shouldRedirect = true;
+
       revalidatePath(`/chapter/${data.chapterId}/members`);
       return {
         message: "Member updated successfully",
@@ -484,7 +472,6 @@ export const editMember = async (_prevState: any, formData: FormData) => {
       };
     }
 
-    shouldRedirect = true;
     revalidatePath("/chapter/members");
 
     return {
@@ -497,14 +484,6 @@ export const editMember = async (_prevState: any, formData: FormData) => {
       message: "Error Connecting to DB",
       success: false,
     };
-  } finally {
-    if (shouldRedirect) {
-      if (checkRole(["member", "secretary"])) {
-        redirect("/chapter/members");
-      } else {
-        redirect(`/chapter/${data.chapterId}/members`);
-      }
-    }
   }
 };
 
@@ -597,8 +576,6 @@ export const getChapter = async (params: GetDistrictParams) => {
 };
 
 export const addChapter = async (_prevState: any, formData: FormData) => {
-  let shouldRedirect: boolean = false;
-
   try {
     await connectDB();
 
@@ -691,7 +668,6 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
       };
     }
 
-    shouldRedirect = true;
     revalidatePath("/chapter");
 
     return {
@@ -704,10 +680,6 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
       message: "Error Connecting to DB",
       success: false,
     };
-  } finally {
-    if (shouldRedirect) {
-      redirect("/chapter");
-    }
   }
 };
 

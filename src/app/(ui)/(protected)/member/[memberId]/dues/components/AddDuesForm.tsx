@@ -1,6 +1,7 @@
 "use client";
 
 import { updateDues } from "@/actions/dues";
+import InfoMessageCard from "@/components/InfoMessageCard";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,10 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
-import { FormMessage, MonthlyDue } from "@/types/globals";
-import React, { useEffect } from "react";
-import { useFormState } from "react-dom";
+import useFormAction from "@/hooks/useFormAction";
+import { MonthlyDue } from "@/types/globals";
 
 type Props = {
   currentMonthDues: MonthlyDue;
@@ -50,106 +49,98 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
     },
   ];
 
-  const initialState = {
-    message: "",
-    success: false,
-  };
-
-  const [formState, formAction] = useFormState(updateDues, initialState);
-
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (formState.success) {
-      toast({
-        title: formState?.success ? "Success" : "Error",
-        description:
-          typeof formState?.message === "object" ? "" : formState?.message,
-      });
-      formState.success = false;
-    }
-  }, [formState, toast]);
-
-  const formMessage: FormMessage | string | undefined = formState?.message;
+  const { formAction, formMessage, formState, infoMessage, setInfoMessage } =
+    useFormAction(updateDues);
 
   return (
-    <form className="flex flex-col gap-4 overflow-x-hidden" action={formAction}>
-      <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" ? "" : formState?.message}
-      </p>
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-        <div className="space-y-2">
-          <p className="text-red-500 text-xs font-medium">
-            {typeof formState?.message === "object" || formState?.success
-              ? ""
-              : formState?.message.includes("Error") && formState?.message}
-          </p>
-          <Label htmlFor="memberId" className="text-slate-600">
-            Member Id
-          </Label>
-          <Input
-            id="memberId"
-            placeholder="Member Id"
-            type="text"
-            name="memberId"
-            value={currentMonthDues.memberId?.toString()}
-            readOnly
-            className="cursor-not-allowed opacity-75"
-          />
+    <>
+      {infoMessage.message && (
+        <InfoMessageCard
+          message={infoMessage.message}
+          clearMessage={setInfoMessage}
+          variant={infoMessage.variant}
+        />
+      )}
+      <form
+        className="flex flex-col gap-4 overflow-x-hidden p-2"
+        action={formAction}
+      >
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div className="space-y-2">
+            <p className="text-red-500 text-xs font-medium">
+              {typeof formState?.message === "object" || formState?.success
+                ? ""
+                : formState?.message.includes("Error") && formState?.message}
+            </p>
+            <Label htmlFor="memberId" className="text-slate-600">
+              Member Id
+            </Label>
+            <Input
+              id="memberId"
+              placeholder="Member Id"
+              type="text"
+              name="memberId"
+              value={currentMonthDues.memberId?.toString()}
+              readOnly
+              className="cursor-not-allowed opacity-75"
+            />
+          </div>
+          {fields.map(({ id, label, type, defaultValue }, indx) =>
+            type === "select" ? (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Select name={id} defaultValue={defaultValue as string}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an Option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {["paid", "unpaid", "overdue"].map(
+                      (paymentStatus, indx) => (
+                        <SelectItem
+                          key={indx}
+                          value={paymentStatus}
+                          className="capitalize"
+                        >
+                          {paymentStatus}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Input
+                  id={id}
+                  type={type || "text"}
+                  name={id}
+                  defaultValue={defaultValue}
+                  min={0}
+                />
+              </div>
+            )
+          )}
         </div>
-        {fields.map(({ id, label, type, defaultValue }, indx) =>
-          type === "select" ? (
-            <div className="space-y-2" key={indx}>
-              <p className="text-red-500 text-xs font-medium">
-                {typeof formMessage === "string"
-                  ? ""
-                  : formMessage && formMessage[id]}
-              </p>
-              <Label htmlFor={id} className="text-slate-600">
-                {label}
-              </Label>
-              <Select name={id} defaultValue={defaultValue as string}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an Option" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["paid", "unpaid", "overdue"].map((paymentStatus, indx) => (
-                    <SelectItem
-                      key={indx}
-                      value={paymentStatus}
-                      className="capitalize"
-                    >
-                      {paymentStatus}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <div className="space-y-2" key={indx}>
-              <p className="text-red-500 text-xs font-medium">
-                {typeof formMessage === "string"
-                  ? ""
-                  : formMessage && formMessage[id]}
-              </p>
-              <Label htmlFor={id} className="text-slate-600">
-                {label}
-              </Label>
-              <Input
-                id={id}
-                type={type || "text"}
-                name={id}
-                defaultValue={defaultValue}
-                min={0}
-              />
-            </div>
-          )
-        )}
-      </div>
-      <div className="w-1/2 mx-auto">
-        <SubmitButton>Update Dues</SubmitButton>
-      </div>
-    </form>
+        <div className="w-1/2 mx-auto">
+          <SubmitButton>Update Dues</SubmitButton>
+        </div>
+      </form>
+    </>
   );
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { addChapter } from "@/actions/chapter";
+import InfoMessageCard from "@/components/InfoMessageCard";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/components/ui/use-toast";
+import useFormAction from "@/hooks/useFormAction";
 import { DistrictDocument } from "@/models/district";
 import { StateDocument } from "@/models/state";
-import { FormMessage } from "@/types/globals";
-import { useEffect } from "react";
-import { useFormState } from "react-dom";
 
 const chapterFormFields = [
   {
@@ -143,41 +141,76 @@ type Props = {
 };
 
 const AddChapterForm = ({ dropdownOptions }: Props) => {
-  const initialState = {
-    message: "",
-    success: false,
-  };
-  const [formState, formAction] = useFormState(addChapter, initialState);
-
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (formState.success) {
-      toast({
-        title: formState?.success ? "Success" : "Error",
-        description:
-          typeof formState?.message === "object" ? "" : formState?.message,
-      });
-      formState.success = false;
-    }
-  }, [formState, toast]);
-
-  const formMessage: FormMessage | string | undefined = formState?.message;
+  const { formAction, formState, setInfoMessage, formMessage, infoMessage } =
+    useFormAction(addChapter);
   return (
-    <form
-      className="grid grid-cols-1 gap-5 w-full overflow-x-hidden"
-      action={formAction}
-    >
-      <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" || formState?.success
-          ? ""
-          : formState?.message.includes("Error") && formState?.message}
-      </p>
-      <h3 className="text-xl font-semibold text-slate-600">Chapter Details</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
-        {chapterFormFields.map(({ id, label, type, dropdownType }, indx) =>
-          type === "select" ? (
-            <div className="space-y-2" key={indx}>
+    <>
+      {infoMessage.message && (
+        <InfoMessageCard
+          message={infoMessage.message}
+          clearMessage={setInfoMessage}
+          variant={infoMessage.variant}
+        />
+      )}
+      <form
+        className="grid grid-cols-1 gap-5 w-full overflow-x-hidden p-2"
+        action={formAction}
+      >
+        <p className="text-red-500 text-xs font-medium">
+          {typeof formState?.message === "object" || formState?.success
+            ? ""
+            : formState?.message.includes("Error") && formState?.message}
+        </p>
+        <h3 className="text-xl font-semibold text-slate-600">
+          Chapter Details
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
+          {chapterFormFields.map(({ id, label, type, dropdownType }, indx) =>
+            type === "select" ? (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Select name={id}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dropdownOptions &&
+                      dropdownOptions[dropdownType!]!.map((state, indx) => (
+                        <SelectItem key={indx} value={state._id?.toString()}>
+                          {state.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600">
+                  {label}
+                </Label>
+                <Input id={id} type={type} name={id} />
+              </div>
+            )
+          )}
+        </div>
+        <h3 className="text-xl font-semibold text-slate-600">
+          Secretary Details
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {secretaryFormFields.map(({ id, label, type }, indx) => (
+            <div className="w-full flex flex-col gap-1" key={indx}>
               <p className="text-red-500 text-xs font-medium">
                 {typeof formMessage === "string"
                   ? ""
@@ -186,22 +219,16 @@ const AddChapterForm = ({ dropdownOptions }: Props) => {
               <Label htmlFor={id} className="text-slate-600">
                 {label}
               </Label>
-              <Select name={id}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a State" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dropdownOptions &&
-                    dropdownOptions[dropdownType!]!.map((state, indx) => (
-                      <SelectItem key={indx} value={state._id?.toString()}>
-                        {state.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
+              <Input id={id} type={type || "text"} name={id} />
             </div>
-          ) : (
-            <div className="space-y-2" key={indx}>
+          ))}
+        </div>
+        <h3 className="text-xl font-semibold text-slate-600">
+          Worthy Matron Details
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {matronFormFields.map(({ id, label, type }, indx) => (
+            <div className="w-full flex flex-col gap-1" key={indx}>
               <p className="text-red-500 text-xs font-medium">
                 {typeof formMessage === "string"
                   ? ""
@@ -210,49 +237,13 @@ const AddChapterForm = ({ dropdownOptions }: Props) => {
               <Label htmlFor={id} className="text-slate-600">
                 {label}
               </Label>
-              <Input id={id} type={type} name={id} />
+              <Input id={id} type={type || "text"} name={id} />
             </div>
-          )
-        )}
-      </div>
-      <h3 className="text-xl font-semibold text-slate-600">
-        Secretary Details
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {secretaryFormFields.map(({ id, label, type }, indx) => (
-          <div className="w-full flex flex-col gap-1" key={indx}>
-            <p className="text-red-500 text-xs font-medium">
-              {typeof formMessage === "string"
-                ? ""
-                : formMessage && formMessage[id]}
-            </p>
-            <Label htmlFor={id} className="text-slate-600">
-              {label}
-            </Label>
-            <Input id={id} type={type || "text"} name={id} />
-          </div>
-        ))}
-      </div>
-      <h3 className="text-xl font-semibold text-slate-600">
-        Worthy Matron Details
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {matronFormFields.map(({ id, label, type }, indx) => (
-          <div className="w-full flex flex-col gap-1" key={indx}>
-            <p className="text-red-500 text-xs font-medium">
-              {typeof formMessage === "string"
-                ? ""
-                : formMessage && formMessage[id]}
-            </p>
-            <Label htmlFor={id} className="text-slate-600">
-              {label}
-            </Label>
-            <Input id={id} type={type || "text"} name={id} />
-          </div>
-        ))}
-      </div>
-      <SubmitButton>Add Chapter</SubmitButton>
-    </form>
+          ))}
+        </div>
+        <SubmitButton>Add Chapter</SubmitButton>
+      </form>
+    </>
   );
 };
 

@@ -9,7 +9,6 @@ import { Types } from "mongoose";
 import { redirect } from "next/navigation";
 
 export async function updateDues(_prevState: any, formData: FormData) {
-  let shouldRedirect = false;
   try {
     const rawValues = Object.fromEntries(formData);
 
@@ -61,8 +60,6 @@ export async function updateDues(_prevState: any, formData: FormData) {
       };
     }
 
-    shouldRedirect = true;
-
     return {
       success: true,
       message: "Dues Updated Successfully",
@@ -73,11 +70,6 @@ export async function updateDues(_prevState: any, formData: FormData) {
       message: "Error Connecting to Database",
       success: false,
     };
-  } finally {
-    if (shouldRedirect) {
-      if (checkRole("secretary")) redirect("/chapters/members");
-      if (checkRole("grand-administrator")) redirect("/chapter");
-    }
   }
 }
 

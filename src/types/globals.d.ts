@@ -138,6 +138,16 @@ interface MonthProps {
 
 export type FilterProps = BaseProps | ChapterProps | DistrictProps | MonthProps;
 
+export type FormResult = {
+  message: {
+    [key: string]: string[] | undefined;
+  };
+  success: boolean;
+} | {
+  message: string;
+  success: boolean;
+};
+
 declare global {
   interface CustomJwtSessionClaims {
     metadata: {

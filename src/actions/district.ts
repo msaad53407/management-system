@@ -83,8 +83,6 @@ export async function getDistrict(params: GetDistrictParams) {
 }
 
 export async function addDistrict(_prevState: any, formData: FormData) {
-  let shouldRedirect: boolean = false;
-
   try {
     await connectDB();
 
@@ -122,12 +120,12 @@ export async function addDistrict(_prevState: any, formData: FormData) {
       return {
         message:
           "Provide all required User details or Email or Username may already exist",
-          success: false,
+        success: false,
       };
     }
 
     if (!user) {
-      return { message: "User not found", success: false, };
+      return { message: "User not found", success: false };
     }
 
     const district = await District.create({
@@ -145,21 +143,16 @@ export async function addDistrict(_prevState: any, formData: FormData) {
       };
     }
 
-    shouldRedirect = true;
     revalidatePath("/district");
     return {
       success: true,
-      message: "District Added Successfully"
-    }
+      message: "District Added Successfully",
+    };
   } catch (error) {
     console.error(error);
     return {
-      data: null,
+      success: false,
       message: "Error Connecting to DB",
     };
-  } finally {
-    if (shouldRedirect) {
-      redirect("/district");
-    }
   }
 }
