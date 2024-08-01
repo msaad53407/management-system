@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { FormMessage, MonthlyDue } from "@/types/globals";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFormState } from "react-dom";
 
 type Props = {
@@ -51,9 +52,23 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
 
   const initialState = {
     message: "",
+    success: false,
   };
 
   const [formState, formAction] = useFormState(updateDues, initialState);
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (formState.success) {
+      toast({
+        title: formState?.success ? "Success" : "Error",
+        description:
+          typeof formState?.message === "object" ? "" : formState?.message,
+      });
+      formState.success = false;
+    }
+  }, [formState, toast]);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
 
@@ -65,9 +80,9 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
         <div className="space-y-2">
           <p className="text-red-500 text-xs font-medium">
-            {typeof formState?.message === "string"
+            {typeof formState?.message === "object" || formState?.success
               ? ""
-              : formState?.message?.memberId}
+              : formState?.message.includes("Error") && formState?.message}
           </p>
           <Label htmlFor="memberId" className="text-slate-600">
             Member Id

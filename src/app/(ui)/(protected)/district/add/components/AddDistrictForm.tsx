@@ -11,8 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { FormMessage } from "@/types/globals";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFormState } from "react-dom";
 
 const districtFormFields = [
@@ -63,8 +64,22 @@ const districtDeputyFormFields = [
 const AddDistrictForm = () => {
   const initialState = {
     message: "",
+    success: false,
   };
   const [formState, formAction] = useFormState(addDistrict, initialState);
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (formState.success) {
+      toast({
+        title: formState?.success ? "Success" : "Error",
+        description:
+          typeof formState?.message === "object" ? "" : formState?.message,
+      });
+      formState.success = false;
+    }
+  }, [formState, toast]);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
   return (
@@ -73,7 +88,9 @@ const AddDistrictForm = () => {
       action={formAction}
     >
       <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" ? "" : formState?.message}
+        {typeof formState?.message === "object" || formState?.success
+          ? ""
+          : formState?.message.includes("Error") && formState?.message}
       </p>
       <h3 className="text-xl font-semibold text-slate-600">District Details</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">

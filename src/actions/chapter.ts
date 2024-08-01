@@ -18,6 +18,7 @@ import { Types } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createDue } from "./dues";
+import { getAllStatuses } from "@/utils/functions";
 
 type GetDistrictParams =
   | { secretaryId: string; chapterId?: never; matronId?: never }
@@ -35,11 +36,29 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
   try {
     await connectDB();
     let members;
+    const { data: statuses, message } = await getAllStatuses();
 
+    if (!statuses) {
+      return {
+        data: null,
+        message,
+      };
+    }
+    const regularStatusId = statuses.find(
+      (status) => status.name === "Regular"
+    )?._id;
+
+    const specialStatusId = statuses.find(
+      (status) => status.name === "Special"
+    )?._id;
     if (chapterId) {
-      members = await Member.find({ chapterId });
+      members = await Member.find({
+        chapterId,
+        status: { $in: [regularStatusId, specialStatusId] },
+      });
 
       if (!members || members?.length === 0) {
+        console.log(chapterId);
         return {
           data: null,
           message: "There are currently no members in this Chapter.",
@@ -69,7 +88,10 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
           message: `You are not ${role} of any chapter`,
         };
       }
-      members = await Member.find({ chapterId: chapter._id });
+      members = await Member.find({
+        chapterId: chapter._id,
+        status: { $in: [regularStatusId, specialStatusId] },
+      });
     } else if (checkRole("member")) {
       const member = await Member.findOne({ userId });
       if (!member) {
@@ -87,7 +109,10 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       //   },
       //   null
       // );
-      members = await Member.find({ chapterId: member.chapterId });
+      members = await Member.find({
+        chapterId: member.chapterId,
+        status: { $in: [regularStatusId, specialStatusId] },
+      });
     } else {
       return {
         data: null,
@@ -188,6 +213,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
   if (!success) {
     console.error(error);
     return {
+      success: false,
       message: error.flatten().fieldErrors,
     };
   }
@@ -202,7 +228,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       user = await clerkClient().users.createUser({
         firstName: data.firstName,
         lastName: data.lastName,
-        username: data.username,
+        username: data?.username,
         emailAddress: [data.email],
         publicMetadata: {
           role: "member",
@@ -216,18 +242,20 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       console.error(JSON.stringify(error));
       return {
         message:
-          "Provide all required User details or Email or Username may already exist",
+          "Error: Provide all required User details or Email or Username may already exist",
+        success: false,
       };
     }
 
     if (!user) {
-      return { message: "User not found" };
+      return { message: "Error: User not found", success: false };
     }
     let chapter;
     if (!data.chapterId) {
       if (checkRole("grand-administrator")) {
         return {
-          message: "Please provide Chapter Id",
+          message: "Error: Please provide Chapter Id",
+          success: false,
         };
       }
       chapter = await Chapter.findOne({ secretaryId: userId });
@@ -237,7 +265,8 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       chapter = await Chapter.findById(new Types.ObjectId(data.chapterId));
       if (!chapter) {
         return {
-          message: "Chapter not found",
+          message: "Error: Chapter not found",
+          success: false,
         };
       }
     }
@@ -268,7 +297,8 @@ export const addMember = async (_prevState: any, formData: FormData) => {
 
     if (!member) {
       return {
-        message: "Member not added",
+        message: "Error: Member not added",
+        success: false,
       };
     }
 
@@ -279,7 +309,8 @@ export const addMember = async (_prevState: any, formData: FormData) => {
 
     if (!dues) {
       return {
-        message,
+        message: "Error: " + message,
+        success: false,
       };
     }
     shouldRedirect = true;
@@ -289,10 +320,16 @@ export const addMember = async (_prevState: any, formData: FormData) => {
     } else {
       revalidatePath(`/chapter/${data.chapterId}/members`);
     }
+
+    return {
+      success: true,
+      message: "Successfully added member",
+    };
   } catch (error) {
     console.error(error);
     return {
       message: "Error Connecting to DB",
+      success: false,
     };
   } finally {
     if (shouldRedirect) {
@@ -306,10 +343,6 @@ export const addMember = async (_prevState: any, formData: FormData) => {
 };
 
 export const editMember = async (_prevState: any, formData: FormData) => {
-  if (!(await isAuthenticated())) {
-    redirect("/sign-in");
-  }
-
   const { userId } = auth();
   const role = auth().sessionClaims?.metadata.role;
 
@@ -321,6 +354,7 @@ export const editMember = async (_prevState: any, formData: FormData) => {
     console.error(JSON.stringify(error));
     return {
       message: error.flatten().fieldErrors,
+      success: false,
     };
   }
   if (
@@ -414,12 +448,16 @@ export const editMember = async (_prevState: any, formData: FormData) => {
 
       if (!member) {
         return {
-          message: "Member not found",
+          message: "Error: Member not found",
+          success: false,
         };
       }
       shouldRedirect = true;
       revalidatePath(`/chapter/${data.chapterId}/members`);
-      return;
+      return {
+        message: "Member updated successfully",
+        success: true,
+      };
     }
 
     const member = await Member.findOneAndUpdate(
@@ -441,16 +479,23 @@ export const editMember = async (_prevState: any, formData: FormData) => {
 
     if (!member) {
       return {
-        message: "Member not found",
+        message: "Error: Member not found",
+        success: false,
       };
     }
 
     shouldRedirect = true;
     revalidatePath("/chapter/members");
+
+    return {
+      message: "Member updated successfully",
+      success: true,
+    };
   } catch (error) {
     console.error(error);
     return {
       message: "Error Connecting to DB",
+      success: false,
     };
   } finally {
     if (shouldRedirect) {
@@ -565,6 +610,7 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
       console.error(error);
       return {
         message: error.flatten().fieldErrors,
+        success: false,
       };
     }
 
@@ -607,12 +653,16 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
       console.error(JSON.stringify(error));
       return {
         message:
-          "Provide all required User details or Email or Username may already exist",
+          "Error: Provide all required User details or Email or Username may already exist",
+        success: false,
       };
     }
 
     if (!secretary || !matron) {
-      return { message: "Could not create Secretary or Worthy Matron" };
+      return {
+        message: "Error: Could not create Secretary or Worthy Matron",
+        success: false,
+      };
     }
 
     const chapter = await Chapter.create({
@@ -636,18 +686,23 @@ export const addChapter = async (_prevState: any, formData: FormData) => {
 
     if (!chapter) {
       return {
-        data: null,
-        message: "Could not add Chapter",
+        message: "Error: Could not add Chapter",
+        success: false,
       };
     }
 
     shouldRedirect = true;
     revalidatePath("/chapter");
+
+    return {
+      success: true,
+      message: "Chapter Added Successfully",
+    };
   } catch (error) {
     console.error(error);
     return {
-      data: null,
       message: "Error Connecting to DB",
+      success: false,
     };
   } finally {
     if (shouldRedirect) {

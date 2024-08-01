@@ -96,6 +96,7 @@ export async function addDistrict(_prevState: any, formData: FormData) {
       console.error(error);
       return {
         message: error.flatten().fieldErrors,
+        success: false,
       };
     }
 
@@ -121,11 +122,12 @@ export async function addDistrict(_prevState: any, formData: FormData) {
       return {
         message:
           "Provide all required User details or Email or Username may already exist",
+          success: false,
       };
     }
 
     if (!user) {
-      return { message: "User not found" };
+      return { message: "User not found", success: false, };
     }
 
     const district = await District.create({
@@ -138,13 +140,17 @@ export async function addDistrict(_prevState: any, formData: FormData) {
 
     if (!district) {
       return {
-        data: null,
+        success: false,
         message: "Could not add District",
       };
     }
 
     shouldRedirect = true;
     revalidatePath("/district");
+    return {
+      success: true,
+      message: "District Added Successfully"
+    }
   } catch (error) {
     console.error(error);
     return {

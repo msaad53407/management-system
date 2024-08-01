@@ -19,16 +19,22 @@ const chartConfig = {
 
 type Props = {
   data: MonthlyMemberGrowthAggregation;
+  date: {
+    month?: string;
+    year?: string;
+  };
 };
 
-export default function MonthMembersChart({ data }: Props) {
+export default function MonthMembersChart({ data, date }: Props) {
   const chartData = [
     {
-      month: getMonthName(new Date().getMonth().toString()),
+      month: getMonthName(
+        date?.month ? (Number(date.month) - 1).toString() : new Date().getMonth().toString()
+      ),
       members: data.previousMonthCount,
     },
     {
-      month: getMonth(new Date()),
+      month: getMonthName(date?.month ? date.month : (new Date().getMonth() + 1).toString()),
       members: data.currentMonthCount,
     },
   ];

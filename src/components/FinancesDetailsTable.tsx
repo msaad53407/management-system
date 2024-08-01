@@ -112,8 +112,8 @@ const FinancesDetailsTable = async ({ finances, date }: Props) => {
                   : capitalize(finances.type)}
                 s
               </TableHead>
-              <TableHead>Paid Dues $</TableHead>
-              <TableHead>Total Dues $</TableHead>
+              <TableHead>Dues Paid $</TableHead>
+              <TableHead>Total Dues Received $</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>{renderDetails()}</TableBody>

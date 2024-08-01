@@ -612,10 +612,14 @@ export async function getAllRanks() {
   }
 }
 
-export async function getAllStatuses() {
+export async function getAllStatuses(active?: boolean) {
   try {
     await connectDB();
-    const statuses = await Status.find();
+    const statuses = active
+      ? await Status.find({
+          name: { $in: ["Regular", "Special", "Petitioner"] },
+        })
+      : await Status.find();
     if (!statuses) {
       return { data: null, message: "No statuses found" };
     }
@@ -675,7 +679,11 @@ export async function getAllMemberDropdownOptions(memberId: string) {
         $lookup: {
           from: "states",
           pipeline: [
-            { $match: {} },
+            {
+              $match: {
+                name: { $in: ["Regular", "Special", "Petitioner"] },
+              },
+            },
             { $project: { _id: 1, name: 1, description: 1 } },
           ],
           as: "allStates",
@@ -1137,23 +1145,29 @@ export async function getCurrentYearMemberGrowth(Input: ChapterOrDistrictType) {
   }
 }
 
-export async function getMonthlyMemberGrowth(Input: ChapterOrDistrictType) {
+export async function getMonthlyMemberGrowth(
+  Input: ChapterOrDistrictType,
+  date: {
+    month?: number;
+    year?: number;
+  }
+) {
   try {
     await connectDB();
 
     const currentMonthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
+      date.year || new Date().getFullYear(),
+      date.month ? date.month - 1 : new Date().getMonth(),
       1
     );
     const previousMonthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() - 1,
+      date.year || new Date().getFullYear(),
+      date.month ? date.month - 2 : new Date().getMonth() - 1,
       1
     );
     const nextMonthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() + 1,
+      date.year || new Date().getFullYear(),
+      date.month ? date.month : new Date().getMonth() + 1,
       1
     );
 
@@ -1284,23 +1298,29 @@ export async function getMonthlyMemberGrowth(Input: ChapterOrDistrictType) {
   }
 }
 
-export async function getMonthlyActiveMembers(Input: ChapterOrDistrictType) {
+export async function getMonthlyActiveMembers(
+  Input: ChapterOrDistrictType,
+  date: {
+    month?: number;
+    year?: number;
+  }
+) {
   try {
     await connectDB();
 
     const currentMonthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
+      date.year || new Date().getFullYear(),
+      date.month ? date.month - 1 : new Date().getMonth(),
       1
     );
     const previousMonthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() - 1,
+      date.year || new Date().getFullYear(),
+      date.month ? date.month - 2 : new Date().getMonth() - 1,
       1
     );
     const nextMonthStart = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth() + 1,
+      date.year || new Date().getFullYear(),
+      date.month ? date.month : new Date().getMonth() + 1,
       1
     );
 
@@ -1463,7 +1483,11 @@ export async function getMonthlyActiveMembers(Input: ChapterOrDistrictType) {
 
 export async function getMonthlyMoneyDetails(
   moneyType: "in" | "out",
-  Input: ChapterOrDistrictType
+  Input: ChapterOrDistrictType,
+  date: {
+    month?: number;
+    year?: number;
+  }
 ) {
   try {
     await connectDB();
@@ -1471,7 +1495,7 @@ export async function getMonthlyMoneyDetails(
     if (moneyType === "in") {
       const { data: currentMonthFinances } = await getMemberFinances(
         {
-          month: new Date().getMonth() + 1,
+          month: date.month || new Date().getMonth() + 1,
           year: new Date().getFullYear(),
         },
         undefined,
@@ -1479,7 +1503,7 @@ export async function getMonthlyMoneyDetails(
       );
       const { data: previousMonthFinances } = await getMemberFinances(
         {
-          month: new Date().getMonth(),
+          month: date.month ? date.month - 1 : new Date().getMonth(),
           year: new Date().getFullYear(),
         },
         undefined,

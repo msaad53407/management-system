@@ -143,18 +143,6 @@ const Header = () => {
               />
             </div>
           </form>
-          <Button
-            variant="outline"
-            className="hover:bg-pink-700 hover:text-white rounded-md border-2 font-medium border-pink-700 text-pink-700"
-          >
-            Sample
-          </Button>
-          <Button
-            className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
-            size="icon"
-          >
-            <UserIcon />
-          </Button>
           <UserButton />
           <Button
             className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"

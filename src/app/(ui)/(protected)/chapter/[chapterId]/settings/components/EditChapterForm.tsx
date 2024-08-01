@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { ChapterDocument } from "@/models/chapter";
 import { FormMessage } from "@/types/globals";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useFormState } from "react-dom";
 
 type Props = {
@@ -24,7 +24,6 @@ const EditChapterForm = ({ chapter }: Props) => {
   const [formState, formAction] = useFormState(editChapter, initialState);
 
   useEffect(() => {
-    console.log("Hello");
     if (formState.success) {
       toast({
         title: formState?.success ? "Success" : "Error",
@@ -73,7 +72,7 @@ const EditChapterForm = ({ chapter }: Props) => {
     },
     {
       id: "chapterChartDate",
-      label: "Chart Date",
+      label: "Charter Date",
       type: "date",
       placeholder: "MM/DD/YYYY",
       defaultValue: chapter.chapterChartDate
@@ -146,7 +145,7 @@ const EditChapterForm = ({ chapter }: Props) => {
         ))}
       </div>
       <div className="w-1/2 mx-auto">
-        <SubmitButton>Update Member</SubmitButton>
+        <SubmitButton>Update Chapter</SubmitButton>
       </div>
     </form>
   );

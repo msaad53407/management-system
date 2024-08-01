@@ -9,7 +9,7 @@ const AddDistrict = () => {
     <section className="flex flex-col gap-6 p-4 w-full">
       <Card>
         <CardHeader className="flex items-center justify-between w-full flex-row">
-          <h3 className="text-xl font-semibold text-slate-600">Add Member</h3>
+          <h3 className="text-xl font-semibold text-slate-600">Add District</h3>
           <Link href="/district">
             <Button
               variant={"destructive"}

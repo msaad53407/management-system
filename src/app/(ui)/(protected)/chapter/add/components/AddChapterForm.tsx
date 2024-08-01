@@ -11,9 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { DistrictDocument } from "@/models/district";
 import { StateDocument } from "@/models/state";
 import { FormMessage } from "@/types/globals";
+import { useEffect } from "react";
 import { useFormState } from "react-dom";
 
 const chapterFormFields = [
@@ -143,8 +145,22 @@ type Props = {
 const AddChapterForm = ({ dropdownOptions }: Props) => {
   const initialState = {
     message: "",
+    success: false,
   };
   const [formState, formAction] = useFormState(addChapter, initialState);
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (formState.success) {
+      toast({
+        title: formState?.success ? "Success" : "Error",
+        description:
+          typeof formState?.message === "object" ? "" : formState?.message,
+      });
+      formState.success = false;
+    }
+  }, [formState, toast]);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
   return (
@@ -153,7 +169,9 @@ const AddChapterForm = ({ dropdownOptions }: Props) => {
       action={formAction}
     >
       <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" ? "" : formState?.message}
+        {typeof formState?.message === "object" || formState?.success
+          ? ""
+          : formState?.message.includes("Error") && formState?.message}
       </p>
       <h3 className="text-xl font-semibold text-slate-600">Chapter Details</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">

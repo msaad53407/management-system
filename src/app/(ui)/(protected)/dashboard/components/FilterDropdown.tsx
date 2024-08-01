@@ -17,9 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCheckRole } from "@/hooks/useCheckRole";
 import { ChapterDocument } from "@/models/chapter";
 import { DistrictDocument } from "@/models/district";
 import { cn } from "@/utils";
+import { months } from "@/utils/constants";
 import { LucideListFilter } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -34,34 +36,45 @@ const FilterDropdown = ({ chapters, districts, className }: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const checkRoleClient = useCheckRole();
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
+  const [filterValue, setFilterValue] = useState("");
   const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const districtOrChapterId = formData.get("districtOrChapterId");
-    console.log(districtOrChapterId);
-    if (!districtOrChapterId) {
-      setError("Please select a district or chapter");
+    const month = formData.get("month");
+
+    if (!districtOrChapterId && !month) {
+      setError("Please select a District or Chapter or a Month to filter");
       return;
     }
 
-    if (districtOrChapterId.toString().startsWith("c")) {
-      router.replace(
-        `${pathname}?filter=chapter&chapterId=${districtOrChapterId.slice(1)}`,
-        {
-          scroll: true,
-        }
-      );
-    } else if (districtOrChapterId.toString().startsWith("d")) {
-      router.replace(
-        `${pathname}?filter=district&districtId=${districtOrChapterId.slice(
-          1
-        )}`,
-        {
-          scroll: true,
-        }
-      );
+    if (districtOrChapterId) {
+      if (districtOrChapterId.toString().startsWith("c")) {
+        router.replace(
+          `${pathname}?filter=chapter&chapterId=${districtOrChapterId.slice(
+            1
+          )}`,
+          {
+            scroll: true,
+          }
+        );
+      } else if (districtOrChapterId.toString().startsWith("d")) {
+        router.replace(
+          `${pathname}?filter=district&districtId=${districtOrChapterId.slice(
+            1
+          )}`,
+          {
+            scroll: true,
+          }
+        );
+      }
+    } else if (month) {
+      router.replace(`${pathname}?filter=month&month=${month}`, {
+        scroll: true,
+      });
     }
   };
 
@@ -69,6 +82,7 @@ const FilterDropdown = ({ chapters, districts, className }: Props) => {
     e.preventDefault();
     setError("");
     setOpen(false);
+    setFilterValue("");
     router.replace(pathname, { scroll: true });
   };
 
@@ -84,39 +98,76 @@ const FilterDropdown = ({ chapters, districts, className }: Props) => {
           className="flex flex-col gap-2 items-center justify-center"
           onSubmit={submitHandler}
         >
+          {checkRoleClient(["grand-administrator", "grand-officer"]) && (
+            <div>
+              <Label htmlFor="districtOrChapterId">
+                Select Chapter or District
+              </Label>
+              <Select
+                name="districtOrChapterId"
+                defaultValue={
+                  searchParams.get("filter") === "chapter"
+                    ? "c" + searchParams.get("chapterId")
+                    : "d" + searchParams.get("districtId")
+                }
+                onValueChange={(e) => setFilterValue(e)}
+                disabled={
+                  !filterValue
+                    ? false
+                    : !filterValue.startsWith("c") &&
+                      !filterValue.startsWith("d")
+                }
+                required
+              >
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select a district or chapter" />
+                </SelectTrigger>
+                <SelectContent className="h-[250px] overflow-y-scroll">
+                  <SelectGroup>
+                    <SelectLabel>Districts</SelectLabel>
+                    {districts &&
+                      districts.map(({ id, name, _id }) => (
+                        <SelectItem key={id} value={`d${_id.toString()}`}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                  <SelectGroup>
+                    <SelectLabel>Chapters</SelectLabel>
+                    {chapters &&
+                      chapters.map(({ id, name, _id }) => (
+                        <SelectItem key={id} value={`c${_id.toString()}`}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
-            <Label htmlFor="districtOrChapterId">Select</Label>
+            <Label htmlFor="month">Months</Label>
             <Select
-              name="districtOrChapterId"
+              name="month"
               defaultValue={
-                searchParams.get("filter") === "chapter"
-                  ? "c" + searchParams.get("chapterId")
-                  : "d" + searchParams.get("districtId")
+                searchParams.get("month") ||
+                (new Date().getMonth() + 1).toString()
               }
-              required
+              onValueChange={(e) => setFilterValue(e)}
+              disabled={
+                filterValue.startsWith("c") || filterValue.startsWith("d")
+              }
             >
               <SelectTrigger className="w-[280px]">
                 <SelectValue placeholder="Select a month" />
               </SelectTrigger>
               <SelectContent className="h-[250px] overflow-y-scroll">
-                <SelectGroup>
-                  <SelectLabel>Districts</SelectLabel>
-                  {districts &&
-                    districts.map(({ id, name, _id }) => (
-                      <SelectItem key={id} value={`d${_id.toString()}`}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                </SelectGroup>
-                <SelectGroup>
-                  <SelectLabel>Chapters</SelectLabel>
-                  {chapters &&
-                    chapters.map(({ id, name, _id }) => (
-                      <SelectItem key={id} value={`c${_id.toString()}`}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                </SelectGroup>
+                {months.map((month) => (
+                  <SelectItem key={month.value} value={month.value.toString()}>
+                    {month.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

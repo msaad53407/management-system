@@ -29,17 +29,25 @@ type Props = {
     previousMonthMoneyTotal: number;
     percentageChange: number;
   };
+  date: {
+    month?: string;
+    year?: string;
+  };
 };
 
-export default function MoneyDetailsChart({ data }: Props) {
+export default function MoneyDetailsChart({ data, date }: Props) {
   const chartData = [
     {
-      month: getMonthName(new Date().getMonth().toString()),
+      month: getMonthName(
+        date?.month
+          ? (Number(date.month) - 1).toString()
+          : new Date().getMonth().toString()
+      ),
       total: data.previousMonthMoneyTotal,
       paid: data.previousMonthMoneyPaid,
     },
     {
-      month: getMonthName((new Date().getMonth() + 1).toString()),
+      month: getMonthName(date?.month ? date.month : (new Date().getMonth() + 1).toString()),
       total: data.currentMonthMoneyTotal,
       paid: data.currentMonthMoneyPaid,
     },

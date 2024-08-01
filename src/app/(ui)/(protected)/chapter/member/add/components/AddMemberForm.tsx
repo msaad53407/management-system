@@ -12,10 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { MemberDocument } from "@/models/member";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
 import { FormMessage } from "@/types/globals";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFormState } from "react-dom";
 
 const introductoryFields = [
@@ -23,18 +25,17 @@ const introductoryFields = [
     label: "Greeting",
     id: "greeting",
     options: ["Sis.", "Bro."],
+    required: true,
   },
   {
     label: "First Name",
     id: "firstName",
+    required: true,
   },
   {
     label: "Last Name",
     id: "lastName",
-  },
-  {
-    label: "Username",
-    id: "username",
+    required: true,
   },
 ];
 
@@ -43,62 +44,81 @@ const detailsFields = [
     label: "Email Address",
     id: "email",
     type: "email",
+    required: true,
   },
   {
     label: "Password",
     id: "password",
     type: "password",
+    required: true,
   },
   {
     label: "Phone Number",
     id: "phoneNumber",
     type: "tel",
+    required: true,
   },
   {
     label: "Address",
     id: "address",
     type: "text",
+    required: true,
   },
   {
     label: "City",
     id: "city",
     type: "text",
+    required: true,
   },
   {
     label: "State",
     id: "state",
     type: "select",
+    required: true,
+    placeholder: "Select State",
+    dropdownType: "state",
   },
   {
     label: "Zip Code",
     id: "zipCode",
     type: "string",
+    required: true,
   },
   {
     label: "Petitioner 1",
     id: "petitioner1",
-    type: "text",
+    type: "select",
+    required: true,
+    placeholder: "Select Petitioner",
+    dropdownType: "petitioners",
   },
   {
     label: "Petitioner 2",
     id: "petitioner2",
-    type: "text",
+    type: "select",
+    placeholder: "Select Petitioner",
+    dropdownType: "petitioners",
   },
   {
     label: "Petitioner 3",
     id: "petitioner3",
-    type: "text",
+    type: "select",
+    placeholder: "Select Petitioner",
+    dropdownType: "petitioners",
   },
   {
     label: "Member Status",
     id: "memberStatus",
     type: "select",
+    required: true,
+    placeholder: "Select Member Status",
+    dropdownType: "memberStatus",
   },
 ];
 
 interface Props {
   dropdownOptions: {
-    [key: string]: StateDocument[] | StatusDocument[];
+    [key: string]: StateDocument[] | StatusDocument[] | MemberDocument[];
   };
   chapterId?: string;
 }
@@ -106,20 +126,35 @@ interface Props {
 const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
   const initialState = {
     message: "",
+    success: false,
   };
   const [formState, formAction] = useFormState(addMember, initialState);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (formState.success) {
+      toast({
+        title: formState?.success ? "Success" : "Error",
+        description:
+          typeof formState?.message === "object" ? "" : formState?.message,
+      });
+      formState.success = false;
+    }
+  }, [formState, toast]);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
 
   return (
     <form
-      className="grid grid-cols-1 gap-4 w-full overflow-x-hidden"
+      className="grid grid-cols-1 gap-4 w-full overflow-x-hidden px-2"
       action={formAction}
     >
       <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" ? "" : formState?.message}
+        {typeof formState?.message === "object" || formState?.success
+          ? ""
+          : formState?.message.includes("Error") && formState?.message}
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
         <Input
           type="text"
           name="chapterId"
@@ -127,10 +162,20 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
           readOnly
           className="sr-only max-w-fit"
         />
-        {introductoryFields.map(({ id, label, options }, indx) =>
+        {introductoryFields.map(({ id, label, options, required }, indx) =>
           id === "greeting" ? (
             <RadioGroup key={indx} name={id} className="flex flex-col gap-4">
-              <Label className="text-slate-600">{label}</Label>
+              <Label className="text-slate-600 relative w-fit">
+                {label}
+                {required && (
+                  <span
+                    className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                  >
+                    *
+                  </span>
+                )}
+              </Label>
               <div className="flex gap-2">
                 {options &&
                   options.map((option, i) => (
@@ -154,8 +199,16 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
                   ? ""
                   : formMessage && formMessage[id]}
               </p>
-              <Label htmlFor={id} className="text-slate-600">
+              <Label htmlFor={id} className="text-slate-600 relative w-fit">
                 {label}
+                {required && (
+                  <span
+                    className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                  >
+                    *
+                  </span>
+                )}
               </Label>
               <Input id={id} type="text" name={id} />
             </div>
@@ -163,46 +216,73 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
         )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {detailsFields.map(({ id, label, type }, indx) =>
-          type === "select" ? (
-            <div className="w-full flex flex-col gap-1" key={indx}>
-              <p className="text-red-500 text-xs font-medium">
-                {typeof formMessage === "string"
-                  ? ""
-                  : formMessage && formMessage[id]}
-              </p>
-              <Label htmlFor={id} className="text-slate-600">
-                {label}
-              </Label>
-              <Select name={id}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={`Select a/an ${id}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {dropdownOptions[id].map((state) => (
-                    <SelectItem
-                      key={state._id?.toString()}
-                      value={state._id?.toString()}
+        {detailsFields.map(
+          ({ id, label, type, placeholder, dropdownType, required }, indx) =>
+            type === "select" ? (
+              <div className="w-full flex flex-col gap-1" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600 relative w-fit">
+                  {label}
+                  {required && (
+                    <span
+                      className="text-red-500 absolute -right-3 top-[2px]
+                    "
                     >
-                      {state.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ) : (
-            <div className="w-full flex flex-col gap-1" key={indx}>
-              <p className="text-red-500 text-xs font-medium">
-                {typeof formMessage === "string"
-                  ? ""
-                  : formMessage && formMessage[id]}
-              </p>
-              <Label htmlFor={id} className="text-slate-600">
-                {label}
-              </Label>
-              <Input id={id} type={type} name={id} />
-            </div>
-          )
+                      *
+                    </span>
+                  )}
+                </Label>
+                <Select name={id}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={placeholder} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dropdownOptions[dropdownType!]?.map((state: any) => {
+                      console.log(dropdownType);
+                      return dropdownType === "petitioners" ? (
+                        <SelectItem
+                          key={state._id?.toString()}
+                          value={state._id?.toString()}
+                        >
+                          {state?.firstName} {state?.lastName}
+                        </SelectItem>
+                      ) : (
+                        <SelectItem
+                          key={state._id?.toString()}
+                          value={state._id?.toString()}
+                        >
+                          {state?.name}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="w-full flex flex-col gap-1" key={indx}>
+                <p className="text-red-500 text-xs font-medium">
+                  {typeof formMessage === "string"
+                    ? ""
+                    : formMessage && formMessage[id]}
+                </p>
+                <Label htmlFor={id} className="text-slate-600 relative w-fit">
+                  {label}
+                  {required && (
+                    <span
+                      className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                    >
+                      *
+                    </span>
+                  )}
+                </Label>
+                <Input id={id} type={type} name={id} />
+              </div>
+            )
         )}
       </div>
       <SubmitButton>Add Member</SubmitButton>

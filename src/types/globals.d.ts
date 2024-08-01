@@ -112,21 +112,31 @@ interface BaseProps {
   type?: never;
   chapterId?: never;
   districtId?: never;
+  month?: never;
 }
 
 interface ChapterProps {
   type: "chapter";
   chapterId: string;
   districtId?: never;
+  month?: never;
 }
 
 interface DistrictProps {
   type: "district";
   districtId: string;
   chapterId?: never;
+  month?: never;
 }
 
-export type FilterProps = BaseProps | ChapterProps | DistrictProps;
+interface MonthProps {
+  type: "month";
+  month: string;
+  districtId?: never;
+  chapterId?: never;
+}
+
+export type FilterProps = BaseProps | ChapterProps | DistrictProps | MonthProps;
 
 declare global {
   interface CustomJwtSessionClaims {

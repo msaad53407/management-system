@@ -10,6 +10,9 @@ import { Status, StatusDocument } from "@/models/status";
 import { connectDB } from "@/lib/db";
 import { Metadata } from "next";
 import { getAllStates, getAllStatuses } from "@/utils/functions";
+import { getChapterMembers } from "@/actions/chapter";
+import { Types } from "mongoose";
+import { MemberDocument } from "@/models/member";
 
 export const metadata: Metadata = {
   title: "Add Member | Management System",
@@ -23,18 +26,34 @@ const AddMember = async ({
   if (!checkRole(["secretary", "grand-administrator"])) {
     redirect("/");
   }
-
   const [
     { data: states, message: statesMessage },
     { data: statuses, message: statusesMessage },
-  ] = await Promise.all([getAllStates(), getAllStatuses()]);
+    { data: members, message: membersMessage },
+  ] = await Promise.all([
+    getAllStates(),
+    getAllStatuses(true),
+    getChapterMembers(
+      searchParams?.chapterId
+        ? new Types.ObjectId(searchParams.chapterId)
+        : undefined
+    ),
+  ]);
 
-  if (!states || states.length === 0 || !statuses || statuses.length === 0) {
+  if (
+    !states ||
+    states.length === 0 ||
+    !statuses ||
+    statuses.length === 0 ||
+    !members ||
+    members.length === 0
+  ) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
         <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
           {(!states || states.length === 0) && statesMessage}{" "}
           {(!statuses || statuses.length === 0) && statusesMessage}
+          {(!members || members.length === 0) && membersMessage}
         </h3>
       </section>
     );
@@ -65,6 +84,9 @@ const AddMember = async ({
             dropdownOptions={{
               state: states,
               memberStatus: statuses,
+              petitioners: JSON.parse(
+                JSON.stringify(members)
+              ) as MemberDocument[],
             }}
             chapterId={searchParams?.chapterId}
           />

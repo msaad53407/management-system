@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import { useCheckRole } from "@/hooks/useCheckRole";
 import { ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
@@ -23,6 +24,7 @@ import { ReasonDocument } from "@/models/reason";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
 import { Roles } from "@/types/globals";
+import { useEffect } from "react";
 import { useFormState } from "react-dom";
 
 interface FormMessage {
@@ -45,11 +47,24 @@ interface Props {
 }
 
 export default function EditMemberForm({ member, dropdownOptions }: Props) {
-  const initialState = { message: "" };
+  const initialState = { message: "", success: false };
   const checkRoleClient = useCheckRole();
   const [formState, formAction] = useFormState(editMember, initialState);
 
   const formMessage: FormMessage | string | undefined = formState?.message;
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (formState.success) {
+      toast({
+        title: formState?.success ? "Success" : "Error",
+        description:
+          typeof formState?.message === "object" ? "" : formState?.message,
+      });
+      formState.success = false;
+    }
+  }, [formState, toast]);
+
   const fields = [
     {
       label: "Greeting",
@@ -58,6 +73,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       options: ["Sis.", "Bro."],
       roles: ["member", "secretary", "grand-administrator"],
       type: "radio",
+      required: true,
     },
     {
       label: "First Name",
@@ -66,6 +82,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue: member.firstName,
       type: "text",
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Middle Name",
@@ -82,6 +99,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.lastName,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Email Address",
@@ -90,6 +108,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "email",
       defaultValue: member.email,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Password",
@@ -98,6 +117,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "password",
       defaultValue: member.password,
       roles: [],
+      required: true,
     },
     {
       label: "Phone Number",
@@ -106,6 +126,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.phoneNumber1,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Address",
@@ -114,6 +135,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.address1,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "City",
@@ -122,11 +144,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.city,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "State",
       id: "state",
-      placeholder: "Louisiana",
+      placeholder: "Select a State",
       type: "select",
       dropdownType: "state",
       defaultValue:
@@ -135,6 +158,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
           (state: StateDocument) => state._id === member.state
         )?._id,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Zipcode",
@@ -143,6 +167,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.zipCode,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Petitioner 1",
@@ -151,6 +176,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.sponsor1,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Petitioner 2",
@@ -159,6 +185,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.sponsor2,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Petitioner 3",
@@ -167,11 +194,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.sponsor3,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Member Status",
       id: "memberStatus",
-      placeholder: "Regular",
+      placeholder: "Select a Status",
       type: "select",
       dropdownType: "memberStatus",
       defaultValue:
@@ -180,11 +208,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
           (status: StatusDocument) => status._id === member.status
         )?._id,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Chapter Office",
       id: "chapterOffice",
-      placeholder: "Worthy Patron",
+      placeholder: "Select Chapter Office",
       type: "select",
       dropdownType: "chapterOffice",
       defaultValue:
@@ -194,11 +223,12 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
             chapterOffice._id === member.chapterOffice
         )?._id,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Grand Chapter Office",
       id: "grandChapterOffice",
-      placeholder: "None",
+      placeholder: "Select Grand Chapter Office",
       type: "select",
       dropdownType: "grandChapterOffice",
       defaultValue:
@@ -207,6 +237,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
           (office: GrandOfficeDocument) => office._id === member.grandOffice
         )?._id,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Member Rank",
@@ -220,6 +251,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
           (rank: RankDocument) => rank._id === member.rank
         )?._id,
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Birthdate",
@@ -230,6 +262,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
         ? new Date(member.birthDate)?.toISOString().split("T")[0]
         : "",
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Initiation Date",
@@ -240,6 +273,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
         ? new Date(member.initiationDate)?.toISOString().split("T")[0]
         : "",
       roles: ["secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Queen of the South",
@@ -252,7 +286,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       roles: ["secretary", "grand-administrator"],
     },
     {
-      label: "Amarant",
+      label: "Amaranth",
       id: "amarant",
       placeholder: "mm/dd/yyyy",
       type: "date",
@@ -306,7 +340,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
     {
       label: "Demit to Chapter",
       id: "demitToChapter",
-      placeholder: "Demit to Chapter",
+      placeholder: "Select a Chapter",
       type: "select",
       dropdownType: "chapters",
       defaultValue:
@@ -361,7 +395,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
     {
       label: "Drop Reason",
       id: "dropReason",
-      placeholder: "Select Drop Reason",
+      placeholder: "Select a Reason",
       type: "select",
       dropdownType: "reasons",
       defaultValue:
@@ -384,7 +418,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
     {
       label: "Suspension/Expelled Reason",
       id: "suspensionExpelledReason",
-      placeholder: "Select Suspension/Expelled Reason",
+      placeholder: "Select a Reason",
       type: "select",
       dropdownType: "reasons",
       defaultValue:
@@ -439,6 +473,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.emergencyContact,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
     {
       label: "Emergency Contact Phone No",
@@ -447,13 +482,16 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       type: "text",
       defaultValue: member.emergencyContactPhone,
       roles: ["member", "secretary", "grand-administrator"],
+      required: true,
     },
   ];
 
   return (
     <form className="flex flex-col gap-4 overflow-x-hidden" action={formAction}>
       <p className="text-red-500 text-xs font-medium">
-        {typeof formState?.message === "object" ? "" : formState?.message}
+        {typeof formState?.message === "object" || formState?.success
+          ? ""
+          : formState?.message.includes("Error") && formState?.message}
       </p>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
         <div className="space-y-2">
@@ -493,6 +531,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
               dropdownType,
               roles,
               options,
+              required,
             },
             indx
           ) =>
@@ -503,8 +542,16 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                     ? ""
                     : formMessage && formMessage[id]}
                 </p>
-                <Label htmlFor={id} className="text-slate-600">
+                <Label htmlFor={id} className="text-slate-600 relative">
                   {label}
+                  {required && (
+                    <span
+                      className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                    >
+                      *
+                    </span>
+                  )}
                 </Label>
                 <Select
                   name={id}
@@ -551,7 +598,17 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                 className="flex flex-col gap-5 mt-2"
                 defaultValue={defaultValue as string}
               >
-                <Label className="text-slate-600">{label}</Label>
+                <Label className="text-slate-600 relative w-min">
+                  {label}
+                  {required && (
+                    <span
+                      className="text-red-500 absolute -right-3 top-[2px]
+                            "
+                    >
+                      *
+                    </span>
+                  )}
+                </Label>
                 <div className="flex gap-2">
                   {options &&
                     options.map((option, i) => (
@@ -581,8 +638,16 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                     ? ""
                     : formMessage && formMessage[id]}
                 </p>
-                <Label htmlFor={id} className="text-slate-600">
+                <Label htmlFor={id} className="text-slate-600 relative">
                   {label}
+                  {required && (
+                    <span
+                      className="text-red-500 absolute -right-3 top-[2px]
+                    "
+                    >
+                      *
+                    </span>
+                  )}
                 </Label>
                 <Input
                   id={id}

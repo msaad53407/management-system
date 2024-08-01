@@ -20,9 +20,10 @@ import MoneyDetailsCard from "./components/MoneyDetailsCard";
 
 type Props = {
   searchParams?: {
-    filter?: "chapter" | "district";
+    filter?: "chapter" | "district" | "month";
     chapterId?: string;
     districtId?: string;
+    month?: string;
   };
 };
 
@@ -61,15 +62,11 @@ const Dashboard = async ({ searchParams }: Props) => {
           <h3 className="text-slate-600 text-lg font-semibold">
             Welcome to the dashboard, {capitalize(role.split("-").join(" "))}
           </h3>
-          {checkRole(["grand-administrator", "grand-officer"]) && (
-            <FilterDropdown
-              chapters={chapters}
-              districts={districts}
-              className={
-                searchParams && searchParams?.filter && "text-lime-500"
-              }
-            />
-          )}
+          <FilterDropdown
+            chapters={chapters}
+            districts={districts}
+            className={searchParams && searchParams?.filter && "text-lime-500"}
+          />
         </div>
       </div>
       <section className="w-full space-y-3">
@@ -91,9 +88,15 @@ const Dashboard = async ({ searchParams }: Props) => {
                     chapterId: searchParams.chapterId!,
                     moneyType: "in",
                   }
-                : {
+                : searchParams.filter === "district"
+                ? {
                     type: "district",
                     districtId: searchParams.districtId!,
+                    moneyType: "in",
+                  }
+                : {
+                    type: "month",
+                    month: searchParams.month!,
                     moneyType: "in",
                   })}
             />
@@ -111,7 +114,9 @@ const Dashboard = async ({ searchParams }: Props) => {
                 ? {}
                 : searchParams.filter === "chapter"
                 ? { type: "chapter", chapterId: searchParams.chapterId! }
-                : { type: "district", districtId: searchParams.districtId! })}
+                : searchParams.filter === "district"
+                ? { type: "district", districtId: searchParams.districtId! }
+                : { type: "month", month: searchParams.month! })}
             />
           </Suspense>
           <Suspense
@@ -127,7 +132,12 @@ const Dashboard = async ({ searchParams }: Props) => {
                 ? {}
                 : searchParams.filter === "chapter"
                 ? { type: "chapter", chapterId: searchParams.chapterId! }
-                : { type: "district", districtId: searchParams.districtId! })}
+                : searchParams.filter === "district"
+                ? { type: "district", districtId: searchParams.districtId! }
+                : {
+                    type: "month",
+                    month: searchParams.month!,
+                  })}
             />
           </Suspense>
         </div>

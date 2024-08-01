@@ -138,10 +138,10 @@ export const DistrictDetailsPDFViewer = ({
               Members
             </Text>
             <Text style={[styles.tableCol, styles.tableHeaderText]}>
-              Paid Dues
+              Dues Paid
             </Text>
             <Text style={[styles.tableCol, styles.tableHeaderText]}>
-              Total Dues
+              Total Dues Received
             </Text>
           </View>
           {finances.members &&

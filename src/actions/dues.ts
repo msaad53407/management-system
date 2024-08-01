@@ -18,6 +18,7 @@ export async function updateDues(_prevState: any, formData: FormData) {
     if (!success) {
       return {
         message: error.flatten().fieldErrors,
+        success: false,
       };
     }
 
@@ -37,7 +38,8 @@ export async function updateDues(_prevState: any, formData: FormData) {
 
       if (!updatedMember) {
         return {
-          message: "Could not top up extra Dues above monthly Dues.",
+          message: "Error: Could not top up extra Dues above monthly Dues.",
+          success: false,
         };
       }
     }
@@ -54,15 +56,22 @@ export async function updateDues(_prevState: any, formData: FormData) {
 
     if (!updatedDue) {
       return {
-        message: "Dues not found",
+        message: "Error: Dues not found",
+        success: false,
       };
     }
 
     shouldRedirect = true;
+
+    return {
+      success: true,
+      message: "Dues Updated Successfully",
+    };
   } catch (error) {
     console.error(error);
     return {
       message: "Error Connecting to Database",
+      success: false,
     };
   } finally {
     if (shouldRedirect) {

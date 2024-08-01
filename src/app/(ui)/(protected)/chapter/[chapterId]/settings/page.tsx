@@ -6,6 +6,8 @@ import { getChapter } from "@/actions/chapter";
 import { notFound } from "next/navigation";
 import { ChapterDocument } from "@/models/chapter";
 import { auth } from "@clerk/nextjs/server";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   params: {
@@ -51,6 +53,14 @@ const ChapterSettingsPage = async ({ params: { chapterId } }: Props) => {
             <h3 className="text-xl font-semibold text-slate-600">
               Edit Chapter: {chapter?.name}
             </h3>
+            {/* <Link href={checkRole("secretary")}>
+              <Button
+                variant={"destructive"}
+                className="bg-purple-800 hover:bg-purple-700"
+              >
+                Back
+              </Button>
+            </Link> */}
           </CardHeader>
           <CardContent>
             <EditChapterForm chapter={chapter} />

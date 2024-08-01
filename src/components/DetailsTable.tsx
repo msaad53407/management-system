@@ -73,7 +73,7 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
     <Card>
       <CardHeader>
         <CardTitle className="text-slate-600 text-lg">
-          Total Active Members: {members.length}
+          Total Active Members on Rolls: {members.length}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -104,8 +104,14 @@ export default function DetailsTable({ members, ranks, statuses }: Props) {
                   />
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
-                  {member?.firstName} {member?.middleName && member.middleName}{" "}
-                  {member?.lastName}
+                  <p>
+                    {member?.firstName}{" "}
+                    {member?.middleName && member.middleName} {member?.lastName}
+                  </p>
+                  <p className="text-slate-400">{member?.email}</p>
+                  <p className="text-slate-400 line-clamp-1">
+                    Member ID: {member._id.toString()}
+                  </p>
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
                   {capitalize(
