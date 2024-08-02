@@ -3,13 +3,12 @@ import DetailsTable from "@/components/DetailsTable";
 import { Button } from "@/components/ui/button";
 import { checkRole } from "@/lib/role";
 import { MemberDocument } from "@/models/member";
-import { Rank, RankDocument } from "@/models/rank";
-import { Status, StatusDocument } from "@/models/status";
+import { RankDocument } from "@/models/rank";
+import { StatusDocument } from "@/models/status";
 import { getAllRanks, getAllStatuses } from "@/utils/functions";
 import { Metadata } from "next";
 import Link from "next/link";
-import { redirect, RedirectType } from "next/navigation";
-import React from "react";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Chapter Members | Management System",
@@ -68,6 +67,7 @@ const ChapterMembers = async () => {
         )}
       </div>
       <DetailsTable
+        type="member"
         members={parsedMembers}
         ranks={parsedRanks}
         statuses={parsedStatuses}

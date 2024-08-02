@@ -179,6 +179,39 @@ export const addDistrictSchema = z.object({
     .min(1, "Password is required"),
 });
 
+export const updateDistrictSchema = z.object({
+  districtChartDate: z
+    .string({
+      required_error: "Chart date is required",
+    })
+    .min(1, "Chart date is required"),
+  districtMeet1: z
+    .string({
+      required_error: "Meet 1 is required",
+    })
+    .min(1, "Meet 1 is required"),
+  districtMeet2: z
+    .string({
+      required_error: "Meet 2 is required",
+    })
+    .min(1, "Meet 2 is required"),
+  districtMonDues: z
+    .string({
+      required_error: "Monthly dues is required",
+    })
+    .min(1, "Monthly dues is required"),
+  districtYrDues: z
+    .string({
+      required_error: "Yearly dues is required",
+    })
+    .min(1, "Yearly dues is required"),
+  districtId: z
+    .string({
+      required_error: "Chapter ID is required",
+    })
+    .min(1, "Chapter ID is required"),
+});
+
 export const addChapterSchema = z.object({
   name: z
     .string({

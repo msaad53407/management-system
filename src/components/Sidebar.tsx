@@ -198,15 +198,22 @@ async function Sidebar() {
       ],
     },
     {
-      heading: "Manage Chapter",
+      heading: "Manage",
       links: [
         {
           title: "Chapter Settings",
           href: `/chapter/${chapter?._id}/settings`,
           Icon: <Settings />,
+          roles: ["secretary"],
+        },
+        {
+          title: "District Settings",
+          href: `/district/${district?._id}/settings`,
+          Icon: <Settings />,
+          roles: ["district-deputy"],
         },
       ],
-      roles: ["secretary"],
+      roles: ["secretary", "district-deputy"],
     },
   ];
 

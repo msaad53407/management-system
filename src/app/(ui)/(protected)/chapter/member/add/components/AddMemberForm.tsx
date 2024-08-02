@@ -138,11 +138,7 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
         className="grid grid-cols-1 gap-4 w-full overflow-x-hidden p-2"
         action={formAction}
       >
-        <p className="text-red-500 text-xs font-medium">
-          {typeof formState?.message === "object" || formState?.success
-            ? ""
-            : formState?.message.includes("Error") && formState?.message}
-        </p>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
           <Input
             type="text"

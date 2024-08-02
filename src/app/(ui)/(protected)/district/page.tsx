@@ -1,10 +1,10 @@
-import { checkRole } from "@/lib/role";
-import React from "react";
-import Link from "next/link";
+import DetailsTable from "@/components/DetailsTable";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Metadata } from "next";
+import { checkRole } from "@/lib/role";
+import { DistrictDocument } from "@/models/district";
 import { getAllDistricts } from "@/utils/functions";
+import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Districts | Management System",
@@ -30,6 +30,9 @@ const DistrictPage = async () => {
       </section>
     );
   }
+  const parsedDistricts = JSON.parse(
+    JSON.stringify(districts)
+  ) as DistrictDocument[];
 
   return (
     <section className="flex flex-col gap-6 p-4 w-full">
@@ -47,29 +50,7 @@ const DistrictPage = async () => {
         )}
       </div>
       <div className="flex flex-col gap-4 w-full">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-slate-600 text-lg">
-              Total Districts{" "}
-              <span className="text-pink-600">{districts.length}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4 w-full">
-              {districts.map((district) => (
-                <Link
-                  href={`/district/${district._id}/chapters`}
-                  key={district._id.toHexString()}
-                  className="w-full"
-                >
-                  <h2 className="text-md font-semibold text-slate-600">
-                    {district.name}
-                  </h2>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <DetailsTable type="district" districts={parsedDistricts} />
       </div>
     </section>
   );

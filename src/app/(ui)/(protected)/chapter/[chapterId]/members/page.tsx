@@ -146,6 +146,7 @@ const ChapterMembers = async ({
         )}
       </div>
       <DetailsTable
+        type="member"
         members={parsedMembers}
         ranks={parsedRanks}
         statuses={parsedStatuses}

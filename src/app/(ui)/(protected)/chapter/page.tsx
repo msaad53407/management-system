@@ -1,17 +1,13 @@
-import { checkRole } from "@/lib/role";
-import { District } from "@/models/district";
-import { Chapter as ChapterModel } from "@/models/chapter";
-import { auth } from "@clerk/nextjs/server";
-import React from "react";
-import Link from "next/link";
-import { capitalize } from "@/utils";
-import { connectDB } from "@/lib/db";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Metadata } from "next";
 import { getDistrict } from "@/actions/district";
+import DetailsTable from "@/components/DetailsTable";
+import { Button } from "@/components/ui/button";
+import { checkRole } from "@/lib/role";
+import { ChapterDocument } from "@/models/chapter";
+import { capitalize } from "@/utils";
 import { getAllChapters, getAllChaptersByDistrict } from "@/utils/functions";
-import { Settings } from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Chapters | Management System",
@@ -52,6 +48,9 @@ const Chapter = async () => {
         </section>
       );
     }
+    const parsedChapters = JSON.parse(
+      JSON.stringify(chapters)
+    ) as ChapterDocument[];
 
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
@@ -73,28 +72,7 @@ const Chapter = async () => {
           )}
         </div>
         <div className="flex flex-col gap-4 w-full">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-slate-600 text-lg">
-                Total Chapters {chapters.length}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-4 w-full">
-                {chapters.map((chapter) => (
-                  <Link
-                    href={`/chapter/${chapter._id}/members`}
-                    className="w-full"
-                    key={chapter._id.toHexString()}
-                  >
-                    <h2 className="text-lg font-semibold text-slate-600">
-                      {chapter.name}
-                    </h2>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <DetailsTable type="chapter" chapters={parsedChapters} />
         </div>
       </section>
     );
@@ -111,7 +89,9 @@ const Chapter = async () => {
       </section>
     );
   }
-
+  const parsedChapters = JSON.parse(
+    JSON.stringify(chapters)
+  ) as ChapterDocument[];
   return (
     <section className="flex flex-col gap-6 p-4 w-full">
       <div className="flex items-center justify-between w-full">
@@ -128,36 +108,7 @@ const Chapter = async () => {
         )}
       </div>
       <div className="flex flex-col gap-4 w-full">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-slate-600 text-lg">
-              Total Chapters{" "}
-              <span className="text-pink-600">{chapters.length}</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4 w-full">
-              {chapters.map((chapter) => (
-                <div
-                  key={chapter._id.toHexString()}
-                  className="w-full flex items-center justify-between"
-                >
-                  <Link
-                    href={`/chapter/${chapter._id}/members`}
-                    className="w-full"
-                  >
-                    <h2 className="text-md font-semibold text-slate-600">
-                      {chapter.name}
-                    </h2>
-                  </Link>
-                  <Link href={`/chapter/${chapter._id}/settings`}>
-                    <Settings className="w-6 h-6" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <DetailsTable type="chapter" chapters={parsedChapters} />
       </div>
     </section>
   );

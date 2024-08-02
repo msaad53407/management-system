@@ -156,11 +156,7 @@ const AddChapterForm = ({ dropdownOptions }: Props) => {
         className="grid grid-cols-1 gap-5 w-full overflow-x-hidden p-2"
         action={formAction}
       >
-        <p className="text-red-500 text-xs font-medium">
-          {typeof formState?.message === "object" || formState?.success
-            ? ""
-            : formState?.message.includes("Error") && formState?.message}
-        </p>
+        
         <h3 className="text-xl font-semibold text-slate-600">
           Chapter Details
         </h3>

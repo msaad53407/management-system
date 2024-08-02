@@ -1,93 +1,59 @@
 "use client";
 
-import { editChapter } from "@/actions/chapter";
+import { editDistrict } from "@/actions/district";
 import InfoMessageCard from "@/components/InfoMessageCard";
 import SubmitButton from "@/components/SubmitButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useFormAction from "@/hooks/useFormAction";
-import { ChapterDocument } from "@/models/chapter";
+import { DistrictDocument } from "@/models/district";
+import React from "react";
 
 type Props = {
-  chapter: ChapterDocument;
+  district: DistrictDocument;
 };
 
-const EditChapterForm = ({ chapter }: Props) => {
+const EditDistrictForm = ({ district }: Props) => {
   const { formAction, formMessage, formState, infoMessage, setInfoMessage } =
-    useFormAction(editChapter);
+    useFormAction(editDistrict);
 
   const fields = [
     {
-      id: "chapterAddress1",
-      label: "Address 1",
-      placeholder: "123 Main Street",
-      type: "text",
-      defaultValue: chapter.chapterAddress1,
-    },
-    {
-      id: "chapterAddress2",
-      label: "Address 2",
-      placeholder: "Apt. 123",
-      type: "text",
-      defaultValue: chapter.chapterAddress2,
-    },
-    {
-      id: "chapterCity",
-      label: "City",
-      placeholder: "New York",
-      type: "text",
-      defaultValue: chapter.chapterCity,
-    },
-    {
-      id: "chapterZipCode",
-      label: "Zip Code",
-      placeholder: "10001",
-      type: "text",
-      defaultValue: chapter.chapterZipCode,
-    },
-    {
-      id: "chapterEmail",
-      label: "Email",
-      placeholder: "wvV9K@example.com",
-      type: "email",
-      defaultValue: chapter.chapterEmail,
-    },
-    {
-      id: "chapterChartDate",
+      id: "districtChartDate",
       label: "Charter Date",
       type: "date",
       placeholder: "MM/DD/YYYY",
-      defaultValue: chapter.chapterChartDate
-        ? new Date(chapter.chapterChartDate)?.toISOString().split("T")[0]
+      defaultValue: district.districtCharterDate
+        ? new Date(district.districtCharterDate)?.toISOString().split("T")[0]
         : "",
     },
     {
-      id: "chapterMeet1",
+      id: "districtMeet1",
       label: "Meeting 1",
       type: "text",
       placeholder: "Meeting 1",
-      defaultValue: chapter.chapterMeet1,
+      defaultValue: district.districtMeet1,
     },
     {
-      id: "chapterMeet2",
+      id: "districtMeet2",
       label: "Meeting 2",
       type: "text",
       placeholder: "Meeting 2",
-      defaultValue: chapter.chapterMeet2,
+      defaultValue: district.districtMeet2,
     },
     {
-      id: "chpMonDues",
+      id: "districtMonDues",
       label: "Monthly Dues",
       type: "number",
       placeholder: "0.00",
-      defaultValue: chapter.chpMonDues,
+      defaultValue: district.districtMonDues,
     },
     {
-      id: "chpYrDues",
+      id: "districtYrDues",
       label: "Yearly Dues",
       type: "number",
       placeholder: "0.00",
-      defaultValue: chapter.chpYrDues,
+      defaultValue: district.districtYrDues,
     },
   ];
 
@@ -107,8 +73,8 @@ const EditChapterForm = ({ chapter }: Props) => {
         
         <Input
           type={"text"}
-          name={"chapterId"}
-          defaultValue={chapter._id?.toString()}
+          name={"districtId"}
+          defaultValue={district._id?.toString()}
           className="sr-only w-min"
         />
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -135,11 +101,11 @@ const EditChapterForm = ({ chapter }: Props) => {
           )}
         </div>
         <div className="w-1/2 mx-auto">
-          <SubmitButton>Update Chapter</SubmitButton>
+          <SubmitButton>Update District</SubmitButton>
         </div>
       </form>
     </>
   );
 };
 
-export default EditChapterForm;
+export default EditDistrictForm;

@@ -24,6 +24,7 @@ import { RankDocument } from "@/models/rank";
 import { ReasonDocument } from "@/models/reason";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
+import { Roles } from "@/types/globals";
 
 interface Props {
   member: MemberDocument;

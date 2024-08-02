@@ -8,8 +8,8 @@ export interface DistrictDocument extends Document {
   districtMeet1?: string;
   districtMeet2?: string;
   regionId?: Types.ObjectId;
-  districtYrDues?: Types.ObjectId;
-  districtMonDues?: Types.ObjectId;
+  districtYrDues?: number;
+  districtMonDues?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -36,12 +36,12 @@ const districtSchema = new mongoose.Schema(
       ref: "Region",
     },
     districtYrDues: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Due",
+      type: Number,
+      default: 0,
     },
     districtMonDues: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Due",
+      type: Number,
+      default: 0,
     },
   },
 

@@ -2,12 +2,11 @@
 
 import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
-import { addDistrictSchema } from "@/lib/zod/member";
+import { addDistrictSchema, updateDistrictSchema } from "@/lib/zod/member";
 import { District, DistrictDocument } from "@/models/district";
 import { clerkClient, User } from "@clerk/nextjs/server";
 import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 type GetDistrictParams =
   | { deputyId: string; districtId?: never }
@@ -147,6 +146,55 @@ export async function addDistrict(_prevState: any, formData: FormData) {
     return {
       success: true,
       message: "District Added Successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      success: false,
+      message: "Error Connecting to DB",
+    };
+  }
+}
+
+export async function editDistrict(_prevState: any, formData: FormData) {
+  try {
+    await connectDB();
+
+    const rawFormData = Object.fromEntries(formData);
+
+    const { success, data, error } = updateDistrictSchema.safeParse(rawFormData);
+
+    if (!success) {
+      console.error(error);
+      return {
+        message: error.flatten().fieldErrors,
+        success: false,
+      };
+    }
+
+    const district = await District.findByIdAndUpdate(
+      data.districtId,
+      {
+        districtCharterDate: new Date(data.districtChartDate),
+        districtMeet1: data.districtMeet1,
+        districtMeet2: data.districtMeet2,
+        districtMonDues: data.districtMonDues,
+        districtYrDues: data.districtYrDues,
+      },
+      { new: true }
+    )
+
+    if (!district) {
+      return {
+        success: false,
+        message: "Could not update District",
+      };
+    }
+
+    revalidatePath("/district");
+    return {
+      success: true,
+      message: "District Updated Successfully",
     };
   } catch (error) {
     console.error(error);
