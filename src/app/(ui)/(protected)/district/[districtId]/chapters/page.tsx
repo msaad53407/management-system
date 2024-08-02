@@ -62,7 +62,7 @@ const DistrictChapters = async ({ params: { districtId } }: Props) => {
           // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
           <Button
             variant={"destructive"}
-            className="bg-purple-800 hover:bg-purple-700"
+            className="bg-button-primary hover:bg-button-primary"
           >
             Add Chapter
           </Button>

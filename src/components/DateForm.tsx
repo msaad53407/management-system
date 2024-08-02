@@ -108,7 +108,7 @@ const DateForm = () => {
             <SubmitButton className="w-full">Apply Filter</SubmitButton>
             <Button
               onClick={handleReset}
-              className="bg-purple-800 hover:bg-purple-700"
+              className="bg-button-primary hover:bg-button-primary"
             >
               Reset
             </Button>

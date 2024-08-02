@@ -187,7 +187,7 @@ export default function DistrictDetailsPDF({
         loading ? (
           <LoadingSpinner className="size-8" />
         ) : (
-          <Button className="px-4 py-2 w-fit rounded-xl bg-purple-700 hover:bg-purple-600">
+          <Button className="px-4 py-2 w-fit rounded-xl bg-button-primary hover:bg-button-primary text-white">
             {children}
           </Button>
         )

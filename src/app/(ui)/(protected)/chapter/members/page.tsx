@@ -59,7 +59,7 @@ const ChapterMembers = async () => {
           <Link href="/chapter/member/add">
             <Button
               variant={"destructive"}
-              className="bg-purple-800 hover:bg-purple-700"
+              className="bg-button-primary hover:bg-button-primary"
             >
               Add Member
             </Button>

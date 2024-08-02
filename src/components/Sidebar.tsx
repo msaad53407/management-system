@@ -258,13 +258,13 @@ async function Sidebar() {
           )}
         </nav>
         {/*@ts-ignore */}
-        <SignOutButton className="w-full flex items-center justify-center text-white bg-pink-600 font-medium text-sm rounded-lg py-3"
+        <SignOutButton className="w-full flex items-center justify-center text-white bg-button-primary font-medium text-sm rounded-lg py-3"
           redirectUrl="/sign-in"
         >
           Logout
         </SignOutButton>
       </aside>
-      <MobileSidebar navLinks={navLinks}/>
+      <MobileSidebar navLinks={navLinks} />
     </>
   );
 }

@@ -73,7 +73,7 @@ const AddMember = async ({
           >
             <Button
               variant={"destructive"}
-              className="bg-purple-800 hover:bg-purple-700"
+              className="bg-button-primary hover:bg-button-primary"
             >
               Back
             </Button>

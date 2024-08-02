@@ -20,7 +20,7 @@ const SubmitButton = ({
       type="submit"
       disabled={pending}
       className={cn(
-        "w-fit px-4 mx-auto bg-purple-800 hover:bg-purple-700 text-white",
+        "w-fit px-4 mx-auto bg-button-primary hover:bg-button-primary text-white",
         className,
         pending && "opacity-50 cursor-not-allowed"
       )}

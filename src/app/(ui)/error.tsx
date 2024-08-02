@@ -16,7 +16,7 @@ export default function Error({
       <p className="text-lg text-red-500">{error.message}</p>
       <div className="flex flex-col md:flex-row items-center gap-4 w-full justify-center">
         <Button
-          className="bg-purple-700 hover:bg-purple-600 text-lg"
+          className="bg-button-primary hover:bg-button-primary text-lg"
           variant="default"
           onClick={() => reset()}
         >
@@ -24,7 +24,7 @@ export default function Error({
         </Button>
         <a href="/" className="text-lg">
           <Button
-            className="bg-purple-700 hover:bg-purple-600"
+            className="bg-button-primary hover:bg-button-primary"
             variant="default"
           >
             Home
