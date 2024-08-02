@@ -92,6 +92,21 @@ export async function POST(req: Request) {
       if (!user) {
         return new Response("Error updating user", { status: 400 });
       }
+
+      const member = await Member.findOneAndUpdate(
+        { userId: evt.data.id },
+        {
+          email: evt.data.email_addresses[0].email_address,
+          role: evt.data.public_metadata?.role,
+          photo: evt.data.image_url || null,
+          firstName: evt.data.first_name,
+          lastName: evt.data.last_name,
+        },
+        { new: true }
+      );
+      if (!member) {
+        return new Response("Error updating member", { status: 400 });
+      }
     }
   } catch (error) {
     return new Response("Error connecting to database" + error, {
