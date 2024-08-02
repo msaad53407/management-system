@@ -151,8 +151,9 @@ export default function DetailsTable(props: Props) {
                     <Image
                       alt={`${member?.firstName}'s profile picture`}
                       className="size-full rounded-full object-cover"
-                      height={20}
-                      width={20}
+                      height={40}
+                      width={40}
+                      quality={100}
                       src={member.photo!}
                     />
                   </TableCell>

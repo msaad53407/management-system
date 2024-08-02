@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/db";
+import { checkRole } from "@/lib/role";
 import { Chapter, ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { District, DistrictDocument } from "@/models/district";
@@ -18,9 +19,9 @@ import {
   MonthlyActiveMemberAggregation,
   MonthlyMemberGrowthAggregation,
 } from "@/types/globals";
+import { auth } from "@clerk/nextjs/server";
 import { Types } from "mongoose";
 import "server-only";
-import { number } from "zod";
 
 export async function getSystemFinances(date: {
   month?: number;
@@ -1039,7 +1040,6 @@ export async function getRegularAndSpecialMembersCount(
 export async function getCurrentYearMemberGrowth(Input: ChapterOrDistrictType) {
   try {
     await connectDB();
-    console.log(Input?.chapterId);
     const memberGrowth = (await Member.aggregate([
       {
         $match: Input
@@ -1582,3 +1582,492 @@ export async function getMonthlyMoneyDetails(
     };
   }
 }
+
+export async function getQueryResults({
+  filter,
+  query,
+}: {
+  query: string;
+  filter?: string;
+}) {
+  const { userId } = auth();
+  if (!query) {
+    return {
+      data: null,
+      message: "Query Not Found",
+    };
+  }
+  try {
+    await connectDB();
+
+    if (checkRole(["grand-administrator", "grand-officer"])) {
+      if (!filter) {
+        const members = await Member.aggregate([
+          {
+            $match: {
+              $or: [
+                { firstName: { $regex: new RegExp(query, "i") } },
+                { lastName: { $regex: new RegExp(query, "i") } },
+              ],
+            },
+          },
+        ]);
+
+        const chapters = await Chapter.aggregate([
+          { $match: { $or: [{ name: { $regex: new RegExp(query, "i") } }] } },
+        ]);
+
+        const districts = await District.aggregate([
+          { $match: { $or: [{ name: { $regex: new RegExp(query, "i") } }] } },
+        ]);
+
+        const result: {
+          members?: MemberDocument[];
+          chapters?: ChapterDocument[];
+          districts?: DistrictDocument[];
+        } = {
+          members,
+          chapters,
+          districts,
+        };
+
+        return {
+          data: result,
+          message: "Results Fetched",
+        };
+      }
+
+      if (filter === "chapter") {
+        const chapters = await Chapter.aggregate([
+          { $match: { $or: [{ name: { $regex: new RegExp(query, "i") } }] } },
+        ]);
+        return {
+          data: {
+            chapters: chapters as ChapterDocument[] | undefined,
+          },
+          message: "Chapters Fetched",
+        };
+      }
+
+      if (filter === "district") {
+        const districts = await District.aggregate([
+          { $match: { $or: [{ name: { $regex: new RegExp(query, "i") } }] } },
+        ]);
+        return {
+          data: {
+            districts: districts as DistrictDocument[] | undefined,
+          },
+          message: "Districts Fetched",
+        };
+      }
+
+      if (filter === "member") {
+        const members = await Member.aggregate([
+          {
+            $match: {
+              $or: [
+                { firstName: { $regex: new RegExp(query, "i") } },
+                { lastName: { $regex: new RegExp(query, "i") } },
+              ],
+            },
+          },
+        ]);
+
+        return {
+          data: {
+            members: members as MemberDocument[] | undefined,
+          },
+          message: "Members Fetched",
+        };
+      }
+
+      return {
+        data: null,
+        message: "Invalid Filter",
+      };
+    }
+
+    if (checkRole(["member", "secretary", "worthy-matron"])) {
+      if (filter)
+        return {
+          data: null,
+          message: "Filter Not Available",
+        };
+
+      if (checkRole("member")) {
+        const member = await Member.findOne({ userId });
+        if (!member) {
+          return {
+            data: null,
+            message: "Could Not find Members",
+          };
+        }
+        const members = await Chapter.aggregate([
+          {
+            $match: {
+              _id: member.chapterId,
+            },
+          },
+          {
+            $lookup: {
+              from: "members",
+              localField: "_id",
+              foreignField: "chapterId",
+              as: "members",
+              pipeline: [
+                {
+                  $match: {
+                    $or: [
+                      { firstName: { $regex: new RegExp(query, "i") } },
+                      { lastName: { $regex: new RegExp(query, "i") } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $project: {
+              chapterId: "$_id",
+              members: {
+                $arrayElemAt: ["$members", 0],
+              },
+            },
+          },
+        ]);
+
+        return {
+          data: {
+            members: members as MemberDocument[] | undefined,
+          },
+          message: "Members Fetched",
+        };
+      }
+
+      if (checkRole(["secretary", "worthy-matron"])) {
+        const members = await Chapter.aggregate([
+          {
+            $match: checkRole("secretary")
+              ? {
+                  secretaryId: userId,
+                }
+              : {
+                  matronId: userId,
+                },
+          },
+          {
+            $lookup: {
+              from: "members",
+              localField: "_id",
+              foreignField: "chapterId",
+              as: "members",
+              pipeline: [
+                {
+                  $match: {
+                    $or: [
+                      { firstName: { $regex: new RegExp(query, "i") } },
+                      { lastName: { $regex: new RegExp(query, "i") } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $project: {
+              chapterId: "$_id",
+              members: {
+                $arrayElemAt: ["$members", 0],
+              },
+            },
+          },
+        ]);
+
+        return {
+          data: {
+            members: members as MemberDocument[] | undefined,
+          },
+          message: "Members Fetched",
+        };
+      }
+    }
+
+    if (!filter) {
+      const chapters = await District.aggregate([
+        { $match: { deputyId: userId } },
+        {
+          $lookup: {
+            from: "chapters",
+            localField: "_id",
+            foreignField: "districtId",
+            as: "chapters",
+            pipeline: [
+              {
+                $match: {
+                  $or: [
+                    { name: { $regex: new RegExp(query, "i") } },
+                    { chapterNumber: { $regex: new RegExp(query, "i") } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            districtId: "$_id",
+            chapters: {
+              $arrayElemAt: ["$chapters", 0],
+            },
+          },
+        },
+      ]);
+      const members = await District.aggregate([
+        {
+          $match: {
+            deputyId: userId,
+          },
+        },
+        {
+          $lookup: {
+            from: "members",
+            localField: "_id",
+            foreignField: "districtId",
+            as: "members",
+            pipeline: [
+              {
+                $match: {
+                  $or: [
+                    { firstName: { $regex: new RegExp(query, "i") } },
+                    { lastName: { $regex: new RegExp(query, "i") } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            districtId: "$_id",
+            members: {
+              $arrayElemAt: ["$members", 0],
+            },
+          },
+        },
+      ]);
+
+      return {
+        data: {
+          chapters: chapters as ChapterDocument[] | undefined,
+          members: members as MemberDocument[] | undefined,
+        },
+        message: "Chapters And Members Fetched",
+      };
+    }
+
+    if (filter === "chapter") {
+      const chapters = await District.aggregate([
+        { $match: { deputyId: userId } },
+        {
+          $lookup: {
+            from: "chapters",
+            localField: "_id",
+            foreignField: "districtId",
+            as: "chapters",
+            pipeline: [
+              {
+                $match: {
+                  $or: [
+                    { name: { $regex: new RegExp(query, "i") } },
+                    { chapterNumber: { $regex: new RegExp(query, "i") } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            districtId: "$_id",
+            chapters: {
+              $arrayElemAt: ["$chapters", 0],
+            },
+          },
+        },
+      ]);
+      return {
+        data: {
+          chapters: chapters as ChapterDocument[] | undefined,
+        },
+        message: "Chapters Fetched",
+      };
+    }
+
+    if (filter === "Member") {
+      const members = await District.aggregate([
+        {
+          $match: {
+            deputyId: userId,
+          },
+        },
+        {
+          $lookup: {
+            from: "members",
+            localField: "_id",
+            foreignField: "districtId",
+            as: "members",
+            pipeline: [
+              {
+                $match: {
+                  $or: [
+                    { firstName: { $regex: new RegExp(query, "i") } },
+                    { lastName: { $regex: new RegExp(query, "i") } },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            districtId: "$_id",
+            members: {
+              $arrayElemAt: ["$members", 0],
+            },
+          },
+        },
+      ]);
+
+      return {
+        data: {
+          members: members as MemberDocument[] | undefined,
+        },
+        message: "Members Fetched",
+      };
+    }
+
+    return {
+      data: null,
+      message: "Invalid Filter",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+/*
+export async function getQueryResults({
+  filter,
+  query,
+}: {
+  query: string;
+  filter?: string;
+}) {
+  const { userId } = auth();
+
+  if (!query) {
+    return {
+      data: null,
+      message: "Query Not Found",
+    };
+  }
+
+  try {
+    await connectDB();
+
+    const userRoles = getUserRoles(); // Assume this is a utility function to check user roles
+    const regexQuery = new RegExp(query, "i");
+
+    if (userRoles.includes("grand-administrator") || userRoles.includes("grand-officer")) {
+      if (!filter) {
+        const membersPromise = Member.aggregate([{ $match: { $or: [{ firstName: regexQuery }, { lastName: regexQuery }] } }]);
+        const chaptersPromise = Chapter.aggregate([{ $match: { name: regexQuery } }]);
+        const districtsPromise = District.aggregate([{ $match: { name: regexQuery } }]);
+
+        const [members, chapters, districts] = await Promise.all([membersPromise, chaptersPromise, districtsPromise]);
+
+        return {
+          data: { members, chapters, districts },
+          message: "Results Fetched",
+        };
+      }
+
+      const collectionMap = {
+        chapter: Chapter,
+        district: District,
+        member: Member,
+      };
+
+      if (collectionMap[filter]) {
+        const results = await collectionMap[filter].aggregate([{ $match: { name: regexQuery } }]);
+        return {
+          data: { [filter + 's']: results },
+          message: `${filter.charAt(0).toUpperCase() + filter.slice(1)}s Fetched`,
+        };
+      }
+
+      return {
+        data: null,
+        message: "Invalid Filter",
+      };
+    }
+
+    if (userRoles.includes("member") && !filter) {
+      const member = await Member.findOne({ userId });
+      if (!member) {
+        return { data: null, message: "Could Not Find Members" };
+      }
+
+      const members = await Chapter.aggregate([
+        { $match: { _id: member.chapterId } },
+        { $lookup: { from: "members", localField: "_id", foreignField: "chapterId", as: "members", pipeline: [{ $match: { $or: [{ firstName: regexQuery }, { lastName: regexQuery }] } }] } },
+        { $project: { chapterId: "$_id", members: "$members" } },
+      ]);
+
+      return { data: { members }, message: "Members Fetched" };
+    }
+
+    if (userRoles.includes("secretary") || userRoles.includes("worthy-matron")) {
+      const matchCondition = userRoles.includes("secretary") ? { secretaryId: userId } : { matronId: userId };
+      
+      const members = await Chapter.aggregate([
+        { $match: matchCondition },
+        { $lookup: { from: "members", localField: "_id", foreignField: "chapterId", as: "members", pipeline: [{ $match: { $or: [{ firstName: regexQuery }, { lastName: regexQuery }] } }] } },
+        { $project: { chapterId: "$_id", members: "$members" } },
+      ]);
+
+      return { data: { members }, message: "Members Fetched" };
+    }
+
+    if (userRoles.includes("deputy")) {
+      const districtsPromise = District.aggregate([{ $match: { deputyId: userId } }]);
+      const chaptersPromise = District.aggregate([
+        { $match: { deputyId: userId } },
+        { $lookup: { from: "chapters", localField: "_id", foreignField: "districtId", as: "chapters", pipeline: [{ $match: { $or: [{ name: regexQuery }, { chapterNumber: regexQuery }] } }] } },
+        { $project: { districtId: "$_id", chapters: "$chapters" } },
+      ]);
+
+      const [districts, chapters] = await Promise.all([districtsPromise, chaptersPromise]);
+
+      return {
+        data: { districts, chapters },
+        message: "Chapters and Members Fetched",
+      };
+    }
+
+    return { data: null, message: "Invalid Filter" };
+
+  } catch (error) {
+    console.error("Error in getQueryResults:", error.message);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+ */

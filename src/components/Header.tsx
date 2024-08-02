@@ -1,32 +1,30 @@
 "use client";
 
+import { capitalize } from "@/utils";
+import { UserButton } from "@clerk/nextjs";
+import { BellIcon, Menu, SearchIcon } from "lucide-react";
+import { Types } from "mongoose";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import {
-  BellIcon,
-  Menu,
-  SearchIcon,
-  SettingsIcon,
-  UserIcon,
-} from "lucide-react";
-import { usePathname } from "next/navigation";
-import { capitalize } from "@/utils";
-import { Types } from "mongoose";
-import { UserButton } from "@clerk/nextjs";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const Header = () => {
   const pathname = usePathname();
   const [isObjectId, setIsObjectId] = useState(false);
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("q") || "");
+  const router = useRouter();
   const pathLength = pathname.split("/").filter((path) => path).length;
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (search) {
+      const filter = searchParams.get("filter");
+      router.push(`/search?q=${search}${filter ? `&filter=${filter}` : ""}`);
+    }
+  };
 
   useEffect(() => {
     try {
@@ -84,28 +82,25 @@ const Header = () => {
         </SheetTrigger>
         <SheetContent className="w-full pt-10 rounded-xl">
           <div className="flex flex-col items-center w-full gap-4">
-            <form className="flex-1">
+            <form onSubmit={handleSearch} className="flex-1">
               <div className="relative flex items-center">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Button
+                  type="submit"
+                  className="bg-transparent hover:bg-transparent rounded-full"
+                  variant={"secondary"}
+                  size={"icon"}
+                >
+                  <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                </Button>
                 <Input
                   type="search"
                   placeholder="Search..."
                   className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
             </form>
-            <Button
-              variant="outline"
-              className="hover:bg-pink-700 hover:text-white rounded-md border-2 font-medium border-pink-700 text-pink-700"
-            >
-              Sample
-            </Button>
-            <Button
-              className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
-              size="icon"
-            >
-              <UserIcon />
-            </Button>
             <UserButton />
             <Button
               className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
@@ -133,14 +128,26 @@ const Header = () => {
           </p>
         </nav>
         <div className="flex items-center w-full gap-4">
-          <form className="flex-1 ml-auto sm:flex-initial">
+          <form
+            onSubmit={handleSearch}
+            className="flex-1 ml-auto sm:flex-initial"
+          >
             <div className="relative flex items-center">
-              <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search..."
                 className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
+              <Button
+                type="submit"
+                className="bg-transparent hover:bg-transparent rounded-full"
+                variant={"secondary"}
+                size={"icon"}
+              >
+                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
           </form>
           <UserButton />

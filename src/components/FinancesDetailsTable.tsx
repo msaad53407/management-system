@@ -1,13 +1,13 @@
-import React, { Suspense } from "react";
+import { getChapterMembers } from "@/actions/chapter";
+import { capitalize } from "@/utils";
+import { getAllChaptersByDistrict, getAllDistricts } from "@/utils/functions";
+import { Types } from "mongoose";
+import { Suspense } from "react";
+import DateForm from "./DateForm";
+import FinancesDetails from "./FinancesDetails";
+import TableLoadingSpinner from "./TableLoadingSpinner";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "./ui/table";
-import { capitalize, getMonth, getYear } from "@/utils";
-import { getAllChaptersByDistrict, getAllDistricts } from "@/utils/functions";
-import FinancesDetails from "./FinancesDetails";
-import { Types } from "mongoose";
-import { getChapterMembers } from "@/actions/chapter";
-import TableLoadingSpinner from "./TableLoadingSpinner";
-import DateForm from "./DateForm";
 
 type Props = {
   finances:
@@ -109,7 +109,9 @@ const FinancesDetailsTable = async ({ finances, date }: Props) => {
               <TableHead>
                 {finances.type === "all"
                   ? "District"
-                  : capitalize(finances.type)}
+                  : capitalize(
+                      finances.type === "chapter" ? "member" : "chapter"
+                    )}
                 s
               </TableHead>
               <TableHead>Dues Paid $</TableHead>
