@@ -21,7 +21,11 @@ import { dateFormSchema } from "@/lib/zod/member";
 import { Button } from "./ui/button";
 import { months, years } from "@/utils/constants";
 
-const DateForm = () => {
+type Props = {
+  disableYear?: boolean;
+};
+
+const DateForm = ({ disableYear }: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -39,9 +43,12 @@ const DateForm = () => {
       return;
     }
     setOpen(false);
-    router.replace(`${pathname}?month=${data.month}&year=${data.year}`, {
-      scroll: true,
-    });
+    router.replace(
+      `${pathname}?month=${data.month}${!disableYear && `&year=${data.year}`}`,
+      {
+        scroll: true,
+      }
+    );
   };
 
   const handleReset = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -84,26 +91,29 @@ const DateForm = () => {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label htmlFor="year">Years</Label>
-            <Select
-              name="year"
-              defaultValue={
-                searchParams.get("year") || new Date().getFullYear().toString()
-              }
-            >
-              <SelectTrigger className="w-[280px]">
-                <SelectValue placeholder="Select a year" />
-              </SelectTrigger>
-              <SelectContent className="h-[250px] overflow-y-scroll">
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!disableYear && (
+            <div>
+              <Label htmlFor="year">Years</Label>
+              <Select
+                name="year"
+                defaultValue={
+                  searchParams.get("year") ||
+                  new Date().getFullYear().toString()
+                }
+              >
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select a year" />
+                </SelectTrigger>
+                <SelectContent className="h-[250px] overflow-y-scroll">
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="w-full grid grid-cols-2 gap-2 items-center">
             <SubmitButton className="w-full">Apply Filter</SubmitButton>
             <Button

@@ -84,7 +84,7 @@ const ChapterMembers = async ({
   ] = await Promise.all([
     getChapterMembers(chapterId),
     getAllRanks(),
-    getAllStatuses(),
+    getAllStatuses(true),
   ]);
 
   if (
@@ -129,6 +129,7 @@ const ChapterMembers = async ({
   const parsedStatuses = JSON.parse(
     JSON.stringify(statuses)
   ) as StatusDocument[];
+
 
   return (
     <section className="flex flex-col gap-6 p-4 w-full">

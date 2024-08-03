@@ -227,7 +227,6 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
                     </SelectTrigger>
                     <SelectContent>
                       {dropdownOptions[dropdownType!]?.map((state: any) => {
-                        console.log(dropdownType);
                         return dropdownType === "petitioners" ? (
                           <SelectItem
                             key={state._id?.toString()}

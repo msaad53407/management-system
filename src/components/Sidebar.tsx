@@ -15,7 +15,7 @@ import {
 import { NavLink as NavLinkType } from "@/types/globals";
 import { auth } from "@clerk/nextjs/server";
 import { SignOutButton } from "@clerk/nextjs";
-import { capitalize } from "@/utils";
+import { capitalize, capitalizeSentence } from "@/utils";
 import { getDistrict } from "@/actions/district";
 import { DistrictDocument } from "@/models/district";
 import { ChapterDocument } from "@/models/chapter";
@@ -222,7 +222,7 @@ async function Sidebar() {
       <aside className="w-72 px-4 py-10 space-y-4 overflow-y-auto no-scrollbar hidden md:block">
         <div className="flex items-center justify-center">
           <h2 className="text-xl font-bold text-center">
-            {capitalize(role!)} Database
+            {capitalizeSentence(role, "-")} Database
           </h2>
         </div>
         <nav className="flex flex-col gap-4">

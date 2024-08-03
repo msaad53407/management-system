@@ -10,6 +10,14 @@ export function capitalize(input?: string) {
   return input?.charAt(0).toUpperCase() + input?.slice(1);
 }
 
+export function capitalizeSentence(input?: string, separator = " ") {
+  if (!input) return input;
+  return input
+    .split(separator)
+    .map((word) => capitalize(word))
+    .join(" ");
+}
+
 export function formatDate(
   input?: string,
   options?: Intl.DateTimeFormatOptions

@@ -1959,110 +1959,116 @@ export async function getQueryResults({
   }
 }
 
-/*
-export async function getQueryResults({
-  filter,
-  query,
-}: {
-  query: string;
-  filter?: string;
-}) {
-  const { userId } = auth();
+export async function getDelinquentDues(Input: ChapterOrDistrictType) {
+  const { data, message } = await getAllStatuses(true);
 
-  if (!query) {
+  if (!data) {
     return {
       data: null,
-      message: "Query Not Found",
+      message: "Some error occurred",
     };
   }
 
   try {
     await connectDB();
+    const pipeline = [];
+    if (Input) {
+      if (Input.chapterId)
+        pipeline.push({
+          $match: {
+            chapterId: new Types.ObjectId(Input.chapterId),
+          },
+        });
 
-    const userRoles = getUserRoles(); // Assume this is a utility function to check user roles
-    const regexQuery = new RegExp(query, "i");
-
-    if (userRoles.includes("grand-administrator") || userRoles.includes("grand-officer")) {
-      if (!filter) {
-        const membersPromise = Member.aggregate([{ $match: { $or: [{ firstName: regexQuery }, { lastName: regexQuery }] } }]);
-        const chaptersPromise = Chapter.aggregate([{ $match: { name: regexQuery } }]);
-        const districtsPromise = District.aggregate([{ $match: { name: regexQuery } }]);
-
-        const [members, chapters, districts] = await Promise.all([membersPromise, chaptersPromise, districtsPromise]);
-
-        return {
-          data: { members, chapters, districts },
-          message: "Results Fetched",
-        };
+      if (Input.districtId)
+        pipeline.push({
+          $match: {
+            districtId: new Types.ObjectId(Input.districtId),
+          },
+        });
+    }
+    pipeline.push(
+      {
+        $match: {
+          $expr: {
+            $or: data.map((status) => ({
+              $eq: ["$status", new Types.ObjectId(status._id)],
+            })),
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "dues",
+          localField: "_id",
+          foreignField: "memberId",
+          as: "dues",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $or: [
+                        { $eq: ["$paymentStatus", "unpaid"] },
+                        { $eq: ["$paymentStatus", "overdue"] },
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$dueDate",
+                        new Date(
+                          new Date().setMonth(new Date().getMonth() - 1)
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $addFields: {
+                delinquentAmount: { $subtract: ["$totalDues", "$amount"] },
+              },
+            },
+          ],
+        },
       }
+    );
 
-      const collectionMap = {
-        chapter: Chapter,
-        district: District,
-        member: Member,
-      };
-
-      if (collectionMap[filter]) {
-        const results = await collectionMap[filter].aggregate([{ $match: { name: regexQuery } }]);
-        return {
-          data: { [filter + 's']: results },
-          message: `${filter.charAt(0).toUpperCase() + filter.slice(1)}s Fetched`,
-        };
+    pipeline.push(
+      {
+        $unwind: "$dues",
+      },
+      {
+        $group: {
+          _id: null,
+          delinquentDues: { $sum: "$dues.delinquentAmount" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          delinquentDues: 1,
+        },
       }
+    );
 
+    const result = await Member.aggregate(pipeline);
+
+    if (!result || result.length === 0) {
       return {
         data: null,
-        message: "Invalid Filter",
+        message: "No Delinquent Dues",
       };
     }
 
-    if (userRoles.includes("member") && !filter) {
-      const member = await Member.findOne({ userId });
-      if (!member) {
-        return { data: null, message: "Could Not Find Members" };
-      }
-
-      const members = await Chapter.aggregate([
-        { $match: { _id: member.chapterId } },
-        { $lookup: { from: "members", localField: "_id", foreignField: "chapterId", as: "members", pipeline: [{ $match: { $or: [{ firstName: regexQuery }, { lastName: regexQuery }] } }] } },
-        { $project: { chapterId: "$_id", members: "$members" } },
-      ]);
-
-      return { data: { members }, message: "Members Fetched" };
-    }
-
-    if (userRoles.includes("secretary") || userRoles.includes("worthy-matron")) {
-      const matchCondition = userRoles.includes("secretary") ? { secretaryId: userId } : { matronId: userId };
-      
-      const members = await Chapter.aggregate([
-        { $match: matchCondition },
-        { $lookup: { from: "members", localField: "_id", foreignField: "chapterId", as: "members", pipeline: [{ $match: { $or: [{ firstName: regexQuery }, { lastName: regexQuery }] } }] } },
-        { $project: { chapterId: "$_id", members: "$members" } },
-      ]);
-
-      return { data: { members }, message: "Members Fetched" };
-    }
-
-    if (userRoles.includes("deputy")) {
-      const districtsPromise = District.aggregate([{ $match: { deputyId: userId } }]);
-      const chaptersPromise = District.aggregate([
-        { $match: { deputyId: userId } },
-        { $lookup: { from: "chapters", localField: "_id", foreignField: "districtId", as: "chapters", pipeline: [{ $match: { $or: [{ name: regexQuery }, { chapterNumber: regexQuery }] } }] } },
-        { $project: { districtId: "$_id", chapters: "$chapters" } },
-      ]);
-
-      const [districts, chapters] = await Promise.all([districtsPromise, chaptersPromise]);
-
-      return {
-        data: { districts, chapters },
-        message: "Chapters and Members Fetched",
-      };
-    }
-
-    return { data: null, message: "Invalid Filter" };
-
+    return {
+      data: result[0],
+      message: "Delinquent Dues fetched successfully",
+    };
   } catch (error) {
-    console.error("Error in getQueryResults:", error.message);
+    console.error(error);
     return {
       data: null,
       message: "Error Connecting to Database",
@@ -2070,4 +2076,182 @@ export async function getQueryResults({
   }
 }
 
- */
+// export async function getQueryResults({
+//   filter,
+//   query,
+// }: {
+//   query: string;
+//   filter?: string;
+// }) {
+//   const { userId } = auth();
+
+//   if (!query) {
+//     return {
+//       data: null,
+//       message: "Query Not Found",
+//     };
+//   }
+
+//   try {
+//     await connectDB();
+//  // Assume this is a utility function to check user roles
+//     const regexQuery = new RegExp(query, "i");
+
+//     if (
+//       checkRole(["grand-administrator", "grand-officer"])
+//     ) {
+//       if (!filter) {
+//         const membersPromise = Member.aggregate([
+//           {
+//             $match: {
+//               $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//             },
+//           },
+//         ]);
+//         const chaptersPromise = Chapter.aggregate([
+//           { $match: { name: regexQuery } },
+//         ]);
+//         const districtsPromise = District.aggregate([
+//           { $match: { name: regexQuery } },
+//         ]);
+
+//         const [members, chapters, districts] = await Promise.all([
+//           membersPromise,
+//           chaptersPromise,
+//           districtsPromise,
+//         ]);
+
+//         return {
+//           data: { members, chapters, districts },
+//           message: "Results Fetched",
+//         };
+//       }
+
+//       const collectionMap = {
+//         chapter: Chapter,
+//         district: District,
+//         member: Member,
+//       };
+
+//       if (collectionMap[filter]) {
+//         const results = await collectionMap[filter].aggregate([
+//           { $match: { name: regexQuery } },
+//         ]);
+//         return {
+//           data: { [filter + "s"]: results },
+//           message: `${
+//             filter.charAt(0).toUpperCase() + filter.slice(1)
+//           }s Fetched`,
+//         };
+//       }
+
+//       return {
+//         data: null,
+//         message: "Invalid Filter",
+//       };
+//     }
+
+//     if (userRoles.includes("member") && !filter) {
+//       const member = await Member.findOne({ userId });
+//       if (!member) {
+//         return { data: null, message: "Could Not Find Members" };
+//       }
+
+//       const members = await Chapter.aggregate([
+//         { $match: { _id: member.chapterId } },
+//         {
+//           $lookup: {
+//             from: "members",
+//             localField: "_id",
+//             foreignField: "chapterId",
+//             as: "members",
+//             pipeline: [
+//               {
+//                 $match: {
+//                   $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//                 },
+//               },
+//             ],
+//           },
+//         },
+//         { $project: { chapterId: "$_id", members: "$members" } },
+//       ]);
+
+//       return { data: { members }, message: "Members Fetched" };
+//     }
+
+//     if (
+//       userRoles.includes("secretary") ||
+//       userRoles.includes("worthy-matron")
+//     ) {
+//       const matchCondition = userRoles.includes("secretary")
+//         ? { secretaryId: userId }
+//         : { matronId: userId };
+
+//       const members = await Chapter.aggregate([
+//         { $match: matchCondition },
+//         {
+//           $lookup: {
+//             from: "members",
+//             localField: "_id",
+//             foreignField: "chapterId",
+//             as: "members",
+//             pipeline: [
+//               {
+//                 $match: {
+//                   $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//                 },
+//               },
+//             ],
+//           },
+//         },
+//         { $project: { chapterId: "$_id", members: "$members" } },
+//       ]);
+
+//       return { data: { members }, message: "Members Fetched" };
+//     }
+
+//     if (userRoles.includes("deputy")) {
+//       const districtsPromise = District.aggregate([
+//         { $match: { deputyId: userId } },
+//       ]);
+//       const chaptersPromise = District.aggregate([
+//         { $match: { deputyId: userId } },
+//         {
+//           $lookup: {
+//             from: "chapters",
+//             localField: "_id",
+//             foreignField: "districtId",
+//             as: "chapters",
+//             pipeline: [
+//               {
+//                 $match: {
+//                   $or: [{ name: regexQuery }, { chapterNumber: regexQuery }],
+//                 },
+//               },
+//             ],
+//           },
+//         },
+//         { $project: { districtId: "$_id", chapters: "$chapters" } },
+//       ]);
+
+//       const [districts, chapters] = await Promise.all([
+//         districtsPromise,
+//         chaptersPromise,
+//       ]);
+
+//       return {
+//         data: { districts, chapters },
+//         message: "Chapters and Members Fetched",
+//       };
+//     }
+
+//     return { data: null, message: "Invalid Filter" };
+//   } catch (error) {
+//     console.error("Error in getQueryResults:", error.message);
+//     return {
+//       data: null,
+//       message: "Error Connecting to Database",
+//     };
+//   }
+// }

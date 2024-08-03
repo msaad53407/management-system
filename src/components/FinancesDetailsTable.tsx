@@ -99,7 +99,6 @@ const FinancesDetailsTable = async ({ finances, date }: Props) => {
                   finances.type === "chapter" ? "member" : "chapter"
                 )}s`}
           </h3>
-          <DateForm />
         </CardTitle>
       </CardHeader>
       <CardContent>

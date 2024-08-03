@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
-import { capitalize } from "@/utils";
 
 const chartConfig = {
   dues: {
@@ -43,22 +42,32 @@ type Props =
       totalDues: number;
       month: string;
       year: string;
+    }
+  | {
+      duesType: "delinquent";
+      delinquentDues: number;
+      totalDues: number;
+      month: string;
+      year: string;
     };
 
-export default function DuesChart({
-  duesType,
-  paidDues,
-  totalDues,
-  month,
-  year
-}: Props) {
+export default function DuesChart(props: Props) {
   const progress =
-    duesType === "total" ? 0 : 360 - Math.ceil((paidDues / totalDues) * 360);
+    props.duesType === "total"
+      ? 0
+      : props.duesType === "delinquent"
+      ? 360 - Math.ceil((props.delinquentDues / props.totalDues) * 360)
+      : Math.ceil((props.paidDues / props.totalDues) * 360);
 
   const chartData = [
     {
       browser: "safari",
-      dues: duesType === "paid" ? paidDues : totalDues,
+      dues:
+        props.duesType === "paid"
+          ? props.paidDues
+          : props.duesType === "total"
+          ? props.totalDues
+          : props.delinquentDues,
       fill: "var(--color-safari)",
     },
   ];
@@ -66,8 +75,19 @@ export default function DuesChart({
   return (
     <Card className="flex flex-col w-full">
       <CardHeader className="items-center pb-0">
-        <CardTitle>{capitalize(duesType)} Dues $</CardTitle>
-        <CardDescription>{month} {year}</CardDescription>
+        <CardTitle>
+          {props.duesType === "paid"
+            ? "Received"
+            : props.duesType === "delinquent"
+            ? "Delinquent"
+            : "Total"}{" "}
+          Dues $
+        </CardTitle>
+        {props.duesType !== "delinquent" && (
+          <CardDescription>
+            {props.month} {props.year}
+          </CardDescription>
+        )}
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -112,7 +132,12 @@ export default function DuesChart({
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          {capitalize(duesType)} Dues
+                          {props.duesType === "paid"
+                            ? "Received"
+                            : props.duesType === "total"
+                            ? "Total"
+                            : "Delinquent"}{" "}
+                          Dues
                         </tspan>
                       </text>
                     );
@@ -125,7 +150,11 @@ export default function DuesChart({
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="leading-none text-muted-foreground">
-          Showing total {duesType} dues for {month}
+          {props.duesType === "paid"
+            ? `Showing Total Dues Received for ${props.month}`
+            : props.duesType === "total"
+            ? `Showing Total ${props.duesType} Dues for ${props.month}`
+            : `Showing Total Delinquent Dues for more than 30 days`}
         </div>
       </CardFooter>
     </Card>

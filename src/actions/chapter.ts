@@ -44,17 +44,12 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
         message,
       };
     }
-    const regularStatusId = statuses.find(
-      (status) => status.name === "Regular"
-    )?._id;
+    const { data } = await getAllStatuses(true);
 
-    const specialStatusId = statuses.find(
-      (status) => status.name === "Special"
-    )?._id;
     if (chapterId) {
       members = await Member.find({
         chapterId,
-        status: { $in: [regularStatusId, specialStatusId] },
+        status: { $in: data?.map((status) => status._id) },
       });
 
       if (!members || members?.length === 0) {
@@ -90,7 +85,7 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       }
       members = await Member.find({
         chapterId: chapter._id,
-        status: { $in: [regularStatusId, specialStatusId] },
+        status: { $in: data?.map((status) => status._id) },
       });
     } else if (checkRole("member")) {
       const member = await Member.findOne({ userId });
@@ -111,7 +106,7 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       // );
       members = await Member.find({
         chapterId: member.chapterId,
-        status: { $in: [regularStatusId, specialStatusId] },
+        status: { $in: data?.map((status) => status._id) },
       });
     } else {
       return {

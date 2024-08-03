@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Roles } from "@/types/globals";
-import { capitalize } from "@/utils";
+import { capitalize, capitalizeSentence } from "@/utils";
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
 import { Eye, EyeOff } from "lucide-react";
@@ -78,7 +78,7 @@ export default function SignInPage() {
                   <SelectContent>
                     {roles.map((r) => (
                       <SelectItem key={r} value={r}>
-                        {capitalize(r)}
+                        {capitalizeSentence(r, "-")}
                       </SelectItem>
                     ))}
                   </SelectContent>

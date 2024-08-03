@@ -40,6 +40,10 @@ const Header = () => {
     }
   }, [pathname]);
 
+  useEffect(() => {
+    setSearch(searchParams.get("q") || "");
+  }, [searchParams]);
+
   /**
    * Generating Path from the pathname
    * 1. If pathname contains less than 2 paths, it is rendered as it is.
