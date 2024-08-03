@@ -20,6 +20,7 @@ import {
   MonthlyMemberGrowthAggregation,
 } from "@/types/globals";
 import { auth } from "@clerk/nextjs/server";
+import { Type } from "lucide-react";
 import { Types } from "mongoose";
 import "server-only";
 
@@ -1600,14 +1601,33 @@ export async function getQueryResults({
   try {
     await connectDB();
 
+    const { data, message } = await getAllStatuses(true);
+
+    if (!data) {
+      console.error(message);
+      return {
+        data: null,
+        message: "Some error occurred while fetching details",
+      };
+    }
+
     if (checkRole(["grand-administrator", "grand-officer"])) {
       if (!filter) {
         const members = await Member.aggregate([
           {
             $match: {
-              $or: [
-                { firstName: { $regex: new RegExp(query, "i") } },
-                { lastName: { $regex: new RegExp(query, "i") } },
+              $and: [
+                {
+                  $or: [
+                    { firstName: { $regex: new RegExp(query, "i") } },
+                    { lastName: { $regex: new RegExp(query, "i") } },
+                  ],
+                },
+                {
+                  status: {
+                    $in: data?.map((status) => new Types.ObjectId(status._id)),
+                  },
+                },
               ],
             },
           },
@@ -1665,9 +1685,18 @@ export async function getQueryResults({
         const members = await Member.aggregate([
           {
             $match: {
-              $or: [
-                { firstName: { $regex: new RegExp(query, "i") } },
-                { lastName: { $regex: new RegExp(query, "i") } },
+              $and: [
+                {
+                  $or: [
+                    { firstName: { $regex: new RegExp(query, "i") } },
+                    { lastName: { $regex: new RegExp(query, "i") } },
+                  ],
+                },
+                {
+                  status: {
+                    $in: data?.map((status) => new Types.ObjectId(status._id)),
+                  },
+                },
               ],
             },
           },
@@ -1717,9 +1746,20 @@ export async function getQueryResults({
               pipeline: [
                 {
                   $match: {
-                    $or: [
-                      { firstName: { $regex: new RegExp(query, "i") } },
-                      { lastName: { $regex: new RegExp(query, "i") } },
+                    $and: [
+                      {
+                        $or: [
+                          { firstName: { $regex: new RegExp(query, "i") } },
+                          { lastName: { $regex: new RegExp(query, "i") } },
+                        ],
+                      },
+                      {
+                        status: {
+                          $in: data?.map(
+                            (status) => new Types.ObjectId(status._id)
+                          ),
+                        },
+                      },
                     ],
                   },
                 },
@@ -1727,18 +1767,21 @@ export async function getQueryResults({
             },
           },
           {
+            $unwind: "$members",
+          },
+          {
             $project: {
               chapterId: "$_id",
-              members: {
-                $arrayElemAt: ["$members", 0],
-              },
+              members: "$members",
             },
           },
         ]);
 
         return {
           data: {
-            members: members as MemberDocument[] | undefined,
+            members: members.map((member) => member.members) as
+              | MemberDocument[]
+              | undefined,
           },
           message: "Members Fetched",
         };
@@ -1764,9 +1807,20 @@ export async function getQueryResults({
               pipeline: [
                 {
                   $match: {
-                    $or: [
-                      { firstName: { $regex: new RegExp(query, "i") } },
-                      { lastName: { $regex: new RegExp(query, "i") } },
+                    $and: [
+                      {
+                        $or: [
+                          { firstName: { $regex: new RegExp(query, "i") } },
+                          { lastName: { $regex: new RegExp(query, "i") } },
+                        ],
+                      },
+                      {
+                        status: {
+                          $in: data?.map(
+                            (status) => new Types.ObjectId(status._id)
+                          ),
+                        },
+                      },
                     ],
                   },
                 },
@@ -1816,11 +1870,12 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$chapters",
+        },
+        {
           $project: {
             districtId: "$_id",
-            chapters: {
-              $arrayElemAt: ["$chapters", 0],
-            },
+            chapters: "$chapters",
           },
         },
       ]);
@@ -1839,9 +1894,20 @@ export async function getQueryResults({
             pipeline: [
               {
                 $match: {
-                  $or: [
-                    { firstName: { $regex: new RegExp(query, "i") } },
-                    { lastName: { $regex: new RegExp(query, "i") } },
+                  $and: [
+                    {
+                      $or: [
+                        { firstName: { $regex: new RegExp(query, "i") } },
+                        { lastName: { $regex: new RegExp(query, "i") } },
+                      ],
+                    },
+                    {
+                      status: {
+                        $in: data?.map(
+                          (status) => new Types.ObjectId(status._id)
+                        ),
+                      },
+                    },
                   ],
                 },
               },
@@ -1849,19 +1915,23 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$members",
+        },
+        {
           $project: {
             districtId: "$_id",
-            members: {
-              $arrayElemAt: ["$members", 0],
-            },
+            members: "$members",
           },
         },
       ]);
-
       return {
         data: {
-          chapters: chapters as ChapterDocument[] | undefined,
-          members: members as MemberDocument[] | undefined,
+          chapters: chapters.map((chapter) => chapter?.chapters) as
+            | ChapterDocument[]
+            | undefined,
+          members: members.map((member) => member.members) as
+            | MemberDocument[]
+            | undefined,
         },
         message: "Chapters And Members Fetched",
       };
@@ -1889,23 +1959,26 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$chapters",
+        },
+        {
           $project: {
             districtId: "$_id",
-            chapters: {
-              $arrayElemAt: ["$chapters", 0],
-            },
+            chapters: "$chapters",
           },
         },
       ]);
       return {
         data: {
-          chapters: chapters as ChapterDocument[] | undefined,
+          chapters: chapters.map((chapter) => chapter?.chapters) as
+            | ChapterDocument[]
+            | undefined,
         },
         message: "Chapters Fetched",
       };
     }
 
-    if (filter === "Member") {
+    if (filter === "member") {
       const members = await District.aggregate([
         {
           $match: {
@@ -1921,9 +1994,20 @@ export async function getQueryResults({
             pipeline: [
               {
                 $match: {
-                  $or: [
-                    { firstName: { $regex: new RegExp(query, "i") } },
-                    { lastName: { $regex: new RegExp(query, "i") } },
+                  $and: [
+                    {
+                      $or: [
+                        { firstName: { $regex: new RegExp(query, "i") } },
+                        { lastName: { $regex: new RegExp(query, "i") } },
+                      ],
+                    },
+                    {
+                      status: {
+                        $in: data?.map(
+                          (status) => new Types.ObjectId(status._id)
+                        ),
+                      },
+                    },
                   ],
                 },
               },
@@ -1931,18 +2015,21 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$members",
+        },
+        {
           $project: {
             districtId: "$_id",
-            members: {
-              $arrayElemAt: ["$members", 0],
-            },
+            members: "$members",
           },
         },
       ]);
 
       return {
         data: {
-          members: members as MemberDocument[] | undefined,
+          members: members.map((member) => member?.members) as
+            | MemberDocument[]
+            | undefined,
         },
         message: "Members Fetched",
       };
@@ -2096,17 +2183,31 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 
 //   try {
 //     await connectDB();
-//  // Assume this is a utility function to check user roles
+//     const { data, message } = await getAllStatuses();
+
+//     if (!data) {
+//       console.error(message);
+//       return {
+//         data: null,
+//         message: "Some error occurred while fetching details",
+//       };
+//     }
+
 //     const regexQuery = new RegExp(query, "i");
 
-//     if (
-//       checkRole(["grand-administrator", "grand-officer"])
-//     ) {
+//     if (checkRole(["grand-administrator", "grand-officer"])) {
 //       if (!filter) {
 //         const membersPromise = Member.aggregate([
 //           {
 //             $match: {
-//               $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//               $and: [
+//                 {
+//                   $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//                 },
+//                 {
+//                   status: { $in: data?.map((status) => status._id) },
+//                 },
+//               ],
 //             },
 //           },
 //         ]);
@@ -2153,7 +2254,7 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 //       };
 //     }
 
-//     if (userRoles.includes("member") && !filter) {
+//     if (checkRole("member") && !filter) {
 //       const member = await Member.findOne({ userId });
 //       if (!member) {
 //         return { data: null, message: "Could Not Find Members" };
@@ -2170,7 +2271,19 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 //             pipeline: [
 //               {
 //                 $match: {
-//                   $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//                   $and: [
+//                     {
+//                       $or: [
+//                         { firstName: regexQuery },
+//                         { lastName: regexQuery },
+//                       ],
+//                     },
+//                     {
+//                       $or: [
+//                         { status: { $in: data.map((status) => status._id) } },
+//                       ],
+//                     },
+//                   ],
 //                 },
 //               },
 //             ],
@@ -2182,11 +2295,8 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 //       return { data: { members }, message: "Members Fetched" };
 //     }
 
-//     if (
-//       userRoles.includes("secretary") ||
-//       userRoles.includes("worthy-matron")
-//     ) {
-//       const matchCondition = userRoles.includes("secretary")
+//     if (checkRole(["secretary", "worthy-matron"])) {
+//       const matchCondition = checkRole("secretary")
 //         ? { secretaryId: userId }
 //         : { matronId: userId };
 
@@ -2201,7 +2311,19 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 //             pipeline: [
 //               {
 //                 $match: {
-//                   $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
+//                   $and: [
+//                     {
+//                       $or: [
+//                         { firstName: regexQuery },
+//                         { lastName: regexQuery },
+//                       ],
+//                     },
+//                     {
+//                       $or: [
+//                         { status: { $in: data.map((status) => status._id) } },
+//                       ],
+//                     },
+//                   ],
 //                 },
 //               },
 //             ],
@@ -2213,7 +2335,7 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 //       return { data: { members }, message: "Members Fetched" };
 //     }
 
-//     if (userRoles.includes("deputy")) {
+//     if (checkRole("district-deputy")) {
 //       const districtsPromise = District.aggregate([
 //         { $match: { deputyId: userId } },
 //       ]);
@@ -2250,7 +2372,7 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 
 //     return { data: null, message: "Invalid Filter" };
 //   } catch (error) {
-//     console.error("Error in getQueryResults:", error.message);
+//     console.error("Error in getQueryResults:", error);
 //     return {
 //       data: null,
 //       message: "Error Connecting to Database",

@@ -155,7 +155,7 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
   };
 
   const renderContent = async () => {
-    console.log(JSON.stringify(data, null, 2));
+    console.log(data);
     if (checkRole(["member", "secretary", "worthy-matron"])) {
       if (data?.members?.length === 0 || !data.members) {
         return (
