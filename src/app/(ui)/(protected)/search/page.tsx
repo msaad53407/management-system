@@ -52,7 +52,16 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
       </section>
     );
   }
-
+  const [{ data: rawRanks }, { data: rawStatuses }] = await Promise.all([
+    getAllRanks(),
+    getAllStatuses(),
+  ]);
+  const ranks = JSON.parse(JSON.stringify(rawRanks)) as
+    | RankDocument[]
+    | undefined;
+  const statuses = JSON.parse(JSON.stringify(rawStatuses)) as
+    | StatusDocument[]
+    | undefined;
   const filterSearch = async () => {
     if (filter === "chapter") {
       return (
@@ -64,7 +73,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
             {data.chapters?.length === 0 || !data.chapters ? (
               <p className="text-red-500 text-center">No results found</p>
             ) : (
-              <DetailsTable type="chapter" chapters={data.chapters} />
+              <DetailsTable
+                type="chapter"
+                chapters={JSON.parse(JSON.stringify(data.chapters))}
+              />
             )}
           </CardContent>
         </Card>
@@ -82,7 +94,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
               {data.districts?.length === 0 || !data.districts ? (
                 <p className="text-red-500 text-center">No results found</p>
               ) : (
-                <DetailsTable type="district" districts={data.districts} />
+                <DetailsTable
+                  type="district"
+                  districts={JSON.parse(JSON.stringify(data.districts))}
+                />
               )}
             </CardContent>
           </Card>
@@ -91,14 +106,34 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
     }
 
     if (filter === "member") {
-      //TODO Fix
+      if (!ranks || !statuses || ranks.length === 0 || statuses.length === 0) {
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Members</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-red-500 text-center">No results found</p>
+            </CardContent>
+          </Card>
+        );
+      }
       return (
         <Card>
           <CardHeader>
             <CardTitle>Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-500 text-center">No results found</p>
+            {data.members?.length === 0 || !data.members ? (
+              <p className="text-red-500 text-center">No results found</p>
+            ) : (
+              <DetailsTable
+                type="member"
+                members={JSON.parse(JSON.stringify(data.members))}
+                ranks={JSON.parse(JSON.stringify(ranks))}
+                statuses={JSON.parse(JSON.stringify(statuses))}
+              />
+            )}
           </CardContent>
         </Card>
       );
@@ -117,16 +152,6 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
   };
 
   const renderContent = async () => {
-    const [{ data: rawRanks }, { data: rawStatuses }] = await Promise.all([
-      getAllRanks(),
-      getAllStatuses(),
-    ]);
-
-    const ranks = JSON.parse(JSON.stringify(rawRanks)) as RankDocument[];
-    const statuses = JSON.parse(
-      JSON.stringify(rawStatuses)
-    ) as StatusDocument[];
-
     if (checkRole(["member", "secretary", "worthy-matron"])) {
       if (data?.members?.length === 0 || !data.members) {
         return (
@@ -173,9 +198,9 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
             <CardContent>
               <DetailsTable
                 type="member"
-                members={data.members}
-                ranks={ranks}
-                statuses={statuses}
+                members={JSON.parse(JSON.stringify(data.members))}
+                ranks={JSON.parse(JSON.stringify(ranks))}
+                statuses={JSON.parse(JSON.stringify(statuses))}
               />
             </CardContent>
           </Card>
@@ -198,7 +223,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
                 {data.chapters?.length === 0 || !data.chapters ? (
                   <p className="text-red-500 text-center">No results found</p>
                 ) : (
-                  <DetailsTable type="chapter" chapters={data.chapters} />
+                  <DetailsTable
+                    type="chapter"
+                    chapters={JSON.parse(JSON.stringify(data.chapters))}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -210,7 +238,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
                 {data.districts?.length === 0 || !data.districts ? (
                   <p className="text-red-500 text-center">No results found</p>
                 ) : (
-                  <DetailsTable type="district" districts={data.districts} />
+                  <DetailsTable
+                    type="district"
+                    districts={JSON.parse(JSON.stringify(data.districts))}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -239,7 +270,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
               {data.chapters?.length === 0 || !data.chapters ? (
                 <p className="text-red-500 text-center">No results found</p>
               ) : (
-                <DetailsTable type="chapter" chapters={data.chapters} />
+                <DetailsTable
+                  type="chapter"
+                  chapters={JSON.parse(JSON.stringify(data.chapters))}
+                />
               )}
             </CardContent>
           </Card>
@@ -251,7 +285,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
               {data.districts?.length === 0 || !data.districts ? (
                 <p className="text-red-500 text-center">No results found</p>
               ) : (
-                <DetailsTable type="district" districts={data.districts} />
+                <DetailsTable
+                  type="district"
+                  districts={JSON.parse(JSON.stringify(data.districts))}
+                />
               )}
             </CardContent>
           </Card>
@@ -265,9 +302,9 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
               ) : (
                 <DetailsTable
                   type="member"
-                  members={data.members}
-                  ranks={ranks}
-                  statuses={statuses}
+                  members={JSON.parse(JSON.stringify(data.members))}
+                  ranks={JSON.parse(JSON.stringify(ranks))}
+                  statuses={JSON.parse(JSON.stringify(statuses))}
                 />
               )}
             </CardContent>
@@ -290,7 +327,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
               {data.chapters?.length === 0 || !data.chapters ? (
                 <p className="text-red-500 text-center">No results found</p>
               ) : (
-                <DetailsTable type="chapter" chapters={data.chapters} />
+                <DetailsTable
+                  type="chapter"
+                  chapters={JSON.parse(JSON.stringify(data.chapters))}
+                />
               )}
             </CardContent>
           </Card>
@@ -319,7 +359,10 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
             {data.chapters?.length === 0 || !data.chapters ? (
               <p className="text-red-500 text-center">No results found</p>
             ) : (
-              <DetailsTable type="chapter" chapters={data.chapters} />
+              <DetailsTable
+                type="chapter"
+                chapters={JSON.parse(JSON.stringify(data.chapters))}
+              />
             )}
           </CardContent>
         </Card>
