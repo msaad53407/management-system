@@ -1727,18 +1727,21 @@ export async function getQueryResults({
             },
           },
           {
+            $unwind: "$members",
+          },
+          {
             $project: {
               chapterId: "$_id",
-              members: {
-                $arrayElemAt: ["$members", 0],
-              },
+              members: "$members",
             },
           },
         ]);
 
         return {
           data: {
-            members: members as MemberDocument[] | undefined,
+            members: members.map((member) => member.members) as
+              | MemberDocument[]
+              | undefined,
           },
           message: "Members Fetched",
         };
@@ -1816,11 +1819,12 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$chapters",
+        },
+        {
           $project: {
             districtId: "$_id",
-            chapters: {
-              $arrayElemAt: ["$chapters", 0],
-            },
+            chapters: "$chapters",
           },
         },
       ]);
@@ -1849,19 +1853,24 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$members",
+        },
+        {
           $project: {
             districtId: "$_id",
-            members: {
-              $arrayElemAt: ["$members", 0],
-            },
+            members: "$members",
           },
         },
       ]);
-
+      console.log(members, chapters);
       return {
         data: {
-          chapters: chapters as ChapterDocument[] | undefined,
-          members: members as MemberDocument[] | undefined,
+          chapters: chapters.map((chapter) => chapter?.chapters) as
+            | ChapterDocument[]
+            | undefined,
+          members: members.map((member) => member.members) as
+            | MemberDocument[]
+            | undefined,
         },
         message: "Chapters And Members Fetched",
       };
@@ -1889,23 +1898,26 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$chapters",
+        },
+        {
           $project: {
             districtId: "$_id",
-            chapters: {
-              $arrayElemAt: ["$chapters", 0],
-            },
+            chapters: "$chapters",
           },
         },
       ]);
       return {
         data: {
-          chapters: chapters as ChapterDocument[] | undefined,
+          chapters: chapters.map((chapter) => chapter?.chapters) as
+            | ChapterDocument[]
+            | undefined,
         },
         message: "Chapters Fetched",
       };
     }
 
-    if (filter === "Member") {
+    if (filter === "member") {
       const members = await District.aggregate([
         {
           $match: {
@@ -1931,18 +1943,21 @@ export async function getQueryResults({
           },
         },
         {
+          $unwind: "$members",
+        },
+        {
           $project: {
             districtId: "$_id",
-            members: {
-              $arrayElemAt: ["$members", 0],
-            },
+            members: "$members",
           },
         },
       ]);
 
       return {
         data: {
-          members: members as MemberDocument[] | undefined,
+          members: members.map((member) => member?.members) as
+            | MemberDocument[]
+            | undefined,
         },
         message: "Members Fetched",
       };
