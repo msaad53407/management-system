@@ -1774,18 +1774,20 @@ export async function getQueryResults({
             },
           },
           {
+            $unwind: "$members",
+          },
+          {
             $project: {
-              chapterId: "$_id",
-              members: {
-                $arrayElemAt: ["$members", 0],
-              },
+              _id: 0,
+              members: "$members",
             },
           },
         ]);
-
         return {
           data: {
-            members: members as MemberDocument[] | undefined,
+            members: members?.map((member) => member.members) as
+              | MemberDocument[]
+              | undefined,
           },
           message: "Members Fetched",
         };

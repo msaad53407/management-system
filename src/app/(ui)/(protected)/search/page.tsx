@@ -38,9 +38,12 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
   if (!data) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
-        <h3 className="text-xl font-semibold text-slate-600">
-          Search Results for {q}
-        </h3>
+        <div className="flex items-center justify-between flex-row">
+          <h3 className="text-xl font-semibold text-slate-600">
+            Search results for <span className="text-pink-600">{q}</span>
+          </h3>
+          <ContentFilter />
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Search</CardTitle>
@@ -152,6 +155,7 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
   };
 
   const renderContent = async () => {
+    console.log(JSON.stringify(data, null, 2));
     if (checkRole(["member", "secretary", "worthy-matron"])) {
       if (data?.members?.length === 0 || !data.members) {
         return (
@@ -168,43 +172,33 @@ const SearchPage = async ({ searchParams: { q, filter } }: Props) => {
 
       if (!ranks || !statuses || ranks.length === 0 || statuses.length === 0) {
         return (
-          <section className="flex flex-col gap-6 p-4 w-full">
-            <h3 className="text-xl font-semibold text-slate-600">
-              Search results for {q}
-            </h3>
-            <Card>
-              <CardHeader>
-                <CardTitle>Members</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-red-500 text-center">
-                  Could not fetch Details
-                </p>
-              </CardContent>
-            </Card>
-          </section>
-        );
-      }
-
-      return (
-        <section className="flex flex-col gap-6 p-4 w-full">
-          <h3 className="text-xl font-semibold text-slate-600">
-            Search results for {q}
-          </h3>
           <Card>
             <CardHeader>
               <CardTitle>Members</CardTitle>
             </CardHeader>
             <CardContent>
-              <DetailsTable
-                type="member"
-                members={JSON.parse(JSON.stringify(data.members))}
-                ranks={JSON.parse(JSON.stringify(ranks))}
-                statuses={JSON.parse(JSON.stringify(statuses))}
-              />
+              <p className="text-red-500 text-center">
+                Could not fetch Details
+              </p>
             </CardContent>
           </Card>
-        </section>
+        );
+      }
+
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>Members</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DetailsTable
+              type="member"
+              members={JSON.parse(JSON.stringify(data.members))}
+              ranks={JSON.parse(JSON.stringify(ranks))}
+              statuses={JSON.parse(JSON.stringify(statuses))}
+            />
+          </CardContent>
+        </Card>
       );
     }
 
