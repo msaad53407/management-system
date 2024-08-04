@@ -33,7 +33,9 @@ const DistrictFinances = async ({
       year: Number(year),
     });
 
-  const { data, message: duesMessage } = await getDelinquentDues(null);
+  const { data, message: duesMessage } = await getDelinquentDues({
+    districtId,
+  });
 
   return (
     <section className="flex flex-col gap-6 p-4 w-full">
