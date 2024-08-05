@@ -1,9 +1,9 @@
 "use client";
 
 import { NavLink as NavLinkType, Roles } from "@/types/globals";
-import { capitalize } from "@/utils";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import { ArrowRightCircle, HomeIcon } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 import NavLink from "./NavLink";
 import {
@@ -34,11 +34,16 @@ const MobileSidebar = ({ navLinks }: { navLinks: NavLinkType[] }) => {
             A dialog containing Sidebar.{" "}
           </SheetDescription>
         </SheetHeader>
-        <aside className="w-72 px-4 py-10 space-y-4">
+        <aside className="w-[90%] mx-auto px-4 py-10 space-y-4">
           <div className="flex items-center justify-center">
-            <h2 className="text-xl font-bold text-center">
-              {capitalize(role!)} Database
-            </h2>
+            <Image
+              src="/Logo-removebg-preview.png"
+              width={100}
+              height={100}
+              quality={100}
+              alt="logo"
+              className="object-cover"
+            />
           </div>
           <nav className="flex flex-col gap-4">
             <NavLink

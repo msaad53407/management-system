@@ -1,37 +1,26 @@
-import React from "react";
-import NavLink from "./NavLink";
+import { getChapter } from "@/actions/chapter";
+import { getDistrict } from "@/actions/district";
+import { checkRole } from "@/lib/role";
+import { ChapterDocument } from "@/models/chapter";
+import { DistrictDocument } from "@/models/district";
+import { MemberDocument } from "@/models/member";
+import { NavLink as NavLinkType } from "@/types/globals";
+import { getMemberByUserId } from "@/utils/functions";
+import { SignOutButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import {
-  ArrowRightCircle,
   Banknote,
   Download,
   HomeIcon,
   Landmark,
   MessageSquareIcon,
   Settings,
-  SidebarOpen,
   StickyNote,
-  UsersRound,
+  UsersRound
 } from "lucide-react";
-import { NavLink as NavLinkType } from "@/types/globals";
-import { auth } from "@clerk/nextjs/server";
-import { SignOutButton } from "@clerk/nextjs";
-import { capitalize, capitalizeSentence } from "@/utils";
-import { getDistrict } from "@/actions/district";
-import { DistrictDocument } from "@/models/district";
-import { ChapterDocument } from "@/models/chapter";
-import { getChapter } from "@/actions/chapter";
-import { checkRole } from "@/lib/role";
-import { MemberDocument } from "@/models/member";
-import { getMemberByUserId } from "@/utils/functions";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "./ui/sheet";
+import Image from "next/image";
 import MobileSidebar from "./MobileSidebar";
+import NavLink from "./NavLink";
 
 async function Sidebar() {
   const role = auth().sessionClaims?.metadata?.role;
@@ -219,11 +208,16 @@ async function Sidebar() {
 
   return (
     <>
-      <aside className="w-72 px-4 py-10 space-y-4 overflow-y-auto no-scrollbar hidden md:block">
+      <aside className="w-72 px-4 py-6 space-y-4 overflow-y-auto no-scrollbar hidden md:block">
         <div className="flex items-center justify-center">
-          <h2 className="text-xl font-bold text-center">
-            {capitalizeSentence(role, "-")} Database
-          </h2>
+          <Image
+            src="/Logo-removebg-preview.png"
+            width={100}
+            height={100}
+            quality={100}
+            alt="logo"
+            className="object-cover"
+          />
         </div>
         <nav className="flex flex-col gap-4">
           <NavLink
