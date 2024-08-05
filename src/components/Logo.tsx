@@ -19,6 +19,7 @@ import { useCheckRole } from "@/hooks/useCheckRole";
 const Logo = () => {
   const imagePath = `/upload/logo.png`;
   const [imageSrc, setImageSrc] = useState(imagePath);
+  const [open, setOpen] = useState(false);
 
   const checkRoleClient = useCheckRole();
 
@@ -27,7 +28,7 @@ const Logo = () => {
   return (
     <>
       {checkRoleClient("grand-administrator") ? (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger>
             <Image
               src="/upload/logo.png"
@@ -36,7 +37,7 @@ const Logo = () => {
               quality={100}
               alt="logo"
               priority
-              className="object-cover w-32 rounded-xl"
+              className="object-cover w-32 h-28 rounded-xl"
             />
           </DialogTrigger>
           <DialogContent className="min-h-20" aria-describedby="dialog">
@@ -63,7 +64,7 @@ const Logo = () => {
                 height={100}
                 quality={100}
                 alt="logo"
-                className="object-cover w-32 rounded-xl"
+                className="object-cover w-32 h-28 rounded-xl"
               />
               <p className="text-xs text-slate-600">Max Size 5MB</p>
               <div className="flex gap-2">
@@ -88,7 +89,7 @@ const Logo = () => {
           quality={100}
           alt="logo"
           priority
-          className="object-cover w-32 rounded-xl"
+          className="object-cover w-32 h-28 rounded-xl"
         />
       )}
     </>

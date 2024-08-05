@@ -4,6 +4,14 @@ import { checkRole } from "@/lib/role";
 import fs from "fs";
 
 export default async function upload(_prevState: any, formData: FormData) {
+  if (!checkRole("grand-administrator")) {
+    return {
+      data: null,
+      success: false,
+      message: "Unauthorized",
+    };
+  }
+
   const file = formData.get("file") as File;
 
   if (!file || file.size === 0) {
@@ -14,19 +22,19 @@ export default async function upload(_prevState: any, formData: FormData) {
     };
   }
 
+  if (!file.type.includes("image")) {
+    return {
+      data: null,
+      success: false,
+      message: "File should be an image",
+    };
+  }
+
   if (file.size > 5 * 1024 * 1024) {
     return {
       data: null,
       success: false,
       message: "File should be less than 5MB",
-    };
-  }
-
-  if (!checkRole("grand-administrator")) {
-    return {
-      data: null,
-      success: false,
-      message: "Unauthorized",
     };
   }
 
