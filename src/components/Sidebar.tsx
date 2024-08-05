@@ -18,7 +18,7 @@ import {
   StickyNote,
   UsersRound
 } from "lucide-react";
-import Image from "next/image";
+import Logo from "./Logo";
 import MobileSidebar from "./MobileSidebar";
 import NavLink from "./NavLink";
 
@@ -210,14 +210,7 @@ async function Sidebar() {
     <>
       <aside className="w-72 px-4 py-6 space-y-4 overflow-y-auto no-scrollbar hidden md:block">
         <div className="flex items-center justify-center">
-          <Image
-            src="/Logo-removebg-preview.png"
-            width={100}
-            height={100}
-            quality={100}
-            alt="logo"
-            className="object-cover"
-          />
+          <Logo />
         </div>
         <nav className="flex flex-col gap-4">
           <NavLink

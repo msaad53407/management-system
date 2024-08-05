@@ -138,15 +138,19 @@ interface MonthProps {
 
 export type FilterProps = BaseProps | ChapterProps | DistrictProps | MonthProps;
 
-export type FormResult = {
-  message: {
-    [key: string]: string[] | undefined;
-  };
-  success: boolean;
-} | {
-  message: string;
-  success: boolean;
-};
+export type FormResult =
+  | {
+      message: {
+        [key: string]: string[] | undefined;
+      };
+      success: boolean;
+      data?: any;
+    }
+  | {
+      message: string;
+      success: boolean;
+      data?: any;
+    };
 
 declare global {
   interface CustomJwtSessionClaims {

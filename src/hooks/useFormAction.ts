@@ -5,7 +5,7 @@ import { useFormState } from "react-dom";
 export default function useFormAction(
   formAction: (_prevState: any, formData: FormData) => Promise<FormResult>
 ) {
-  const initialState = { message: "", success: false };
+  const initialState = { message: "", success: false, data: null };
   const [infoMessage, setInfoMessage] = useState<{
     variant: "error" | "success" | "";
     message: string;
