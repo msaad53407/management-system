@@ -1601,16 +1601,6 @@ export async function getQueryResults({
   try {
     await connectDB();
 
-    const { data, message } = await getAllStatuses(true);
-
-    if (!data) {
-      console.error(message);
-      return {
-        data: null,
-        message: "Some error occurred while fetching details",
-      };
-    }
-
     if (checkRole(["grand-administrator", "grand-officer"])) {
       if (!filter) {
         const members = await Member.aggregate([
@@ -1622,11 +1612,6 @@ export async function getQueryResults({
                     { firstName: { $regex: new RegExp(query, "i") } },
                     { lastName: { $regex: new RegExp(query, "i") } },
                   ],
-                },
-                {
-                  status: {
-                    $in: data?.map((status) => new Types.ObjectId(status._id)),
-                  },
                 },
               ],
             },
@@ -1692,11 +1677,6 @@ export async function getQueryResults({
                     { lastName: { $regex: new RegExp(query, "i") } },
                   ],
                 },
-                {
-                  status: {
-                    $in: data?.map((status) => new Types.ObjectId(status._id)),
-                  },
-                },
               ],
             },
           },
@@ -1753,13 +1733,6 @@ export async function getQueryResults({
                           { lastName: { $regex: new RegExp(query, "i") } },
                         ],
                       },
-                      {
-                        status: {
-                          $in: data?.map(
-                            (status) => new Types.ObjectId(status._id)
-                          ),
-                        },
-                      },
                     ],
                   },
                 },
@@ -1813,13 +1786,6 @@ export async function getQueryResults({
                           { firstName: { $regex: new RegExp(query, "i") } },
                           { lastName: { $regex: new RegExp(query, "i") } },
                         ],
-                      },
-                      {
-                        status: {
-                          $in: data?.map(
-                            (status) => new Types.ObjectId(status._id)
-                          ),
-                        },
                       },
                     ],
                   },
@@ -1900,13 +1866,6 @@ export async function getQueryResults({
                         { firstName: { $regex: new RegExp(query, "i") } },
                         { lastName: { $regex: new RegExp(query, "i") } },
                       ],
-                    },
-                    {
-                      status: {
-                        $in: data?.map(
-                          (status) => new Types.ObjectId(status._id)
-                        ),
-                      },
                     },
                   ],
                 },
@@ -2001,13 +1960,6 @@ export async function getQueryResults({
                         { lastName: { $regex: new RegExp(query, "i") } },
                       ],
                     },
-                    {
-                      status: {
-                        $in: data?.map(
-                          (status) => new Types.ObjectId(status._id)
-                        ),
-                      },
-                    },
                   ],
                 },
               },
@@ -2049,9 +2001,11 @@ export async function getQueryResults({
 }
 
 export async function getDelinquentDues(Input: ChapterOrDistrictType) {
-  const { data, message } = await getAllStatuses(true);
+  // Pass true as argument to only get active members delinquent dues
+  const { data, message } = await getAllStatuses();
 
   if (!data) {
+    console.error(message);
     return {
       data: null,
       message: "Some error occurred",

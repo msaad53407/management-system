@@ -381,7 +381,7 @@ export default function DetailsTable(props: Props) {
         <Table>
           <TableHeader>
             <TableRow>
-              {/* <TableHead>No.</TableHead> */}
+              <TableHead>No.</TableHead>
               <TableHead>Name</TableHead>
               {/* <TableHead>City</TableHead> */}
               <TableHead>Actions</TableHead>
@@ -390,9 +390,9 @@ export default function DetailsTable(props: Props) {
           <TableBody>
             {districts.map((district, indx) => (
               <TableRow key={indx}>
-                {/* <TableCell className="font-medium text-slate-600">
-                  <p>{district.number}</p>
-                </TableCell> */}
+                <TableCell className="font-medium text-slate-600">
+                  <p>{district.name?.split(" ").at(1)}</p>
+                </TableCell>
                 <TableCell className="font-medium text-slate-600">
                   <p>{district.name}</p>
                 </TableCell>

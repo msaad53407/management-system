@@ -162,7 +162,8 @@ export async function editDistrict(_prevState: any, formData: FormData) {
 
     const rawFormData = Object.fromEntries(formData);
 
-    const { success, data, error } = updateDistrictSchema.safeParse(rawFormData);
+    const { success, data, error } =
+      updateDistrictSchema.safeParse(rawFormData);
 
     if (!success) {
       console.error(error);
@@ -175,6 +176,7 @@ export async function editDistrict(_prevState: any, formData: FormData) {
     const district = await District.findByIdAndUpdate(
       data.districtId,
       {
+        name: data.districtName,
         districtCharterDate: new Date(data.districtChartDate),
         districtMeet1: data.districtMeet1,
         districtMeet2: data.districtMeet2,
@@ -182,7 +184,7 @@ export async function editDistrict(_prevState: any, formData: FormData) {
         districtYrDues: data.districtYrDues,
       },
       { new: true }
-    )
+    );
 
     if (!district) {
       return {
@@ -192,6 +194,7 @@ export async function editDistrict(_prevState: any, formData: FormData) {
     }
 
     revalidatePath("/district");
+    revalidatePath(`/district/${district._id}/settings`);
     return {
       success: true,
       message: "District Updated Successfully",

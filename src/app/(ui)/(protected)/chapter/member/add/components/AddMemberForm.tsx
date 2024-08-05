@@ -122,7 +122,7 @@ interface Props {
 }
 
 const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
-  const { formAction, formState, formMessage, infoMessage, setInfoMessage } =
+  const { formAction, formMessage, infoMessage, setInfoMessage } =
     useFormAction(addMember);
 
   return (
