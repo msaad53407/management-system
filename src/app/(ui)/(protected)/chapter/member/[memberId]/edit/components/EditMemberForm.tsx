@@ -160,7 +160,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue:
         dropdownOptions?.petitioners &&
         (dropdownOptions.petitioners as MemberDocument[]).find(
-          (petitioner) => petitioner._id === new Types.ObjectId(member.sponsor1)
+          (petitioner) => petitioner._id === member.sponsor1
         )?.firstName,
       roles: ["secretary", "grand-administrator"],
       dropdownType: "petitioners",
@@ -173,7 +173,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue:
         dropdownOptions?.petitioners &&
         (dropdownOptions.petitioners as MemberDocument[]).find(
-          (petitioner) => petitioner._id === new Types.ObjectId(member.sponsor2)
+          (petitioner) => petitioner._id === member.sponsor2
         )?.firstName,
       roles: ["secretary", "grand-administrator"],
       dropdownType: "petitioners",
@@ -186,7 +186,7 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       defaultValue:
         dropdownOptions?.petitioners &&
         (dropdownOptions.petitioners as MemberDocument[]).find(
-          (petitioner) => petitioner._id === new Types.ObjectId(member.sponsor3)
+          (petitioner) => petitioner._id === member.sponsor3
         )?.firstName,
       roles: ["secretary", "grand-administrator"],
       dropdownType: "petitioners",

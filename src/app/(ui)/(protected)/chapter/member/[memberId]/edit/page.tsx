@@ -93,10 +93,10 @@ const EditMember = async ({
         </CardHeader>
         <CardContent>
           <EditMemberForm
-            member={dropdownOptions.member}
+            member={JSON.parse(JSON.stringify(dropdownOptions.member))}
             dropdownOptions={{
-              ...dropdownOptions.dropdownOptions,
-              petitioners: chapterMembers,
+              ...JSON.parse(JSON.stringify(dropdownOptions.dropdownOptions)),
+              petitioners: JSON.parse(JSON.stringify(chapterMembers)),
             }}
           />
         </CardContent>

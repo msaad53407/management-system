@@ -23,9 +23,10 @@ import { months, years } from "@/utils/constants";
 
 type Props = {
   disableYear?: boolean;
+  hardRefresh?: boolean;
 };
 
-const DateForm = ({ disableYear }: Props) => {
+const DateForm = ({ disableYear, hardRefresh = false }: Props) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -43,19 +44,35 @@ const DateForm = ({ disableYear }: Props) => {
       return;
     }
     setOpen(false);
-    router.replace(
-      `${pathname}?month=${data.month}${!disableYear && `&year=${data.year}`}`,
-      {
-        scroll: true,
-      }
-    );
+    if (!hardRefresh) {
+      router.replace(
+        `${pathname}?month=${data.month}${
+          !disableYear && `&year=${data.year}`
+        }`,
+        {
+          scroll: true,
+        }
+      );
+      router.refresh();
+    } else {
+      window.location.href = `${pathname}?month=${data.month}${
+        !disableYear && `&year=${data.year}`
+      }`;
+    }
   };
 
   const handleReset = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setError("");
     setOpen(false);
-    router.replace(pathname, { scroll: true });
+    if (!hardRefresh) {
+      router.replace(pathname, {
+        scroll: true,
+      });
+      router.refresh();
+    } else {
+      window.location.href = pathname;
+    }
   };
 
   return (

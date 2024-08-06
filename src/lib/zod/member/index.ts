@@ -360,6 +360,11 @@ export const updateDuesSchema = z.object({
   paymentStatus: z.enum(["unpaid", "paid", "overdue"], {
     required_error: "Payment status is required",
   }),
+  dueId: z
+    .string({
+      required_error: "Due ID is required",
+    })
+    .min(1, "Due ID is required"),
 });
 
 export const dateFormSchema = z.object({

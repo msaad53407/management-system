@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { addHours, endOfMonth, startOfMonth } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -79,11 +80,58 @@ export function getDayLabelsForMonth(
   return dayLabels;
 }
 
+type DaysInMonth = 31 | 30 | 28 | 29;
+export function getDaysInMonth(
+  monthIndex: number,
+  year = new Date().getFullYear()
+): DaysInMonth {
+  switch (monthIndex) {
+    case 0: // January
+    case 2: // March
+    case 4: // May
+    case 6: // July
+    case 7: // August
+    case 9: // October
+    case 11: // December
+      return 31;
+    case 1: // February
+      // Leap year check
+      if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
+        return 29;
+      } else {
+        return 28;
+      }
+    case 3: // April
+    case 5: // June
+    case 8: // September
+    case 10: // November
+      return 30;
+    default:
+      throw new Error("Invalid month index. Must be between 0 and 11.");
+  }
+}
+
 export function getMonth(input?: Date | string) {
   if (!input) return input;
   return new Date(input).toLocaleDateString("en-US", {
     month: "long",
   });
+}
+
+export function startOfMonthUTC(date: Date) {
+  const localStartOfMonth = startOfMonth(date);
+  return addHours(
+    localStartOfMonth,
+    -localStartOfMonth.getTimezoneOffset() / 60
+  );
+}
+
+export function endOfMonthUTC(date: Date): Date {
+  // Get the local end of the month
+  const localEndOfMonth = endOfMonth(date);
+
+  // Adjust for timezone to get the UTC end of the month
+  return addHours(localEndOfMonth, -localEndOfMonth.getTimezoneOffset() / 60);
 }
 
 export function getMonthName(monthIndex?: string) {

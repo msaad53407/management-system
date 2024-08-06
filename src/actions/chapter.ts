@@ -274,13 +274,15 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       address1: data.address,
       city: data.city,
       state: new Types.ObjectId(data.state) || null,
-      status: data.memberStatus,
+      status: new Types.ObjectId(data.memberStatus) || null,
       phoneNumber1: data.phoneNumber,
-      sponsor1: data.petitioner1,
-      sponsor2: data.petitioner2,
-      sponsor3: data.petitioner3,
+      sponsor1: new Types.ObjectId(data.petitioner1) || null,
+      sponsor2: new Types.ObjectId(data.petitioner2) || null,
+      sponsor3: new Types.ObjectId(data.petitioner3) || null,
       greeting: data.greeting,
       districtId: new Types.ObjectId(chapter?.districtId) || null,
+      duesLeftForYear:
+        (12 - new Date().getMonth()) * (chapter?.chpMonDues || 0),
     });
 
     if (!member) {
@@ -358,9 +360,9 @@ export const editMember = async (_prevState: any, formData: FormData) => {
           city: data.city,
           state: new Types.ObjectId(data.state) || null,
           phoneNumber1: data.phoneNumber,
-          sponsor1: data.petitioner1,
-          sponsor2: data.petitioner2,
-          sponsor3: data.petitioner3,
+          sponsor1: new Types.ObjectId(data.petitioner1) || null,
+          sponsor2: new Types.ObjectId(data.petitioner2) || null,
+          sponsor3: new Types.ObjectId(data.petitioner3) || null,
           birthDate: data.birthdate ? new Date(data.birthdate) : null,
           initiationDate: data.initiationDate
             ? new Date(data.initiationDate)

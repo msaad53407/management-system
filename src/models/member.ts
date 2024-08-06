@@ -42,9 +42,9 @@ export interface MemberDocument extends Document {
   demitToChapter?: Types.ObjectId;
   investigationDate?: Date;
   investigationAcceptOrRejectDate?: Date;
-  sponsor1?: string;
-  sponsor2?: string;
-  sponsor3?: string;
+  sponsor1?: Types.ObjectId;
+  sponsor2?: Types.ObjectId;
+  sponsor3?: Types.ObjectId;
   petitionDate?: Date;
   petitionReceivedDate?: Date;
   initiationDate?: Date;
@@ -54,6 +54,7 @@ export interface MemberDocument extends Document {
   regionId?: Types.ObjectId;
   chapterId?: Types.ObjectId;
   extraDues?: number;
+  duesLeftForYear?: number;
   spouseName?: string;
   spousePhone?: string;
   emergencyContact?: string;
@@ -102,6 +103,10 @@ const memberSchema = new mongoose.Schema(
       default: null,
     },
     extraDues: {
+      type: Number,
+      default: 0,
+    },
+    duesLeftForYear: {
       type: Number,
       default: 0,
     },
@@ -254,15 +259,18 @@ const memberSchema = new mongoose.Schema(
       default: null,
     },
     sponsor1: {
-      type: String,
+      type: Types.ObjectId,
+      ref: "Member",
       default: null,
     },
     sponsor2: {
-      type: String,
+      type: Types.ObjectId,
+      ref: "Member",
       default: null,
     },
     sponsor3: {
-      type: String,
+      type: Types.ObjectId,
+      ref: "Member",
       default: null,
     },
     petitionDate: {

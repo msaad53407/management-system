@@ -51,7 +51,6 @@ const Dashboard = async ({ searchParams }: Props) => {
       }
     );
   }
-
   return (
     <main className="flex flex-col gap-6 p-4 w-full">
       <div className="flex flex-col gap-2 w-full">
@@ -146,7 +145,7 @@ const Dashboard = async ({ searchParams }: Props) => {
       </section>
       <section className="w-full space-y-3">
         <h2 className="text-lg font-semibold">Insights</h2>
-        <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2">
           <Suspense
             fallback={
               <LoadingSpinner

@@ -60,11 +60,11 @@ const ActiveMembersCard = async ({
       type
         ? type === "chapter"
           ? { chapterId: new Types.ObjectId(chapterId) }
-          : { districtId: new Types.ObjectId(districtId) }
+          : type === "district"
+          ? { districtId: new Types.ObjectId(districtId) }
+          : null
         : null,
-      {
-        month: Number(month),
-      }
+      { month: Number(month) }
     );
     activeMembers = data;
     errorMessage = message;

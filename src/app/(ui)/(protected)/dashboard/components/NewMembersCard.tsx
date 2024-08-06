@@ -1,12 +1,7 @@
 import { getChapter } from "@/actions/chapter";
 import { getDistrict } from "@/actions/district";
 import MonthMembersChart from "@/components/charts/MonthMembersChart";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { checkRole } from "@/lib/role";
 import { FilterProps, MonthlyMemberGrowthAggregation } from "@/types/globals";
 import { getMonthlyMemberGrowth } from "@/utils/functions";
@@ -67,11 +62,11 @@ const NewMembersCard = async ({
       type
         ? type === "chapter"
           ? { chapterId: new Types.ObjectId(chapterId) }
-          : { districtId: new Types.ObjectId(districtId) }
+          : type === "district"
+          ? { districtId: new Types.ObjectId(districtId) }
+          : null
         : null,
-      {
-        month: Number(month),
-      }
+      { month: Number(month) }
     );
     memberGrowth = data;
     errorMessage = message;

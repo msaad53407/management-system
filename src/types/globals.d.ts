@@ -1,4 +1,5 @@
 import { ChapterDocument } from "@/models/chapter";
+import { MemberDocument } from "@/models/member";
 import { Types } from "mongoose";
 
 export {};
@@ -152,6 +153,42 @@ export type FormResult =
       data?: any;
     };
 
+export type ChapterReportAggregation = {
+  name: string;
+  initiatedMembers: MemberDocument[];
+  initiatedMembersMonthCount: number;
+  reinstatedMembersAfterYearCount: number;
+  reinstatedMembersInYearCount: number;
+  reinstatedMembersMonthCount: number;
+  reinstatedMembers: MemberDocument[];
+  deceasedMembers: MemberDocument[];
+  deceasedMembersMonthCount: number;
+  demittedMembers: MemberDocument[];
+  demittedMembersMonthCount: number;
+  demittedInMembersMonthCount: number;
+  suspendedMembers: MemberDocument[];
+  suspendedMembersMonthCount: number;
+  expelledMembers: MemberDocument[];
+  expelledMembersMonthCount: number;
+  enlightenedMembersCount: number;
+  droppedMembersCount: number;
+  allMembers: MemberDocument[];
+  chapterNumber: number;
+};
+
+export type MonthlyDuesAggregation = {
+  _id: Types.ObjectId;
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  chapterId: Types.ObjectId;
+  email: string;
+  phoneNumber1: string;
+  monthlyDues: MonthlyDue[];
+  initiationDate: Date;
+  duesLeftForYear: number;
+  extraDues?: number;
+};
 declare global {
   interface CustomJwtSessionClaims {
     metadata: {

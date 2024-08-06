@@ -1,12 +1,7 @@
 import { getChapter } from "@/actions/chapter";
 import { getDistrict } from "@/actions/district";
 import MoneyDetailsChart from "@/components/charts/MoneyDetailsChart";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { checkRole } from "@/lib/role";
 import { FilterProps } from "@/types/globals";
 import { capitalize } from "@/utils";
@@ -22,7 +17,6 @@ const MoneyDetailsCard = async ({
   moneyType,
 }: FilterProps & { moneyType: "in" | "out" }) => {
   const { userId } = auth();
-
   let moneyDetails: {
     currentMonthMoneyPaid: number;
     previousMonthMoneyPaid: number;
@@ -73,13 +67,16 @@ const MoneyDetailsCard = async ({
       type
         ? type === "chapter"
           ? { chapterId: new Types.ObjectId(chapterId) }
-          : { districtId: new Types.ObjectId(districtId) }
+          : type === "district"
+          ? { districtId: new Types.ObjectId(districtId) }
+          : null
         : null,
       { month: Number(month) }
     );
     moneyDetails = data;
     errorMessage = message;
   }
+  console.log(moneyDetails);
   return (
     <Card>
       <CardHeader>
