@@ -1500,7 +1500,7 @@ export async function getMonthlyMoneyDetails(
     if (moneyType === "in") {
       const { data: currentMonthFinances } = await getMemberFinances(
         {
-          month: date.month || new Date().getMonth() + 1,
+          month: date.month || new Date().getMonth() + 2,
           year: new Date().getFullYear(),
         },
         undefined,
@@ -1508,7 +1508,7 @@ export async function getMonthlyMoneyDetails(
       );
       const { data: previousMonthFinances } = await getMemberFinances(
         {
-          month: date.month ? date.month - 1 : new Date().getMonth(),
+          month: date.month ? date.month : new Date().getMonth() + 1,
           year: new Date().getFullYear(),
         },
         undefined,
