@@ -24,7 +24,6 @@ const EditChapterForm = ({ chapter }: Props) => {
   const { formAction, formMessage, infoMessage, setInfoMessage } =
     useFormAction(editChapter);
 
-
   const meetingDays = getDayLabelsForMonth(
     new Date().getFullYear(),
     new Date().getMonth() + 1
@@ -110,6 +109,14 @@ const EditChapterForm = ({ chapter }: Props) => {
       type: "number",
       placeholder: "0.00",
       defaultValue: chapter.chpYrDues,
+      required: true,
+    },
+    {
+      id: "chapterTechnologyFees",
+      label: "Technology Fees",
+      type: "number",
+      placeholder: "0.00",
+      defaultValue: chapter.technologyFees,
       required: true,
     },
   ];

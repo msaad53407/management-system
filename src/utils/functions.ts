@@ -2128,6 +2128,15 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
 export async function getChapterReport(chapterId: string) {
   try {
     await connectDB();
+    const { data, message: statusesMessage } = await getAllStatuses(true);
+
+    if (!data || data.length === 0) {
+      console.error(statusesMessage);
+      return {
+        data: null,
+        message: "Error fetching report",
+      };
+    }
     const aggregationPromise = Chapter.aggregate<ChapterReportAggregation>([
       {
         $match: {
@@ -2144,6 +2153,31 @@ export async function getChapterReport(chapterId: string) {
       },
       {
         $addFields: {
+          activeMembersLastMonth: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $lt: [
+                      "$$member.initiationDate",
+                      new Date(new Date().getFullYear(), new Date().getMonth()),
+                    ],
+                  },
+                  {
+                    $or:
+                      data?.map((status) => ({
+                        $eq: [
+                          "$$member.status",
+                          new Types.ObjectId(status._id),
+                        ],
+                      })) || [],
+                  },
+                ],
+              },
+            },
+          },
           initiatedMembers: {
             $filter: {
               input: "$members",
@@ -2714,6 +2748,10 @@ export async function getChapterReport(chapterId: string) {
           enlightenedMembersCount: 1,
           droppedMembersCount: 1,
           demittedInMembersMonthCount: 1,
+          secretaryId: 1,
+          matronId: 1,
+          technologyFees: 1,
+          activeMembersLastMonth: 1,
           allMembers: "$members",
         },
       },
@@ -2725,6 +2763,14 @@ export async function getChapterReport(chapterId: string) {
         chapterId: new Types.ObjectId(chapterId),
       }),
     ]);
+
+    console.log(
+      JSON.stringify(
+        result.find((r) => r.name.includes("Virginia")),
+        null,
+        2
+      )
+    );
 
     if (!result || !membersCount) {
       console.error(message);

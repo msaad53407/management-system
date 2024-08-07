@@ -157,7 +157,7 @@ const ChapterReport = ({
     sectionA: [
       {
         label: "on roll on last report",
-        value: 38,
+        value: data.report.activeMembersLastMonth.length,
       },
       {
         label: "INITIATED",
@@ -292,7 +292,8 @@ const ChapterReport = ({
                   <Text style={styles.itemText}>
                     {indx + 1}. Number of members{" "}
                     <Text style={{ fontWeight: "extrabold" }}>{label}</Text>:
-                    between {startOfMonth} and {endOfMonth}
+                    {!label.includes("report") &&
+                      `between ${startOfMonth} and ${endOfMonth}`}
                   </Text>
                   <Text style={{ ...styles.amount, fontSize: 12 }}>
                     {value}

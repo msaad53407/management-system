@@ -258,6 +258,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
         };
       }
     }
+    console.log(chapter);
 
     const member = await Member.create({
       userId: user.id,
@@ -268,7 +269,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       photo: user.imageUrl,
       chapterId: data.chapterId
         ? new Types.ObjectId(data.chapterId)
-        : chapter?._id,
+        : new Types.ObjectId(chapter?._id),
       role: (user.publicMetadata?.role as string) || null,
       zipCode: data.zipCode,
       address1: data.address,
@@ -277,8 +278,8 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       status: new Types.ObjectId(data.memberStatus) || null,
       phoneNumber1: data.phoneNumber,
       sponsor1: new Types.ObjectId(data.petitioner1) || null,
-      sponsor2: new Types.ObjectId(data.petitioner2) || null,
-      sponsor3: new Types.ObjectId(data.petitioner3) || null,
+      sponsor2: data.petitioner2 ? new Types.ObjectId(data.petitioner2) : null,
+      sponsor3: data.petitioner3 ? new Types.ObjectId(data.petitioner3) : null,
       greeting: data.greeting,
       districtId: new Types.ObjectId(chapter?.districtId) || null,
       duesLeftForYear:
@@ -731,6 +732,7 @@ export const editChapter = async (_prevState: any, formData: FormData) => {
         chapterMeet2: data.chapterMeet2,
         chpMonDues: data.chpMonDues,
         chpYrDues: data.chpYrDues,
+        technologyFees: data.chapterTechnologyFees,
       },
       { new: true }
     );

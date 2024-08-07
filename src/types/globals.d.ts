@@ -174,6 +174,10 @@ export type ChapterReportAggregation = {
   droppedMembersCount: number;
   allMembers: MemberDocument[];
   chapterNumber: number;
+  secretaryId: string;
+  matronId: string;
+  technologyFees: number;
+  activeMembersLastMonth: MemberDocument[];
 };
 
 export type MonthlyDuesAggregation = {

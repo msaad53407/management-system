@@ -5,7 +5,7 @@ export const addMemberSchema = z.object({
   greeting: z.enum(["Sis.", "Bro."], {
     required_error: "Greeting is required",
   }),
-  chapterId: z.string(),
+  chapterId: z.string().min(1, "Required"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   username: z.string().optional(),
@@ -334,6 +334,9 @@ export const updateChapterSchema = z.object({
       required_error: "Chapter ID is required",
     })
     .min(1, "Chapter ID is required"),
+  chapterTechnologyFees: z
+    .string({ required_error: "Technology Fees is required" })
+    .min(1, "Technology Fees is required"),
 });
 
 export const updateDuesSchema = z.object({

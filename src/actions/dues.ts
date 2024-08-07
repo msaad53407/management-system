@@ -100,7 +100,7 @@ export async function createDue(memberId: Types.ObjectId, totalDues?: number) {
   try {
     await connectDB();
     const newDue = await Due.create({
-      memberId,
+      memberId: new Types.ObjectId(memberId),
       amount: 0,
       totalDues: totalDues || 10,
       dueDate: new Date(),

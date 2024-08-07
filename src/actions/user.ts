@@ -18,7 +18,7 @@ export const getUser = async (userId?: string) => {
     };
   }
 
-  const user =await  clerkClient.users.getUser(userId);
+  const user = await clerkClient().users.getUser(userId);
 
   if (!user) {
     return {
