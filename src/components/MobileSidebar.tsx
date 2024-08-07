@@ -37,7 +37,7 @@ const MobileSidebar = ({ navLinks }: { navLinks: NavLinkType[] }) => {
         <aside className="w-[90%] mx-auto px-4 py-10 space-y-4">
           <div className="flex items-center justify-center">
             <Image
-              src="/Logo-removebg-preview.png"
+              src="/upload/logo.png"
               width={100}
               height={100}
               quality={100}

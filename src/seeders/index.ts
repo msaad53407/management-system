@@ -7,8 +7,6 @@ import { seedRanks } from "./rank";
 import { seedReasons } from "./reason";
 import { seedStates } from "./state";
 import { seedStatuses } from "./status";
-import mongoose from "mongoose";
-import { seedChapters } from "./chapter";
 
 export async function seedAll() {
   await connectDB();
@@ -19,7 +17,7 @@ export async function seedAll() {
   await seedReasons();
   await seedChapterOffices();
   await seedGrandOffices();
-  await seedChapters();
+  // await seedChapters();
 
   console.log("Database seeded successfully");
 }
