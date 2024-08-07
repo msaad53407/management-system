@@ -24,9 +24,22 @@ const DistrictPage = async () => {
   if (!districts || districts.length === 0) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
-        <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
-          There are currently no Districts setup.
-        </h3>
+        <h3 className="text-xl font-semibold text-slate-600">All Districts</h3>
+        {checkRole(["grand-administrator"]) && (
+          <Link href={`/district/add`}>
+            <Button
+              variant={"destructive"}
+              className="bg-button-primary hover:bg-button-primary"
+            >
+              Add District
+            </Button>
+          </Link>
+        )}
+        <div className="flex flex-col gap-4 w-full">
+          <h3 className="text-xl font-semibold text-slate-600">
+            There are currently no Districts setup.
+          </h3>
+        </div>
       </section>
     );
   }
