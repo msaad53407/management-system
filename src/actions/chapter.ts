@@ -50,7 +50,6 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       });
 
       if (!members || members?.length === 0) {
-        console.log(chapterId);
         return {
           data: null,
           message: "There are currently no members in this Chapter.",
@@ -258,7 +257,6 @@ export const addMember = async (_prevState: any, formData: FormData) => {
         };
       }
     }
-    console.log(chapter);
 
     const member = await Member.create({
       userId: user.id,

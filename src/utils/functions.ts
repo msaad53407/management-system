@@ -414,7 +414,6 @@ export async function getMemberFinances(
   try {
     await connectDB();
     const pipeline = [];
-    // console.log(date, memberId, Input);
     if (Input) {
       pipeline.push({
         $match: {
@@ -1496,7 +1495,6 @@ export async function getMonthlyMoneyDetails(
 ) {
   try {
     await connectDB();
-    console.log(Input, date, moneyType);
     if (moneyType === "in") {
       const { data: currentMonthFinances } = await getMemberFinances(
         {
@@ -2764,14 +2762,6 @@ export async function getChapterReport(chapterId: string) {
       }),
     ]);
 
-    console.log(
-      JSON.stringify(
-        result.find((r) => r.name.includes("Virginia")),
-        null,
-        2
-      )
-    );
-
     if (!result || !membersCount) {
       console.error(message);
       return {
@@ -2779,7 +2769,6 @@ export async function getChapterReport(chapterId: string) {
         message: "Error Fetching statistics",
       };
     }
-    // console.log(JSON.stringify(result, null, 2), membersCount);
     return {
       data: { ...result[0], ...membersCount },
       message: "Chapter Statistics fetched successfully",

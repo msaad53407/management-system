@@ -76,7 +76,6 @@ const MoneyDetailsCard = async ({
     moneyDetails = data;
     errorMessage = message;
   }
-  console.log(moneyDetails);
   return (
     <Card>
       <CardHeader>
