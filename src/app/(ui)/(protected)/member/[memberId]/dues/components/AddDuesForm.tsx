@@ -49,7 +49,7 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
     },
   ];
 
-  const { formAction, formMessage, formState, infoMessage, setInfoMessage } =
+  const { formAction, formMessage, infoMessage, setInfoMessage } =
     useFormAction(updateDues);
 
   return (
@@ -67,11 +67,6 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
       >
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
           <div className="space-y-2">
-            <p className="text-red-500 text-xs font-medium">
-              {typeof formState?.message === "object" || formState?.success
-                ? ""
-                : formState?.message.includes("Error") && formState?.message}
-            </p>
             <Label htmlFor="memberId" className="text-slate-600">
               Member Id
             </Label>
@@ -83,6 +78,13 @@ const AddDuesForm = ({ currentMonthDues }: Props) => {
               value={currentMonthDues.memberId?.toString()}
               readOnly
               className="cursor-not-allowed opacity-75"
+            />
+            <Input
+              type="text"
+              name="dueId"
+              value={currentMonthDues._id?.toString()}
+              readOnly
+              className="sr-only w-min"
             />
           </div>
           {fields.map(({ id, label, type, defaultValue }, indx) =>

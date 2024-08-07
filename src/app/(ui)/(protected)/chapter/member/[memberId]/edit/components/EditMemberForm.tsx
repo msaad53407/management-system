@@ -25,6 +25,7 @@ import { ReasonDocument } from "@/models/reason";
 import { StateDocument } from "@/models/state";
 import { StatusDocument } from "@/models/status";
 import { Roles } from "@/types/globals";
+import { Types } from "mongoose";
 
 interface Props {
   member: MemberDocument;
@@ -37,6 +38,7 @@ interface Props {
       | RankDocument[]
       | ReasonDocument[]
       | ChapterDocument[]
+      | MemberDocument[]
       | undefined;
   };
 }
@@ -135,8 +137,8 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "state",
       defaultValue:
         dropdownOptions?.state &&
-        dropdownOptions.state.find(
-          (state: StateDocument) => state._id === member.state
+        (dropdownOptions.state as StateDocument[]).find(
+          (state) => state._id === member.state
         )?._id,
       roles: ["member", "secretary", "grand-administrator"],
       required: true,
@@ -153,29 +155,41 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
     {
       label: "Petitioner 1",
       id: "petitioner1",
-      placeholder: "S Williams",
-      type: "text",
-      defaultValue: member.sponsor1,
+      placeholder: "Select a Petitioner",
+      type: "select",
+      defaultValue:
+        dropdownOptions?.petitioners &&
+        (dropdownOptions.petitioners as MemberDocument[]).find(
+          (petitioner) => petitioner._id === member.sponsor1
+        )?.firstName,
       roles: ["secretary", "grand-administrator"],
-      required: true,
+      dropdownType: "petitioners",
     },
     {
       label: "Petitioner 2",
       id: "petitioner2",
-      placeholder: "M W",
-      type: "text",
-      defaultValue: member.sponsor2,
+      placeholder: "Select a Petitioner",
+      type: "select",
+      defaultValue:
+        dropdownOptions?.petitioners &&
+        (dropdownOptions.petitioners as MemberDocument[]).find(
+          (petitioner) => petitioner._id === member.sponsor2
+        )?.firstName,
       roles: ["secretary", "grand-administrator"],
-      required: true,
+      dropdownType: "petitioners",
     },
     {
       label: "Petitioner 3",
       id: "petitioner3",
-      placeholder: "SL",
-      type: "text",
-      defaultValue: member.sponsor3,
+      placeholder: "Select a Petitioner",
+      type: "select",
+      defaultValue:
+        dropdownOptions?.petitioners &&
+        (dropdownOptions.petitioners as MemberDocument[]).find(
+          (petitioner) => petitioner._id === member.sponsor3
+        )?.firstName,
       roles: ["secretary", "grand-administrator"],
-      required: true,
+      dropdownType: "petitioners",
     },
     {
       label: "Member Status",
@@ -185,8 +199,8 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "memberStatus",
       defaultValue:
         dropdownOptions?.memberStatus &&
-        dropdownOptions.memberStatus.find(
-          (status: StatusDocument) => status._id === member.status
+        (dropdownOptions.memberStatus as StatusDocument[]).find(
+          (status) => status._id === member.status
         )?._id,
       roles: ["secretary", "grand-administrator"],
       required: true,
@@ -199,12 +213,10 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "chapterOffice",
       defaultValue:
         dropdownOptions?.chapterOffice &&
-        dropdownOptions.chapterOffice.find(
-          (chapterOffice: ChapterOfficeDocument) =>
-            chapterOffice._id === member.chapterOffice
+        (dropdownOptions.chapterOffice as ChapterOfficeDocument[]).find(
+          (chapterOffice) => chapterOffice._id === member.chapterOffice
         )?._id,
       roles: ["secretary", "grand-administrator"],
-      required: true,
     },
     {
       label: "Grand Chapter Office",
@@ -214,11 +226,10 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "grandChapterOffice",
       defaultValue:
         dropdownOptions?.grandChapterOffice &&
-        dropdownOptions.grandChapterOffice.find(
-          (office: GrandOfficeDocument) => office._id === member.grandOffice
+        (dropdownOptions.grandChapterOffice as GrandOfficeDocument[]).find(
+          (office) => office._id === member.grandOffice
         )?._id,
       roles: ["secretary", "grand-administrator"],
-      required: true,
     },
     {
       label: "Member Rank",
@@ -228,11 +239,10 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "memberRank",
       defaultValue:
         dropdownOptions?.memberRank &&
-        dropdownOptions.memberRank.find(
-          (rank: RankDocument) => rank._id === member.rank
+        (dropdownOptions.memberRank as RankDocument[]).find(
+          (rank) => rank._id === member.rank
         )?._id,
       roles: ["secretary", "grand-administrator"],
-      required: true,
     },
     {
       label: "Birthdate",
@@ -254,7 +264,6 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
         ? new Date(member.initiationDate)?.toISOString().split("T")[0]
         : "",
       roles: ["secretary", "grand-administrator"],
-      required: true,
     },
     {
       label: "Queen of the South",
@@ -326,8 +335,8 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "chapters",
       defaultValue:
         dropdownOptions?.chapters &&
-        dropdownOptions?.chapters.find(
-          (chapter: ChapterDocument) => chapter._id === member.demitToChapter
+        (dropdownOptions?.chapters as ChapterDocument[]).find(
+          (chapter) => chapter._id === member.demitToChapter
         )?._id,
       roles: ["secretary", "grand-administrator"],
     },
@@ -381,8 +390,8 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "reasons",
       defaultValue:
         dropdownOptions?.reasons &&
-        dropdownOptions.reasons.find(
-          (reason: ReasonDocument) => reason._id === member.dropReason
+        (dropdownOptions.reasons as ReasonDocument[]).find(
+          (reason) => reason._id === member.dropReason
         )?._id,
       roles: ["secretary", "grand-administrator"],
     },
@@ -404,8 +413,8 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
       dropdownType: "reasons",
       defaultValue:
         dropdownOptions?.reasons &&
-        dropdownOptions.reasons.find(
-          (reason: ReasonDocument) => reason._id === member.expelReason
+        (dropdownOptions.reasons as ReasonDocument[]).find(
+          (reason) => reason._id === member.expelReason
         )?._id,
       roles: ["secretary", "grand-administrator"],
     },
@@ -554,28 +563,42 @@ export default function EditMemberForm({ member, dropdownOptions }: Props) {
                         ? {}
                         : { className: "cursor-not-allowed opacity-75" })}
                     >
-                      <SelectValue placeholder="Select a State" />
+                      <SelectValue placeholder={placeholder} />
                     </SelectTrigger>
                     <SelectContent>
                       {dropdownOptions &&
                       dropdownType &&
-                      dropdownType !== "chapters"
-                        ? dropdownOptions[dropdownType]!.map((state, indx) => (
+                      dropdownType === "chapters"
+                        ? (dropdownOptions[dropdownType!]! as ChapterDocument[])
+                            .filter(
+                              (chapter) => chapter._id !== member.chapterId
+                            )
+                            .map((chapter, indx) => (
+                              <SelectItem
+                                key={indx}
+                                value={chapter._id?.toString()}
+                              >
+                                {chapter.name}
+                              </SelectItem>
+                            ))
+                        : dropdownType === "petitioners"
+                        ? (dropdownOptions[dropdownType]! as MemberDocument[])
+                            .filter(({ _id }) => _id !== member._id)
+                            .map((member, indx) => (
+                              <SelectItem
+                                key={indx}
+                                value={member._id?.toString()}
+                              >
+                                {member.firstName} {member.lastName}
+                              </SelectItem>
+                            ))
+                        : dropdownOptions[dropdownType!]!.map((state, indx) => (
                             <SelectItem
                               key={indx}
                               value={state._id?.toString()}
                             >
-                              {state.name}
-                            </SelectItem>
-                          ))
-                        : dropdownOptions[dropdownType!]!.filter(
-                            (chapter) => chapter._id !== member.chapterId
-                          ).map((chapter, indx) => (
-                            <SelectItem
-                              key={indx}
-                              value={chapter._id?.toString()}
-                            >
-                              {chapter.name}
+                              {/* @ts-ignore */}
+                              {state?.name}
                             </SelectItem>
                           ))}
                     </SelectContent>

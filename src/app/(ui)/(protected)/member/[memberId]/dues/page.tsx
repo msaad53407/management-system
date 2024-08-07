@@ -1,33 +1,30 @@
+import DateForm from "@/components/DateForm";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { connectDB } from "@/lib/db";
-import { Due } from "@/models/dues";
+import { checkRole } from "@/lib/role";
 import { Member } from "@/models/member";
-import { Types } from "mongoose";
-import { notFound } from "next/navigation";
-import React from "react";
-import AddDuesForm from "./components/AddDuesForm";
 import { MonthlyDue } from "@/types/globals";
 import { capitalize, getMonth } from "@/utils";
-import { checkRole } from "@/lib/role";
+import { getMonthlyDues } from "@/utils/functions";
 import { auth } from "@clerk/nextjs/server";
+import { Types } from "mongoose";
+import { notFound } from "next/navigation";
+import AddDuesForm from "./components/AddDuesForm";
 
 type Props = {
   params: {
     memberId?: Types.ObjectId;
   };
+  searchParams: {
+    month?: number;
+    year?: number;
+  };
 };
 
-type AggregationResult = {
-  _id: Types.ObjectId;
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  email: string;
-  phoneNumber1: string;
-  currentMonthDues: MonthlyDue[];
-};
-
-const MemberDuesPage = async ({ params: { memberId } }: Props) => {
+const MemberDuesPage = async ({
+  params: { memberId },
+  searchParams: { month, year },
+}: Props) => {
   if (!memberId) {
     return notFound();
   }
@@ -76,109 +73,66 @@ const MemberDuesPage = async ({ params: { memberId } }: Props) => {
       }
     }
 
-    const result = await Member.aggregate([
-      {
-        $match: {
-          _id: new Types.ObjectId(memberId),
-        },
-      },
-      {
-        $lookup: {
-          from: "dues",
-          localField: "_id",
-          foreignField: "memberId",
-          as: "currentMonthDues",
-          pipeline: [
-            {
-              $match: {
-                $and: [
-                  {
-                    $expr: {
-                      $eq: [{ $month: "$dueDate" }, { $month: new Date() }],
-                    },
-                  },
-                  {
-                    $expr: {
-                      $eq: [{ $year: "$dueDate" }, { $year: new Date() }],
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-                memberId: 1,
-                amount: 1,
-                totalDues: 1,
-                dueDate: 1,
-                paymentStatus: 1,
-              },
-            },
-          ],
-        },
-      },
-      {
-        $project: {
-          firstName: 1,
-          lastName: 1,
-          middleName: 1,
-          email: 1,
-          phoneNumber1: 1,
-          currentMonthDues: 1,
-        },
-      },
-    ]);
-    const { currentMonthDues, firstName, lastName, middleName } =
-      result[0] as AggregationResult;
+    const { data, message } = await getMonthlyDues(memberId, { month, year });
 
-    if (!currentMonthDues || currentMonthDues.length === 0) {
-      const newDue = await Due.create({
-        memberId: new Types.ObjectId(memberId),
-        amount: 0,
-        dueDate: new Date(),
-        totalDues: 10,
-        paymentStatus: "unpaid",
-      });
-      currentMonthDues.push({
-        _id: newDue._id,
-        memberId: newDue.memberId,
-        amount: newDue.amount,
-        totalDues: newDue.totalDues,
-        dueDate: newDue.dueDate,
-        paymentStatus: newDue.paymentStatus,
-      });
+    if (!data) {
+      console.error(message);
+      return (
+        <section className="flex flex-col gap-6 p-4 w-full">
+          <Card>
+            <CardHeader className="flex items-center justify-between w-full flex-row">
+              <h3 className="text-xl font-semibold text-slate-600">
+                Update Dues
+              </h3>
+              <DateForm hardRefresh />
+            </CardHeader>
+            <CardContent>
+              <p className="text-red-600">{message}</p>
+            </CardContent>
+          </Card>
+        </section>
+      );
     }
 
-    // Parsing and converting documents to normal js objects.
-    const parsedDues = currentMonthDues.map(
-      (due) => JSON.parse(JSON.stringify(due)) as MonthlyDue
-    );
-
     return (
-      <section className="flex flex-col gap-6 p-4 w-full">
-        <Card>
-          <CardHeader className="flex items-center justify-between w-full flex-row">
-            <h3 className="text-xl font-semibold text-slate-600">
-              <span className="text-pink-600">
-                {`${capitalize(firstName)} ${capitalize(
-                  middleName && middleName
-                )} ${capitalize(lastName)}`}
-                &apos;s
-              </span>{" "}
-              Dues
-            </h3>
-            <h3 className="text-xl font-semibold text-slate-600">
-              <span className="text-pink-600 capitalize">
-                {getMonth(parsedDues[0].dueDate)}&apos;s
-              </span>{" "}
-              Dues
-            </h3>
-          </CardHeader>
-          <CardContent>
-            <AddDuesForm currentMonthDues={parsedDues[0]} />
-          </CardContent>
-        </Card>
+      <section className="flex flex-col gap-4 p-4 w-full">
+        <div className="w-full flex items-center justify-between">
+          <div className="space-y-2">
+            <p className="text-slate-600 font-bold text-base">
+              Dues left to Pay: {data.duesLeftForYear}$
+            </p>
+            <p className="text-slate-600 font-bold text-base">
+              Extra Dues: {data?.extraDues || 0}
+            </p>
+          </div>
+          <DateForm hardRefresh />
+        </div>
+        {data.monthlyDues.map((monthlyDues: MonthlyDue) => (
+          <Card key={monthlyDues._id.toString()}>
+            <CardHeader className="flex items-center justify-between w-full flex-row">
+              <h3 className="text-xl font-semibold text-slate-600">
+                <span className="text-pink-600">
+                  {`${capitalize(data.firstName)} ${capitalize(
+                    data.middleName || ""
+                  )} ${capitalize(data.lastName)}`}
+                  &apos;s
+                </span>{" "}
+                Dues
+              </h3>
+              <h3 className="text-xl font-semibold text-slate-600">
+                <span className="text-pink-600 capitalize">
+                  {getMonth(monthlyDues.dueDate)}&apos;s
+                </span>{" "}
+                Dues
+              </h3>
+            </CardHeader>
+            <CardContent>
+              <AddDuesForm
+                currentMonthDues={JSON.parse(JSON.stringify(monthlyDues))}
+              />
+            </CardContent>
+          </Card>
+        ))}
       </section>
     );
   } catch (error) {
@@ -186,7 +140,8 @@ const MemberDuesPage = async ({ params: { memberId } }: Props) => {
     <section className="flex flex-col gap-6 p-4 w-full">
       <Card>
         <CardHeader className="flex items-center justify-between w-full flex-row">
-          <h3 className="text-xl font-semibold text-slate-600">Edit Member</h3>
+          <h3 className="text-xl font-semibold text-slate-600">Update Dues</h3>
+          <DateForm hardRefresh />
         </CardHeader>
         <CardContent>
           <p className="text-red-600">Something went wrong</p>

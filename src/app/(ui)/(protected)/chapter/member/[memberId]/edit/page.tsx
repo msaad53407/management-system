@@ -8,6 +8,8 @@ import React from "react";
 import EditMemberForm from "./components/EditMemberForm";
 import { Metadata } from "next";
 import { getAllMemberDropdownOptions } from "@/utils/functions";
+import { getChapterMembers } from "@/actions/chapter";
+import { Types } from "mongoose";
 
 export const metadata: Metadata = {
   title: "Edit Member | Management System",
@@ -31,9 +33,15 @@ const EditMember = async ({
   )
     redirect("/");
 
-  const { data, message } = await getAllMemberDropdownOptions(params.memberId);
+  const [
+    { data: dropdownOptions, message: optionsMessage },
+    { data: chapterMembers, message: membersMessage },
+  ] = await Promise.all([
+    getAllMemberDropdownOptions(params.memberId),
+    getChapterMembers(new Types.ObjectId(chapterId)),
+  ]);
 
-  if (!data) {
+  if (!dropdownOptions || !chapterMembers) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
         <Card>
@@ -55,7 +63,10 @@ const EditMember = async ({
             </Link>
           </CardHeader>
           <CardContent>
-            <h2 className="text-xl font-semibold text-slate-600">{message}</h2>
+            <h2 className="text-xl font-semibold text-slate-600">
+              {!dropdownOptions && optionsMessage}
+              {!chapterMembers && membersMessage}
+            </h2>
           </CardContent>
         </Card>
       </section>
@@ -82,8 +93,11 @@ const EditMember = async ({
         </CardHeader>
         <CardContent>
           <EditMemberForm
-            member={data.member}
-            dropdownOptions={data.dropdownOptions}
+            member={JSON.parse(JSON.stringify(dropdownOptions.member))}
+            dropdownOptions={{
+              ...JSON.parse(JSON.stringify(dropdownOptions.dropdownOptions)),
+              petitioners: JSON.parse(JSON.stringify(chapterMembers)),
+            }}
           />
         </CardContent>
       </Card>

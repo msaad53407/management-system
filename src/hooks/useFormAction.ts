@@ -1,11 +1,12 @@
 import { FormMessage, FormResult } from "@/types/globals";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 
 export default function useFormAction(
   formAction: (_prevState: any, formData: FormData) => Promise<FormResult>
 ) {
-  const initialState = { message: "", success: false };
+  const initialState = { message: "", success: false, data: null };
   const [infoMessage, setInfoMessage] = useState<{
     variant: "error" | "success" | "";
     message: string;
@@ -18,6 +19,8 @@ export default function useFormAction(
 
   const formMessage: FormMessage | string | undefined = formState?.message;
 
+  const router = useRouter();
+
   useEffect(() => {
     if (formState.success) {
       if (typeof formState.message === "string") {
@@ -26,6 +29,7 @@ export default function useFormAction(
           message: formState.message,
         });
       }
+      router.refresh();
     }
 
     if (!formState.success) {

@@ -1,12 +1,16 @@
-import SystemDetailsPDF from "@/components/pdf/SystemDetails";
-import UpcomingBirthdaysPDF from "@/components/pdf/UpcomingBirthdays";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { checkRole } from "@/lib/role";
 import {
-  getAllRanks,
-  getMembersBirthdays,
-  getSystemFinances,
-} from "@/utils/functions";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { checkRole } from "@/lib/role";
+import { getAllDistricts } from "@/utils/functions";
+import Link from "next/link";
 
 const ReportsPage = async () => {
   if (!checkRole(["grand-administrator", "grand-officer"])) {
@@ -24,65 +28,68 @@ const ReportsPage = async () => {
     );
   }
 
-  const [
-    { data: ranks, message: ranksMessage },
-    { data: birthdays, message: birthdaysMessage },
-    { data: systemFinances, message: systemFinancesMessage },
-  ] = await Promise.all([
-    getAllRanks(),
-    getMembersBirthdays(null),
-    getSystemFinances({}),
-  ]);
+  const { data: districts } = await getAllDistricts();
 
-  if (!ranks || !birthdays || !systemFinances) {
+  if (!districts || districts.length === 0) {
     return (
-      <main className="flex flex-col gap-6 p-4 w-full">
-        <Card>
-          <CardHeader>
-            <CardTitle>All Reports</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-500 text-center">
-              Error: {!ranks && ranksMessage} {!birthdays && birthdaysMessage}{" "}
-              {!systemFinances && systemFinancesMessage}
-            </p>
-          </CardContent>
-        </Card>
-      </main>
+      <section className="flex flex-col gap-6 p-4 w-full">
+        <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
+          There are currently no Districts setup.
+        </h3>
+      </section>
     );
   }
 
   return (
-    <main className="flex flex-col gap-6 p-4 w-full">
-      <Card>
-        <CardHeader>
-          <CardTitle>All Reports</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="flex flex-col w-full gap-2 divide-y-2 divide-slate-200">
-            <li className="flex w-full items-center justify-between py-3">
-              <h4 className="text-lg text-slate-600 font-normal">
-                System Details
-              </h4>
-              <SystemDetailsPDF
-                districts={systemFinances.districts}
-                finances={systemFinances.finances}
-              >
-                Download
-              </SystemDetailsPDF>
-            </li>
-            <li className="flex w-full items-center justify-between py-3">
-              <h4 className="text-lg text-slate-600 font-normal">
-                Upcoming Birthdays
-              </h4>
-              <UpcomingBirthdaysPDF upcomingBirthdays={birthdays} ranks={ranks}>
-                Download
-              </UpcomingBirthdaysPDF>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
-    </main>
+    <section className="flex flex-col gap-6 p-4 w-full">
+      <div className="flex items-center justify-between w-full">
+        <h3 className="text-xl font-semibold text-slate-600">All Districts</h3>
+        {checkRole(["grand-administrator"]) && (
+          <Link href={`/district/add`}>
+            <Button
+              variant={"destructive"}
+              className="bg-button-primary hover:bg-button-primary"
+            >
+              Add District
+            </Button>
+          </Link>
+        )}
+      </div>
+      <div className="flex flex-col gap-4 w-full">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-slate-600 text-lg">
+              Total Districts: {districts.length}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>No.</TableHead>
+                  <TableHead>Name</TableHead>
+                  {/* <TableHead>City</TableHead> */}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {districts.map((district, indx) => (
+                  <TableRow key={indx}>
+                    <TableCell className="font-medium text-slate-600">
+                      <p>{district.name?.split(" ").at(1)}</p>
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-600">
+                      <Link href={`/reports/district/${district._id}`}>
+                        {district.name}
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
   );
 };
 

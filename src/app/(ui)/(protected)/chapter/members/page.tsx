@@ -23,7 +23,7 @@ const ChapterMembers = async () => {
     { data: members, message: membersMessage },
     { data: ranks, message: ranksMessage },
     { data: statuses, message: statusesMessage },
-  ] = await Promise.all([getChapterMembers(), getAllRanks(), getAllStatuses(true)]);
+  ] = await Promise.all([getChapterMembers(), getAllRanks(), getAllStatuses()]);
 
   if (
     !members ||

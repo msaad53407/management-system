@@ -3,6 +3,7 @@ import { checkRole } from "@/lib/role";
 import { Chapter, ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { District, DistrictDocument } from "@/models/district";
+import { Due } from "@/models/dues";
 import { GrandOfficeDocument } from "@/models/grandOffice";
 import { Member, MemberDocument } from "@/models/member";
 import { Rank, RankDocument } from "@/models/rank";
@@ -13,16 +14,21 @@ import {
   AggregationResult,
   BirthdayAggregationResult,
   ChapterOrDistrictType,
+  ChapterReportAggregation,
   CurrentYearMemberGrowthAggregation,
   FinancesAggregationResult,
   MemberDropdownAggregationResult,
   MonthlyActiveMemberAggregation,
+  MonthlyDue,
+  MonthlyDuesAggregation,
   MonthlyMemberGrowthAggregation,
 } from "@/types/globals";
 import { auth } from "@clerk/nextjs/server";
-import { Type } from "lucide-react";
+import { getMonth, getYear } from "date-fns";
 import { Types } from "mongoose";
 import "server-only";
+import { getDaysInMonth } from ".";
+import { getChapter } from "@/actions/chapter";
 
 export async function getSystemFinances(date: {
   month?: number;
@@ -408,7 +414,7 @@ export async function getMemberFinances(
   try {
     await connectDB();
     const pipeline = [];
-
+    // console.log(date, memberId, Input);
     if (Input) {
       pipeline.push({
         $match: {
@@ -693,7 +699,7 @@ export async function getAllMemberDropdownOptions(memberId: string) {
         $lookup: {
           from: "status",
           pipeline: [
-            { $match: { name: { $in: ["Regular", "Special", "Petitioner"] } } },
+            { $match: {} },
             { $project: { _id: 1, name: 1, description: 1 } },
           ],
           as: "allStatuses",
@@ -1490,7 +1496,7 @@ export async function getMonthlyMoneyDetails(
 ) {
   try {
     await connectDB();
-
+    console.log(Input, date, moneyType);
     if (moneyType === "in") {
       const { data: currentMonthFinances } = await getMemberFinances(
         {
@@ -1601,16 +1607,6 @@ export async function getQueryResults({
   try {
     await connectDB();
 
-    const { data, message } = await getAllStatuses(true);
-
-    if (!data) {
-      console.error(message);
-      return {
-        data: null,
-        message: "Some error occurred while fetching details",
-      };
-    }
-
     if (checkRole(["grand-administrator", "grand-officer"])) {
       if (!filter) {
         const members = await Member.aggregate([
@@ -1622,11 +1618,6 @@ export async function getQueryResults({
                     { firstName: { $regex: new RegExp(query, "i") } },
                     { lastName: { $regex: new RegExp(query, "i") } },
                   ],
-                },
-                {
-                  status: {
-                    $in: data?.map((status) => new Types.ObjectId(status._id)),
-                  },
                 },
               ],
             },
@@ -1692,11 +1683,6 @@ export async function getQueryResults({
                     { lastName: { $regex: new RegExp(query, "i") } },
                   ],
                 },
-                {
-                  status: {
-                    $in: data?.map((status) => new Types.ObjectId(status._id)),
-                  },
-                },
               ],
             },
           },
@@ -1753,13 +1739,6 @@ export async function getQueryResults({
                           { lastName: { $regex: new RegExp(query, "i") } },
                         ],
                       },
-                      {
-                        status: {
-                          $in: data?.map(
-                            (status) => new Types.ObjectId(status._id)
-                          ),
-                        },
-                      },
                     ],
                   },
                 },
@@ -1813,13 +1792,6 @@ export async function getQueryResults({
                           { firstName: { $regex: new RegExp(query, "i") } },
                           { lastName: { $regex: new RegExp(query, "i") } },
                         ],
-                      },
-                      {
-                        status: {
-                          $in: data?.map(
-                            (status) => new Types.ObjectId(status._id)
-                          ),
-                        },
                       },
                     ],
                   },
@@ -1900,13 +1872,6 @@ export async function getQueryResults({
                         { firstName: { $regex: new RegExp(query, "i") } },
                         { lastName: { $regex: new RegExp(query, "i") } },
                       ],
-                    },
-                    {
-                      status: {
-                        $in: data?.map(
-                          (status) => new Types.ObjectId(status._id)
-                        ),
-                      },
                     },
                   ],
                 },
@@ -2001,13 +1966,6 @@ export async function getQueryResults({
                         { lastName: { $regex: new RegExp(query, "i") } },
                       ],
                     },
-                    {
-                      status: {
-                        $in: data?.map(
-                          (status) => new Types.ObjectId(status._id)
-                        ),
-                      },
-                    },
                   ],
                 },
               },
@@ -2049,9 +2007,11 @@ export async function getQueryResults({
 }
 
 export async function getDelinquentDues(Input: ChapterOrDistrictType) {
-  const { data, message } = await getAllStatuses(true);
+  // Pass true as argument to only get active members delinquent dues
+  const { data, message } = await getAllStatuses();
 
   if (!data) {
+    console.error(message);
     return {
       data: null,
       message: "Some error occurred",
@@ -2165,217 +2125,829 @@ export async function getDelinquentDues(Input: ChapterOrDistrictType) {
   }
 }
 
-// export async function getQueryResults({
-//   filter,
-//   query,
-// }: {
-//   query: string;
-//   filter?: string;
-// }) {
-//   const { userId } = auth();
+export async function getChapterReport(chapterId: string) {
+  try {
+    await connectDB();
+    const { data, message: statusesMessage } = await getAllStatuses(true);
 
-//   if (!query) {
-//     return {
-//       data: null,
-//       message: "Query Not Found",
-//     };
-//   }
+    if (!data || data.length === 0) {
+      console.error(statusesMessage);
+      return {
+        data: null,
+        message: "Error fetching report",
+      };
+    }
+    const aggregationPromise = Chapter.aggregate<ChapterReportAggregation>([
+      {
+        $match: {
+          _id: new Types.ObjectId(chapterId),
+        },
+      },
+      {
+        $lookup: {
+          from: "members",
+          localField: "_id",
+          foreignField: "chapterId",
+          as: "members",
+        },
+      },
+      {
+        $addFields: {
+          activeMembersLastMonth: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $lt: [
+                      "$$member.initiationDate",
+                      new Date(new Date().getFullYear(), new Date().getMonth()),
+                    ],
+                  },
+                  {
+                    $or:
+                      data?.map((status) => ({
+                        $eq: [
+                          "$$member.status",
+                          new Types.ObjectId(status._id),
+                        ],
+                      })) || [],
+                  },
+                ],
+              },
+            },
+          },
+          initiatedMembers: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $gte: [
+                      "$$member.initiationDate",
+                      new Date(new Date().getFullYear(), 0, 1),
+                    ],
+                  }, // startDate should be the start of the year
+                  {
+                    $lt: [
+                      "$$member.initiationDate",
+                      new Date(new Date().getFullYear() + 1, 0, 1),
+                    ],
+                  }, // endDate should be the end of the year
+                ],
+              },
+            },
+          },
+          initiatedMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.initiationDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.initiationDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          reinstatedMembersAfterYearCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $lt: [
+                        "$$member.dropDate",
+                        new Date(
+                          new Date().getFullYear() - 1,
+                          new Date().getMonth(),
+                          new Date().getDate()
+                        ),
+                      ],
+                    },
+                    {
+                      $gte: [
+                        "$$member.reinstatedDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.reinstatedDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          reinstatedMembersInYearCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.dropDate",
+                        new Date(
+                          new Date().getFullYear() - 1,
+                          new Date().getMonth(),
+                          new Date().getDate()
+                        ),
+                      ],
+                    },
+                    {
+                      $gte: [
+                        "$$member.reinstatedDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.reinstatedDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          reinstatedMembers: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $gte: [
+                      "$$member.dropDate",
+                      new Date(
+                        new Date().getFullYear() - 1,
+                        new Date().getMonth(),
+                        new Date().getDate()
+                      ),
+                    ],
+                  },
+                  {
+                    $gte: [
+                      "$$member.reinstatedDate",
+                      new Date(new Date().getFullYear(), 1, 1),
+                    ],
+                  },
+                  {
+                    $lt: [
+                      "$$member.reinstatedDate",
+                      new Date(new Date().getFullYear() + 1, 1, 1),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          reinstatedMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.reinstatedDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.reinstatedDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          deceasedMembers: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $gte: [
+                      "$$member.deathDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth(),
+                        1
+                      ),
+                    ],
+                  },
+                  {
+                    $lt: [
+                      "$$member.deathDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + 1,
+                        1
+                      ),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          deceasedMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.deathDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.deathDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          demittedMembers: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $gte: [
+                      "$$member.demitOutDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth(),
+                        1
+                      ),
+                    ],
+                  },
+                  {
+                    $lt: [
+                      "$$member.demitOutDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + 1,
+                        1
+                      ),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          demittedMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.demitOutDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.demitOutDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          demittedInMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.demitInDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.demitInDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          suspendedMembers: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $gte: [
+                      "$$member.suspendDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth(),
+                        1
+                      ),
+                    ],
+                  },
+                  {
+                    $lt: [
+                      "$$member.suspendDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + 1,
+                        1
+                      ),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          suspendedMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.suspendDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.suspendDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          expelledMembers: {
+            $filter: {
+              input: "$members",
+              as: "member",
+              cond: {
+                $and: [
+                  {
+                    $gte: [
+                      "$$member.expelDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth(),
+                        1
+                      ),
+                    ],
+                  },
+                  {
+                    $lt: [
+                      "$$member.expelDate",
+                      new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + 1,
+                        1
+                      ),
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+          expelledMembersMonthCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.expelDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.expelDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          enlightenedMembersCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.enlightenDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.enlightenDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          droppedMembersCount: {
+            $size: {
+              $filter: {
+                input: "$members",
+                as: "member",
+                cond: {
+                  $and: [
+                    {
+                      $gte: [
+                        "$$member.dropDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        ),
+                      ],
+                    },
+                    {
+                      $lt: [
+                        "$$member.dropDate",
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth() + 1,
+                          1
+                        ),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: 1,
+          chapterNumber: 1,
+          initiatedMembers: 1,
+          initiatedMembersMonthCount: 1,
+          reinstatedMembersAfterYearCount: 1,
+          reinstatedMembersInYearCount: 1,
+          reinstatedMembersMonthCount: 1,
+          reinstatedMembers: 1,
+          deceasedMembers: 1,
+          deceasedMembersMonthCount: 1,
+          demittedMembers: 1,
+          demittedMembersMonthCount: 1,
+          suspendedMembers: 1,
+          suspendedMembersMonthCount: 1,
+          expelledMembers: 1,
+          expelledMembersMonthCount: 1,
+          enlightenedMembersCount: 1,
+          droppedMembersCount: 1,
+          demittedInMembersMonthCount: 1,
+          secretaryId: 1,
+          matronId: 1,
+          technologyFees: 1,
+          activeMembersLastMonth: 1,
+          allMembers: "$members",
+        },
+      },
+    ]);
 
-//   try {
-//     await connectDB();
-//     const { data, message } = await getAllStatuses();
+    const [result, { data: membersCount, message }] = await Promise.all([
+      aggregationPromise,
+      getRegularAndSpecialMembersCount({
+        chapterId: new Types.ObjectId(chapterId),
+      }),
+    ]);
 
-//     if (!data) {
-//       console.error(message);
-//       return {
-//         data: null,
-//         message: "Some error occurred while fetching details",
-//       };
-//     }
+    console.log(
+      JSON.stringify(
+        result.find((r) => r.name.includes("Virginia")),
+        null,
+        2
+      )
+    );
 
-//     const regexQuery = new RegExp(query, "i");
+    if (!result || !membersCount) {
+      console.error(message);
+      return {
+        data: null,
+        message: "Error Fetching statistics",
+      };
+    }
+    // console.log(JSON.stringify(result, null, 2), membersCount);
+    return {
+      data: { ...result[0], ...membersCount },
+      message: "Chapter Statistics fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
 
-//     if (checkRole(["grand-administrator", "grand-officer"])) {
-//       if (!filter) {
-//         const membersPromise = Member.aggregate([
-//           {
-//             $match: {
-//               $and: [
-//                 {
-//                   $or: [{ firstName: regexQuery }, { lastName: regexQuery }],
-//                 },
-//                 {
-//                   status: { $in: data?.map((status) => status._id) },
-//                 },
-//               ],
-//             },
-//           },
-//         ]);
-//         const chaptersPromise = Chapter.aggregate([
-//           { $match: { name: regexQuery } },
-//         ]);
-//         const districtsPromise = District.aggregate([
-//           { $match: { name: regexQuery } },
-//         ]);
+export async function getMonthlyDues(
+  memberId: string | Types.ObjectId,
+  date: {
+    month?: number;
+    year?: number;
+  }
+) {
+  try {
+    await connectDB();
+    const result = await Member.aggregate<MonthlyDuesAggregation>([
+      {
+        $match: {
+          _id: new Types.ObjectId(memberId),
+        },
+      },
+      {
+        $lookup: {
+          from: "dues",
+          localField: "_id",
+          foreignField: "memberId",
+          as: "monthlyDues",
+          pipeline: [
+            {
+              $match: {
+                $and: [
+                  {
+                    $expr: {
+                      $eq: [
+                        { $month: "$dueDate" },
+                        {
+                          $month: new Date(
+                            date.year || new Date().getFullYear(),
+                            date.month || new Date().getMonth() + 1
+                          ),
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    $expr: {
+                      $eq: [
+                        { $year: "$dueDate" },
+                        {
+                          $year: new Date(
+                            date.year || new Date().getFullYear(),
+                            date.month || new Date().getMonth() + 1
+                          ),
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                memberId: 1,
+                amount: 1,
+                totalDues: 1,
+                dueDate: 1,
+                paymentStatus: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          firstName: 1,
+          lastName: 1,
+          middleName: 1,
+          initiationDate: 1,
+          chapterId: 1,
+          extraDues: 1,
+          duesLeftForYear: 1,
+          email: 1,
+          phoneNumber1: 1,
+          monthlyDues: 1,
+        },
+      },
+    ]);
 
-//         const [members, chapters, districts] = await Promise.all([
-//           membersPromise,
-//           chaptersPromise,
-//           districtsPromise,
-//         ]);
+    const { monthlyDues, chapterId, initiationDate } = result[0];
+    // todo Add functionality to add dues only for active members
+    const [{ data: chapter }, { data: statuses }] = await Promise.all([
+      getChapter({
+        chapterId: chapterId.toString(),
+      }),
+      getAllStatuses(true),
+    ]);
 
-//         return {
-//           data: { members, chapters, districts },
-//           message: "Results Fetched",
-//         };
-//       }
+    if (!monthlyDues || monthlyDues.length === 0) {
+      if (
+        date.month &&
+        (date.month > new Date().getMonth() + 1 ||
+          date.month < new Date(initiationDate).getMonth() + 1)
+      ) {
+        return {
+          data: null,
+          message: "Invalid Filter Range",
+        };
+      }
+      if (
+        date.year &&
+        (date.year > new Date().getFullYear() ||
+          date.year < new Date(initiationDate).getFullYear())
+      ) {
+        return {
+          data: null,
+          message: "Invalid Filter Range",
+        };
+      }
 
-//       const collectionMap = {
-//         chapter: Chapter,
-//         district: District,
-//         member: Member,
-//       };
+      const newDue = await Due.create({
+        memberId: new Types.ObjectId(memberId),
+        amount: 0,
+        dueDate:
+          (date.month &&
+            new Date(
+              date.year || new Date().getFullYear(),
+              date.month - 1,
+              25
+            )) ||
+          new Date(),
+        totalDues: chapter?.chpMonDues,
+        paymentStatus: "unpaid",
+      });
+      monthlyDues.push({
+        _id: newDue._id,
+        memberId: newDue.memberId,
+        amount: newDue.amount,
+        totalDues: newDue.totalDues,
+        dueDate: newDue.dueDate,
+        paymentStatus: newDue.paymentStatus,
+      });
+    }
 
-//       if (collectionMap[filter]) {
-//         const results = await collectionMap[filter].aggregate([
-//           { $match: { name: regexQuery } },
-//         ]);
-//         return {
-//           data: { [filter + "s"]: results },
-//           message: `${
-//             filter.charAt(0).toUpperCase() + filter.slice(1)
-//           }s Fetched`,
-//         };
-//       }
+    if (!result || result.length === 0) {
+      return {
+        data: null,
+        message: "Error Fetching statistics",
+      };
+    }
 
-//       return {
-//         data: null,
-//         message: "Invalid Filter",
-//       };
-//     }
-
-//     if (checkRole("member") && !filter) {
-//       const member = await Member.findOne({ userId });
-//       if (!member) {
-//         return { data: null, message: "Could Not Find Members" };
-//       }
-
-//       const members = await Chapter.aggregate([
-//         { $match: { _id: member.chapterId } },
-//         {
-//           $lookup: {
-//             from: "members",
-//             localField: "_id",
-//             foreignField: "chapterId",
-//             as: "members",
-//             pipeline: [
-//               {
-//                 $match: {
-//                   $and: [
-//                     {
-//                       $or: [
-//                         { firstName: regexQuery },
-//                         { lastName: regexQuery },
-//                       ],
-//                     },
-//                     {
-//                       $or: [
-//                         { status: { $in: data.map((status) => status._id) } },
-//                       ],
-//                     },
-//                   ],
-//                 },
-//               },
-//             ],
-//           },
-//         },
-//         { $project: { chapterId: "$_id", members: "$members" } },
-//       ]);
-
-//       return { data: { members }, message: "Members Fetched" };
-//     }
-
-//     if (checkRole(["secretary", "worthy-matron"])) {
-//       const matchCondition = checkRole("secretary")
-//         ? { secretaryId: userId }
-//         : { matronId: userId };
-
-//       const members = await Chapter.aggregate([
-//         { $match: matchCondition },
-//         {
-//           $lookup: {
-//             from: "members",
-//             localField: "_id",
-//             foreignField: "chapterId",
-//             as: "members",
-//             pipeline: [
-//               {
-//                 $match: {
-//                   $and: [
-//                     {
-//                       $or: [
-//                         { firstName: regexQuery },
-//                         { lastName: regexQuery },
-//                       ],
-//                     },
-//                     {
-//                       $or: [
-//                         { status: { $in: data.map((status) => status._id) } },
-//                       ],
-//                     },
-//                   ],
-//                 },
-//               },
-//             ],
-//           },
-//         },
-//         { $project: { chapterId: "$_id", members: "$members" } },
-//       ]);
-
-//       return { data: { members }, message: "Members Fetched" };
-//     }
-
-//     if (checkRole("district-deputy")) {
-//       const districtsPromise = District.aggregate([
-//         { $match: { deputyId: userId } },
-//       ]);
-//       const chaptersPromise = District.aggregate([
-//         { $match: { deputyId: userId } },
-//         {
-//           $lookup: {
-//             from: "chapters",
-//             localField: "_id",
-//             foreignField: "districtId",
-//             as: "chapters",
-//             pipeline: [
-//               {
-//                 $match: {
-//                   $or: [{ name: regexQuery }, { chapterNumber: regexQuery }],
-//                 },
-//               },
-//             ],
-//           },
-//         },
-//         { $project: { districtId: "$_id", chapters: "$chapters" } },
-//       ]);
-
-//       const [districts, chapters] = await Promise.all([
-//         districtsPromise,
-//         chaptersPromise,
-//       ]);
-
-//       return {
-//         data: { districts, chapters },
-//         message: "Chapters and Members Fetched",
-//       };
-//     }
-
-//     return { data: null, message: "Invalid Filter" };
-//   } catch (error) {
-//     console.error("Error in getQueryResults:", error);
-//     return {
-//       data: null,
-//       message: "Error Connecting to Database",
-//     };
-//   }
-// }
+    return {
+      data: result[0],
+      message: "Monthly Dues fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}

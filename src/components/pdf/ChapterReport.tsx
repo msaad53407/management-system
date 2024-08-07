@@ -1,837 +1,766 @@
 "use client";
 
-import { formatDate } from "@/utils";
-import React from "react";
+import { ChapterDocument } from "@/models/chapter";
+import { StatusDocument } from "@/models/status";
+import { ChapterReportAggregation } from "@/types/globals";
+import { capitalize, formatDate, getDaysInMonth, getMonth } from "@/utils";
+import {
+  Document,
+  Image,
+  Page,
+  PDFDownloadLink,
+  StyleSheet,
+  Text,
+  View,
+} from "@react-pdf/renderer";
+import LoadingSpinner from "../LoadingSpinner";
 import { Button } from "../ui/button";
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { MemberDocument } from "@/models/member";
 
-const data = {
-  sectionA: [
-    {
-      label: "on roll on last report:",
-      value: 38,
-      sign: null,
-    },
-    {
-      label: "INITIATED",
-      value: 0,
-      sign: "+",
-    },
-    {
-      label: "REINSTATED",
-      value: 0,
-      sign: "+",
-    },
-    {
-      label: "received by AFFILIATED",
-      value: 0,
-      sign: "+",
-    },
-    {
-      label: "DECEASED",
-      value: 0,
-      sign: "-",
-    },
-    {
-      label: "DEMITTED",
-      value: 0,
-      sign: "-",
-    },
-    {
-      label: "ENLIGHTENED",
-      value: 0,
-      sign: "+",
-    },
-    {
-      label: "DROPPED FOR NPD",
-      value: 0,
-      sign: "-",
-    },
-    {
-      label: "SUSPENDED (OTHER)",
-      value: 0,
-      sign: "-",
-    },
-    {
-      label: "EXPELLED",
-      value: 0,
-      sign: "-",
-    },
-  ],
-  sectionB: [
-    {
-      label: "DROPPED FOR NPD",
-      value: 0,
-    },
-    {
-      label: " DEMITTED OUT",
-      value: 0,
-    },
-    {
-      label: "SUSPENDED (OTHER)",
-      value: 0,
-    },
-    {
-      label: "EXPELLED",
-      value: 0,
-    },
-    {
-      label: "DECEASED",
-      value: 0,
-    },
-  ],
-  taxes: [
-    {
-      label: "Per Capita Taxes (per regular member on roll (38)) @ $4.00",
-      perMember: 4,
-      members: 38,
-    },
-    {
-      label: "Per Capita Taxes (per special member on roll (8)) @ $3.00",
-      perMember: 3,
-      members: 8,
-    },
-    {
-      label:
-        " Reinstatement fee 0 member(s) @ $15.00 ea. (dropped over than one (1) year)",
-      perMember: 15,
-      members: 0,
-    },
-    {
-      label:
-        "Reinstatement fee 0 member(s) @ $10.00 ea. (dropped less than one (1) year) ",
-      perMember: 10,
-      members: 0,
-    },
-    {
-      label: "Received by Demit-In 0 @$3.00",
-      perMember: 3,
-      members: 0,
-    },
-    {
-      label: "Certificates (0) @ $10.00",
-      perMember: 10,
-      members: 0,
-    },
-    {
-      label: "Duplicate Certificates (0) @ $10.00",
-      perMember: 10,
-      members: 0,
-    },
-    {
-      label: "Technology Fee @ $10.00 monthly",
-    },
-  ],
-  members: [
-    {
-      memberName: "John Doe",
-      mobilePhone: "555-555-5555",
-      address: "123 Main Street, City, State 12345",
-      memberStatus: "Regular",
-      yearsOfService: 0,
-    },
-    {
-      memberName: "Jane Doe",
-      mobilePhone: "555-7837-5555",
-      address: "123 City, State 12345",
-      memberStatus: "Special",
-      yearsOfService: 5,
-    },
-  ],
-};
+const styles = StyleSheet.create({
+  container: {
+    width: "100%",
+    padding: 10,
+  },
+  header: {
+    textAlign: "center",
+    borderBottom: "1px solid black",
+    paddingBottom: 5,
+    marginBottom: 5,
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  section: {
+    width: "100%",
+    border: "1px solid black",
+    padding: 10,
+    marginBottom: 5,
+  },
+  logoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "90%",
+    marginHorizontal: "auto",
+  },
+  logo: {
+    width: 100,
+    height: 100,
+  },
+  title: {
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  text: {
+    fontSize: 10,
+  },
+  boldText: {
+    fontWeight: "bold",
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  item: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 5,
+  },
+  itemText: {
+    fontSize: 10,
+  },
+  amount: {
+    width: 50,
+    backgroundColor: "#cce5ff",
+    textAlign: "right",
+    paddingRight: 5,
+  },
+  subtotal: {
+    paddingVertical: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  total: {
+    textAlign: "center",
+    padding: 5,
+  },
+  footer: {
+    borderTop: "1px solid black",
+    marginTop: 10,
+    paddingTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
 
-const downloadPDF = () => {
-  const capture = document.querySelector<HTMLElement>(".actual-receipt")!;
-  html2canvas(capture).then((canvas) => {
-    const imgData = canvas.toDataURL("img/png");
-    const doc = new jsPDF("l", "px", "a4");
-    const componentWidth = doc.internal.pageSize.getWidth();
-    const componentHeight = doc.internal.pageSize.getHeight();
-    doc.addImage(imgData, "PNG", 0, 0, componentWidth, componentHeight);
-    doc.save("receipt.pdf");
-  });
-};
+  table: {
+    // @ts-ignore
+    display: "table",
+    width: "100%",
+    marginVertical: 10,
+  },
+  tableRow: {
+    flexDirection: "row",
+    width: "100%",
+  },
+  tableCellHeader: {
+    borderBottom: "2px solid black",
+    borderRight: "2px solid black",
+    padding: 4,
+    fontSize: 10,
+    fontWeight: "bold",
+    textAlign: "left",
+    width: "25%",
+  },
+  tableCell: {
+    borderBottom: "1px solid black",
+    borderRight: "1px solid black",
+    padding: 4,
+    fontSize: 10,
+    width: "25%",
+  },
+  lastTableCell: {
+    borderBottom: "1px solid black",
+    padding: 4,
+    fontSize: 10,
+    width: "10%",
+  },
+});
 
-export const ChapterReportOverview = () => {
-  return (
-    <>
-      <div className="w-full flex flex-col items-center gap-5 p-5">
-        <h1 className="text-base font-bold border-b border-b-black w-full text-center">
-          Esther Grand Chapter of Louisiana Order of the Eastern Star
-        </h1>
-        <div className="w-full border-2 border-black p-2 space-y-2">
-          <div className="w-full flex items-center justify-center">
-            <h2 className="text-sm font-bold">
-              Esther Grand Chapter of the Eastern Star
-            </h2>
-          </div>
-          <div className="flex flex-col gap-1 items-center">
-            <h2 className="text-sm font-bold">
-              Reports must be postmarked by due date to avoid late fee of $25
-            </h2>
-            <h4 className="text-base font-medium">
-              Chapter Name: Evening Star{" "}
-              <span className="font-bold">
-                Chapter No. 46 O.E.S, Louisiana Jurisdiction
-              </span>
-            </h4>
-            <h4 className="text-base font-medium">
-              APRIL Monthly Installment of Annual Dues from: 2023-04-01 to:
-              2023-04-30
-            </h4>
-            <h4 className="text-base font-medium">
-              FOR: Evening Star #46 of , Louisiana
-            </h4>
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-bold text-lg">Section A</h3>
-            {data.sectionA.map(({ label, sign, value }, indx) => (
-              <div className="space-y-1" key={indx}>
-                <div className="flex w-full items-center justify-between">
-                  <h3 className="font-medium text-base">
-                    {indx + 1}. Number of members{" "}
-                    <span className="font-bold">{label}</span>: between{" "}
-                    {formatDate(
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth(),
-                        1
-                      ).toString()
-                    )}{" "}
-                    and{" "}
-                    {formatDate(
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth(),
-                        30
-                      ).toString()
-                    )}
-                  </h3>
-                  <div className="flex gap-2">
-                    <span>{sign && `(${sign})`}</span>
-                    <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                      {value}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div className="space-y-1 pt-6">
-              <div className="flex w-full items-center justify-between">
-                <h3 className="font-bold text-base">SUBTOTAL SECTION A:</h3>
-                <div className="flex gap-2">
-                  <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                    {data.sectionA.reduce(
-                      (prev, current) => prev + current.value,
-                      0
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-bold text-lg">Section B</h3>
-            {data.sectionB.map(({ label, value }, indx) => (
-              <div className="space-y-1" key={indx}>
-                <div className="flex w-full items-center justify-between">
-                  <h3 className="font-medium text-base">
-                    {indx + 1}. Number of members{" "}
-                    <span className="font-bold">{label}</span>: between{" "}
-                    {formatDate(
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth(),
-                        1
-                      ).toString()
-                    )}{" "}
-                    and{" "}
-                    {formatDate(
-                      new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth(),
-                        30
-                      ).toString()
-                    )}
-                  </h3>
-                  <div className="flex gap-2">
-                    <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                      {value}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div className="space-y-1 pt-6">
-              <div className="flex w-full items-center justify-between">
-                <h3 className="font-bold text-base">SUBTOTAL SECTION B:</h3>
-                <div className="flex gap-2">
-                  <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                    {data.sectionB.reduce(
-                      (prev, current) => prev + current.value,
-                      0
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <div className="space-y-1">
-              <div className="flex w-full items-center justify-between">
-                <h3 className="font-bold text-base bg-yellow-400">
-                  MEMBERSHIP TOTAL on 14 April 2023
-                </h3>
-                <div className="flex gap-2">
-                  <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                    30
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-bold text-lg">
-              Grand Chapter Per Capita Taxes due as of 14 April 2023
-            </h3>
-            {data.taxes.map(({ label, members, perMember }, indx) => (
-              <div className="space-y-1" key={indx}>
-                <div className="flex w-full items-center justify-between">
-                  <h3 className="font-medium text-base">
-                    {indx + 1}. {label}
-                  </h3>
-                  <div className="flex gap-2">
-                    <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                      ${(perMember || 0) * (members || 0)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div className="space-y-1">
-              <div className="flex w-full items-center justify-between">
-                <h3 className="font-bold text-base">
-                  Total Due Grand Chapter:
-                </h3>
-                <div className="flex gap-2">
-                  <span className="min-w-[100px] bg-blue-300 text-end px-1">
-                    $
-                    {data.taxes.reduce(
-                      (prev, current) =>
-                        prev +
-                        (current.perMember || 0) * (current.members || 0),
-                      0
-                    )}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="!mt-10 border-t-2 border-t-black flex justify-between items-center w-full">
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-bold">
-                Send this report and all checks to the office of the Grand
-                Secretary{" "}
-              </p>
-              <p>
-                Original: Grand Secretary <br />
-                Copy: Grand Worthy Matron <br /> Copy: Chapter Files
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="font-bold">WM Sis. Kavadas, Cox</p>
-              <p className="font-bold">Sec Embry-Flemings, LaTarsha</p>
-              <p className="font-bold">WP Bro. Delmus, Dunn</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <Button onClick={downloadPDF}>Download</Button>
-    </>
-  );
-};
-
-export const ChapterMemberOverview = () => {
-  return (
-    <>
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-base text-center border-b border-b-black">
-            Esther Grand Chapter of Louisiana Order of the Eastern Star
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-8">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
-                  Initiated During the Year
-                </h3>
-                <p>Number of members: 0</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name of Candidate
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        John Doe
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-04-15
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        123 Main St, Anytown USA
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Jane Smith
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-05-01
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        456 Oak Rd, Somewhere LA
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Affiliated During the Year
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Affiliations
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Affiliation Type
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Affiliation Date
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Signed Bylaws
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Alice Johnson
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Esther Chapter No. 123
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Affiliate
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-06-01
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        Yes
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Bob Williams
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Jephthah Chapter No. 456
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Affiliate
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-07-15
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        Yes
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Reinstated During the Year
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date Suspended
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date Reinstated
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Carol Davis
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2022-12-31
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-03-01
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        789 Elm St, Somewhere Else LA
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        David Lee
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-01-15
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-04-01
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        321 Pine Rd, Anytown USA
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Deceased During the Year
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Place of death
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date of death
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Eva Green
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Anytown Hospital
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-02-28
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        159 Oak Ln, Somewhere LA
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Frank Reyes
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Home
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-05-01
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        246 Maple St, Anytown USA
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Demitted During the Year
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Chapter Demitted to
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date of Demit
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Gina Hernandez
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Jephthah Chapter No. 456
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-06-30
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        369 Elm St, Somewhere Else LA
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Henry Kim
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Esther Chapter No. 123
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-08-15
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        753 Oak Rd, Anytown USA
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                PETITIONERS REJECTED DURING THE YEAR
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date Rejected
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Gina Hernandez
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-06-30
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        369 Elm St, Somewhere Else LA
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        Henry Kim
-                      </td>
-                      <td className="border-2 border-r-0 border-t-0 border-black px-4 py-2">
-                        2023-08-15
-                      </td>
-                      <td className="border-2 border-t-0 border-black px-4 py-2">
-                        753 Oak Rd, Anytown USA
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                SUSPENDED DURING THE YEAR
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date Suspended
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Months Delinquent Amount Owed Address
-                      </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">
-                EXPELLED FROM MEMBERSHIP
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Date Expelled / Expelled Reason
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">LIFE MEMBERSHIPS</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-2 border-black">
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Name
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Service Years
-                      </th>
-                      <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                        Address
-                      </th>
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Button onClick={downloadPDF}>Download</Button>
-    </>
-  );
-};
-
-export const ChapterMemberDetails = ({
-  members,
+const ChapterReport = ({
+  data,
 }: {
-  members: MemberDocument[];
+  data: {
+    report: ChapterReportAggregation & {
+      regularMembersCount: number;
+      specialMembersCount: number;
+    };
+    statuses: StatusDocument[];
+    chapters: ChapterDocument[];
+  };
+}) => {
+  const startOfMonth = formatDate(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toString()
+  );
+  const endOfMonth = formatDate(
+    new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      Number(getDaysInMonth(new Date().getMonth()))
+    ).toString()
+  );
+
+  const headings = {
+    sectionA: [
+      {
+        label: "on roll on last report",
+        value: data.report.activeMembersLastMonth.length,
+      },
+      {
+        label: "INITIATED",
+        value: data.report.initiatedMembersMonthCount,
+      },
+      {
+        label: "REINSTATED",
+        value: data.report.reinstatedMembersMonthCount,
+      },
+      {
+        label: "ENLIGHTENED",
+        value: data.report.enlightenedMembersCount,
+      },
+    ],
+    sectionB: [
+      {
+        label: "DROPPED FOR NPD",
+        value: data.report.droppedMembersCount,
+      },
+      {
+        label: " DEMITTED OUT",
+        value: data.report.demittedMembersMonthCount,
+      },
+      {
+        label: "SUSPENDED (OTHER)",
+        value: data.report.suspendedMembersMonthCount,
+      },
+      {
+        label: "EXPELLED",
+        value: data.report.expelledMembersMonthCount,
+      },
+      {
+        label: "DECEASED",
+        value: data.report.deceasedMembersMonthCount,
+      },
+    ],
+    taxes: [
+      {
+        label: `Per Capita Taxes (per regular member on roll (${data.report.regularMembersCount})) @ $4.00`,
+        perMember: 4,
+        members: data.report.regularMembersCount,
+      },
+      {
+        label: `Per Capita Taxes (per special member on roll (${data.report.specialMembersCount})) @ $3.00`,
+        perMember: 3,
+        members: data.report.specialMembersCount,
+      },
+      {
+        label: `Reinstatement fee ${data.report.reinstatedMembersAfterYearCount} member(s) @ $15.00 ea. (dropped over than one (1) year)`,
+        perMember: 15,
+        members: data.report.reinstatedMembersAfterYearCount,
+      },
+      {
+        label: `Reinstatement fee ${data.report.reinstatedMembersInYearCount} member(s) @ $10.00 ea. (dropped less than one (1) year) `,
+        perMember: 10,
+        members: data.report.reinstatedMembersInYearCount,
+      },
+      {
+        label: `Received by Demit-In ${data.report.demittedInMembersMonthCount} @$3.00`,
+        perMember: 3,
+        members: data.report.demittedInMembersMonthCount,
+      },
+      {
+        label: "Certificates (0) @ $10.00",
+        perMember: 10,
+        members: 0,
+      },
+      {
+        label: "Technology Fee @ $10.00 monthly",
+        perMember: 10,
+        members: 1,
+      },
+    ],
+  };
+
+  const subTotalSectionA = headings.sectionA.reduce((a, b) => a + b.value, 0);
+  const subTotalSectionB =
+    headings.sectionB.reduce((a, b) => a + b.value, 0) * -1;
+
+  return (
+    <Document>
+      <Page style={styles.container} size="A4">
+        <View>
+          <Text style={styles.header}>
+            Esther Grand Chapter of Louisiana Order of the Eastern Star
+          </Text>
+          <View style={{ ...styles.section, border: "none" }}>
+            <View style={styles.logoRow}>
+              <Image style={styles.logo} src="/upload/logo.png" />
+              <Text style={styles.title}>
+                Esther Grand Chapter of the Eastern Star
+              </Text>
+              <Image style={styles.logo} src="/upload/logo.png" />
+            </View>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                marginBottom: 5,
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+              }}
+            >
+              <Text style={styles.subtitle}>
+                Reports must be postmarked by due date to avoid late fee of $25
+              </Text>
+              <Text style={styles.text}>
+                Chapter Name: {data?.report.name}{" "}
+                <Text style={styles.boldText}>
+                  Chapter No. {data?.report.chapterNumber} O.E.S, Louisiana
+                  Jurisdiction
+                </Text>
+              </Text>
+              <Text style={styles.text}>
+                {getMonth(new Date().toString())} Monthly Installment of Annual
+                Dues from: {startOfMonth} to: {endOfMonth}
+              </Text>
+              <Text style={styles.text}>
+                FOR: {data?.report.name} #{data?.report.chapterNumber} of ,
+                Louisiana
+              </Text>
+            </View>
+
+            <View>
+              <Text style={{ ...styles.sectionTitle, fontWeight: "extrabold" }}>
+                Section A
+              </Text>
+              {headings.sectionA.map(({ label, value }, indx) => (
+                <View key={indx} style={styles.item}>
+                  <Text style={styles.itemText}>
+                    {indx + 1}. Number of members{" "}
+                    <Text style={{ fontWeight: "extrabold" }}>{label}</Text>:
+                    {!label.includes("report") &&
+                      `between ${startOfMonth} and ${endOfMonth}`}
+                  </Text>
+                  <Text style={{ ...styles.amount, fontSize: 12 }}>
+                    {value}
+                  </Text>
+                </View>
+              ))}
+              <View style={styles.subtotal}>
+                <Text style={{ fontSize: 12 }}>SUBTOTAL SECTION A:</Text>
+                <Text style={{ ...styles.amount, fontSize: 12 }}>
+                  {subTotalSectionA}
+                </Text>
+              </View>
+            </View>
+
+            <View>
+              <Text style={{ ...styles.sectionTitle, fontWeight: "extrabold" }}>
+                Section B
+              </Text>
+              {headings.sectionB.map(({ label, value }, indx) => (
+                <View key={indx} style={styles.item}>
+                  <Text style={styles.itemText}>
+                    {indx + 1}. Number of members{" "}
+                    <Text style={styles.boldText}>{label}</Text>: between{" "}
+                    {startOfMonth} and {endOfMonth}
+                  </Text>
+                  <Text style={{ ...styles.amount, fontSize: 12 }}>
+                    {value}
+                  </Text>
+                </View>
+              ))}
+              <View style={styles.subtotal}>
+                <Text style={{ fontSize: 12 }}>SUBTOTAL SECTION B:</Text>
+                <Text style={{ ...styles.amount, fontSize: 12 }}>
+                  {subTotalSectionB}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 2,
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={{ fontSize: 12 }}>
+                MEMBERSHIP TOTAL on {formatDate(new Date().toString())}
+              </Text>
+              <Text style={{ ...styles.amount, fontSize: 12 }}>
+                {subTotalSectionA + subTotalSectionB}
+              </Text>
+            </View>
+
+            <View>
+              <Text style={{ ...styles.sectionTitle, paddingHorizontal: 10 }}>
+                Grand Chapter Per Capita Taxes due as of{" "}
+                {formatDate(new Date().toString())}
+              </Text>
+              {headings.taxes.map(({ label, members, perMember }, indx) => (
+                <View key={indx} style={styles.item}>
+                  <Text style={styles.itemText}>
+                    {indx + 1}. {label}
+                  </Text>
+                  <Text style={{ ...styles.amount, fontSize: 12 }}>
+                    ${(perMember || 0) * (members || 0)}
+                  </Text>
+                </View>
+              ))}
+              <View style={styles.subtotal}>
+                <Text style={{ fontSize: 12 }}>Total Due Grand Chapter:</Text>
+                <Text style={{ ...styles.amount, fontSize: 12 }}>
+                  $
+                  {headings.taxes.reduce(
+                    (prev, current) =>
+                      prev + (current.perMember || 0) * (current.members || 0),
+                    0
+                  )}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.footer}>
+              <View>
+                <Text style={styles.text}>
+                  Send this report and all checks to the office of the Grand
+                  Secretary
+                </Text>
+                <Text style={styles.text}>Original: Grand Secretary</Text>
+                <Text style={styles.text}>Copy: Grand Worthy Matron</Text>
+                <Text style={styles.text}>Copy: Chapter Files</Text>
+              </View>
+              <View>
+                <Text style={styles.text}>WM Sis. Kavadas, Cox</Text>
+                <Text style={styles.text}>Sec Embry-Flemings, LaTarsha</Text>
+                <Text style={styles.text}>WP Bro. Delmus, Dunn</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Page>
+      <Page style={styles.container} size={"A4"}>
+        <View>
+          <Text style={styles.header}>
+            Esther Grand Chapter of Louisiana Order of the Eastern Star
+          </Text>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <View
+              style={{
+                ...styles.sectionHeader,
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 4,
+              }}
+            >
+              <Text style={styles.sectionTitle}>Initiated During the Year</Text>
+              <Text style={styles.sectionTitle}>
+                Number of members: {data?.report.initiatedMembers.length}
+              </Text>
+            </View>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Name of Candidate
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Date
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Address
+                </Text>
+              </View>
+              {data?.report.initiatedMembers.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {formatDate(member.initiationDate?.toString())}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                    {member.address1} {member.address2}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>Reinstated During the Year</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Date Suspended
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Date Reinstated
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "25%" }}>
+                  Address
+                </Text>
+              </View>
+              {data?.report.reinstatedMembers.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {formatDate(member.suspendDate?.toString())}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {formatDate(member.reinstatedDate?.toString())}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "25%" }}>
+                    {member.address1} {member.address2}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>Deceased During the Year</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Place of Death
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Date of Death
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "25%" }}>
+                  Address
+                </Text>
+              </View>
+              {data?.report.deceasedMembers.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {member.deathPlace}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {formatDate(member.deathDate?.toString())}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "25%" }}>
+                    {member.address1} {member.address2}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>Demitted During the Year</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Chapter Demitted to
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "25%" }}>
+                  Date of Demit
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "25%" }}>
+                  Address
+                </Text>
+              </View>
+              {data?.report.demittedMembers.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>{}</Text>
+                  <Text style={{ ...styles.tableCell, width: "25%" }}>
+                    {formatDate(
+                      data.chapters.find(
+                        (c) =>
+                          c._id.toString() === member.demitToChapter?.toString()
+                      )?.name ?? ""
+                    )}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "25%" }}>
+                    {member.address1} {member.address2}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>
+              Petitioners Rejected During the Year
+            </Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Date Rejected
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                  Address
+                </Text>
+              </View>
+              {/* {data?.report.petitionersRejected.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {member.name}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {member.date}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                    {member.address}
+                  </Text>
+                </View>
+              ))} */}
+            </View>
+          </View>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>Suspended During the Year</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Date Suspended
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                  Months Delinquent Amount Owed Address
+                </Text>
+              </View>
+              {data?.report.suspendedMembers.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {formatDate(member.suspendDate?.toString())}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                    {member.address1} {member.address2}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>Expelled from Membership</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Date Expelled / Expelled Reason
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                  Address
+                </Text>
+              </View>
+              {data?.report.expelledMembers.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {member.firstName} {member.lastName}
+                  </Text>
+                  <Text style={{ ...styles.tableCell, width: "33%" }}>
+                    {formatDate(member.expelDate?.toString())}
+                  </Text>
+                  <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                    {member.address1} {member.address2}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* <View style={{ ...styles.section, border: "none" }}>
+            <Text style={styles.sectionTitle}>Life Memberships</Text>
+            <View style={styles.table}>
+              <View style={styles.tableRow}>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Name
+                </Text>
+                <Text style={{ ...styles.tableCellHeader, width: "33%" }}>
+                  Service Years
+                </Text>
+                <Text style={{ ...styles.lastTableCell, width: "33%" }}>
+                  Address
+                </Text>
+              </View>
+              {lifeMemberships.map((member, index) => (
+                <View key={index} style={styles.tableRow}>
+                  <Text style={{...styles.tableCell, width: "33%"}}>{member.name}</Text>
+                  <Text style={{...styles.tableCell, width: "33%"}}>{member.years}</Text>
+                  <Text style={{...styles.lastTableCell, width: "33%"}}>{member.address}</Text>
+                </View>
+              ))}
+            </View>
+          </View> */}
+        </View>
+      </Page>
+      <Page style={styles.container} size="A4">
+        <View>
+          <Text style={styles.header}>
+            Esther Grand Chapter of Louisiana Order of the Eastern Star
+          </Text>
+          <View>
+            <Text style={styles.title}>
+              {new Date().getFullYear()} {data?.report.name}{" "}
+              {data?.report.chapterNumber} Roster
+            </Text>
+            <Text style={styles.title}>
+              Number of members: {data?.report.allMembers.length}
+            </Text>
+            <View style={styles.table}>
+              {/* Table Header */}
+              <View style={styles.tableRow}>
+                <Text style={styles.tableCellHeader}>Member Name</Text>
+                <Text style={styles.tableCellHeader}>Mobile Phone</Text>
+                <Text style={styles.tableCellHeader}>Member Status</Text>
+                <Text style={styles.tableCellHeader}>Address</Text>
+                <Text style={styles.tableCellHeader}>Years of Service</Text>
+              </View>
+              {/* Table Rows */}
+              {data?.report.allMembers.map((member) => (
+                <View key={member.id} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {`${member.firstName} ${member.middleName || ""} ${
+                      member.lastName
+                    }`}
+                  </Text>
+                  <Text style={styles.tableCell}>{member.phoneNumber1}</Text>
+                  <Text style={styles.tableCell}>
+                    {
+                      data.statuses.find(
+                        (status) =>
+                          status._id.toString() === member.status?.toString()
+                      )?.name
+                    }
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {member.address1} {member?.address2 || ""}
+                  </Text>
+                  <Text style={styles.lastTableCell}>
+                    {Math.max(
+                      0,
+                      new Date(
+                        new Date().getTime() -
+                          new Date(member.createdAt || Date.now()).getTime()
+                      ).getUTCFullYear() - 1970
+                    )}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+export const ChapterReportsDownloadLink = ({
+  data,
+}: {
+  data: {
+    report: ChapterReportAggregation & {
+      regularMembersCount: number;
+      specialMembersCount: number;
+    };
+    statuses: StatusDocument[];
+    chapters: ChapterDocument[];
+  };
 }) => {
   return (
-    <>
-      <Card className="w-full max-w-4xl mx-auto actual-receipt">
-        <CardHeader>
-          <CardTitle className="text-base text-center border-b border-b-black">
-            Esther Grand Chapter of Louisiana Order of the Eastern Star
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <h3 className="text-md font-bold">2023 Evening Star 46 Roster</h3>
-          <h3 className="text-md font-bold">Number of members: 46</h3>
-          <div className="overflow-x-auto !mt-10">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="border-2 border-black">
-                  <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                    Member Name
-                  </th>
-                  <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                    Mobile Phone
-                  </th>
-                  <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                    Member Status
-                  </th>
-                  <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                    Address
-                  </th>
-                  <th className="px-4 py-2 text-left border-r-2 border-r-black">
-                    Years of Service
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {members.map((member) => (
-                  <tr key={member.id} className="border-2 border-black">
-                    <td className="px-4 py-2 border-r-2 border-r-black">
-                      {`${member.firstName} ${
-                        member.middleName && member.middleName
-                      } ${member.lastName}`}
-                    </td>
-                    <td className="px-4 py-2 border-r-2 border-r-black">
-                      {member.phoneNumber1}
-                    </td>
-                    <td className="px-4 py-2 border-r-2 border-r-black">
-                      {member.status?.toString() || ""}
-                    </td>
-                    <td className="px-4 py-2 border-r-2 border-r-black">
-                      {member.address1}
-                    </td>
-                    <td className="px-4 py-2 border-r-2 border-r-black">
-                      {Math.max(
-                        0,
-                        new Date(
-                          new Date(member.createdAt!).getTime() -
-                            new Date().getTime()
-                        ).getUTCFullYear() - 1970
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-      <Button onClick={downloadPDF}>Download</Button>
-    </>
+    <PDFDownloadLink
+      document={<ChapterReport data={data} />}
+      fileName={`${capitalize(data.report.name)} - Chapter Report - ${getMonth(
+        new Date()
+      )}.pdf`}
+    >
+      {({ loading }) =>
+        loading ? (
+          <LoadingSpinner className="size-8" />
+        ) : (
+          <Button className="px-4 py-2 w-fit rounded-xl bg-button-primary hover:bg-button-primary text-white">
+            ChapterReport
+          </Button>
+        )
+      }
+    </PDFDownloadLink>
   );
 };

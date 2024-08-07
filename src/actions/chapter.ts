@@ -44,12 +44,9 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
         message,
       };
     }
-    const { data } = await getAllStatuses(true);
-
     if (chapterId) {
       members = await Member.find({
         chapterId,
-        status: { $in: data?.map((status) => status._id) },
       });
 
       if (!members || members?.length === 0) {
@@ -85,7 +82,6 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       }
       members = await Member.find({
         chapterId: chapter._id,
-        status: { $in: data?.map((status) => status._id) },
       });
     } else if (checkRole("member")) {
       const member = await Member.findOne({ userId });
@@ -106,7 +102,6 @@ export const getChapterMembers = async (chapterId?: Types.ObjectId) => {
       // );
       members = await Member.find({
         chapterId: member.chapterId,
-        status: { $in: data?.map((status) => status._id) },
       });
     } else {
       return {
@@ -263,6 +258,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
         };
       }
     }
+    console.log(chapter);
 
     const member = await Member.create({
       userId: user.id,
@@ -273,19 +269,21 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       photo: user.imageUrl,
       chapterId: data.chapterId
         ? new Types.ObjectId(data.chapterId)
-        : chapter?._id,
+        : new Types.ObjectId(chapter?._id),
       role: (user.publicMetadata?.role as string) || null,
       zipCode: data.zipCode,
       address1: data.address,
       city: data.city,
       state: new Types.ObjectId(data.state) || null,
-      status: data.memberStatus,
+      status: new Types.ObjectId(data.memberStatus) || null,
       phoneNumber1: data.phoneNumber,
-      sponsor1: data.petitioner1,
-      sponsor2: data.petitioner2,
-      sponsor3: data.petitioner3,
+      sponsor1: new Types.ObjectId(data.petitioner1) || null,
+      sponsor2: data.petitioner2 ? new Types.ObjectId(data.petitioner2) : null,
+      sponsor3: data.petitioner3 ? new Types.ObjectId(data.petitioner3) : null,
       greeting: data.greeting,
       districtId: new Types.ObjectId(chapter?.districtId) || null,
+      duesLeftForYear:
+        (12 - new Date().getMonth()) * (chapter?.chpMonDues || 0),
     });
 
     if (!member) {
@@ -363,9 +361,9 @@ export const editMember = async (_prevState: any, formData: FormData) => {
           city: data.city,
           state: new Types.ObjectId(data.state) || null,
           phoneNumber1: data.phoneNumber,
-          sponsor1: data.petitioner1,
-          sponsor2: data.petitioner2,
-          sponsor3: data.petitioner3,
+          sponsor1: new Types.ObjectId(data.petitioner1) || null,
+          sponsor2: new Types.ObjectId(data.petitioner2) || null,
+          sponsor3: new Types.ObjectId(data.petitioner3) || null,
           birthDate: data.birthdate ? new Date(data.birthdate) : null,
           initiationDate: data.initiationDate
             ? new Date(data.initiationDate)
@@ -734,6 +732,7 @@ export const editChapter = async (_prevState: any, formData: FormData) => {
         chapterMeet2: data.chapterMeet2,
         chpMonDues: data.chpMonDues,
         chpYrDues: data.chpYrDues,
+        technologyFees: data.chapterTechnologyFees,
       },
       { new: true }
     );

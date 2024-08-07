@@ -1,29 +1,26 @@
 "use server";
 
 import { connectDB } from "@/lib/db";
-import { checkRole } from "@/lib/role";
 import { updateDuesSchema } from "@/lib/zod/member";
 import { Due } from "@/models/dues";
 import { Member } from "@/models/member";
 import { Types } from "mongoose";
-import { redirect } from "next/navigation";
 
 export async function updateDues(_prevState: any, formData: FormData) {
+  const rawValues = Object.fromEntries(formData);
+
+  const { success, data, error } = updateDuesSchema.safeParse(rawValues);
+
+  if (!success) {
+    return {
+      message: error.flatten().fieldErrors,
+      success: false,
+    };
+  }
+  const { memberId, amount, dueDate, paymentStatus, totalDues, dueId } = data;
+
   try {
-    const rawValues = Object.fromEntries(formData);
-
-    const { success, data, error } = updateDuesSchema.safeParse(rawValues);
-
-    if (!success) {
-      return {
-        message: error.flatten().fieldErrors,
-        success: false,
-      };
-    }
-
     await connectDB();
-
-    const { memberId, amount, dueDate, paymentStatus, totalDues } = data;
 
     const extraDues =
       Number(amount) > Number(totalDues)
@@ -42,8 +39,18 @@ export async function updateDues(_prevState: any, formData: FormData) {
         };
       }
     }
-    const updatedDue = await Due.findOneAndUpdate(
-      { memberId },
+
+    const oldDue = await Due.findById(new Types.ObjectId(dueId));
+
+    if (!oldDue) {
+      return {
+        message: "Error: Dues not found",
+        success: false,
+      };
+    }
+
+    const updatedDue = await Due.findByIdAndUpdate(
+      new Types.ObjectId(dueId),
       {
         totalDues: Number(totalDues),
         amount: !!extraDues ? Number(totalDues) : Number(amount),
@@ -59,6 +66,22 @@ export async function updateDues(_prevState: any, formData: FormData) {
         success: false,
       };
     }
+
+    const previousAmount = oldDue.amount;
+
+    const amountDifference = Number(amount) - Number(previousAmount);
+
+    await Member.findByIdAndUpdate(
+      memberId,
+      {
+        $inc: {
+          duesLeftForYear: -amountDifference,
+        },
+      },
+      {
+        new: true,
+      }
+    );
 
     return {
       success: true,
@@ -77,7 +100,7 @@ export async function createDue(memberId: Types.ObjectId, totalDues?: number) {
   try {
     await connectDB();
     const newDue = await Due.create({
-      memberId,
+      memberId: new Types.ObjectId(memberId),
       amount: 0,
       totalDues: totalDues || 10,
       dueDate: new Date(),

@@ -137,7 +137,7 @@ export default function UpcomingBirthdaysPDF({
           ranks={ranks}
         />
       }
-      fileName="upcoming-birthdays.pdf"
+      fileName={`Upcoming Birthdays - ${getMonth(new Date())}.pdf`}
     >
       {({ loading }) =>
         loading ? (

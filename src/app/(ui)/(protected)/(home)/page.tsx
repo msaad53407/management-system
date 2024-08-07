@@ -1,6 +1,9 @@
-import { getChapterMembers } from "@/actions/chapter";
-import { ChapterMemberDetails } from "@/components/pdf/ChapterReport";
-import { MemberDocument } from "@/models/member";
+import { ChapterReportsDownloadLink } from "@/components/pdf/ChapterReport";
+import {
+  getAllChapters,
+  getAllStatuses,
+  getChapterReport,
+} from "@/utils/functions";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -13,9 +16,13 @@ export default async function Home() {
 
   const user = await clerkClient().users.getUser(userId);
 
-  const { data: members } = await getChapterMembers();
+  const [{ data }, { data: statuses }, { data: chapters }] = await Promise.all([
+    getChapterReport("668924b8b970bc1f93711ebc"),
+    getAllStatuses(),
+    getAllChapters(),
+  ]);
 
-  if (!members || members.length === 0) {
+  if (!data || !statuses || !chapters) {
     return (
       <div className="w-full flex items-center justify-center min-h-screen overflow-y-auto">
         <h1 className="text-3xl font-semibold text-slate-600">
@@ -25,8 +32,7 @@ export default async function Home() {
       </div>
     );
   }
-
-  const parsedMembers = JSON.parse(JSON.stringify(members)) as MemberDocument[];
+  // console.log(JSON.stringify(statuses, null, 2));
 
   return (
     // <div className="w-full flex items-center justify-center min-h-screen overflow-y-auto">
@@ -35,6 +41,14 @@ export default async function Home() {
     //     <span className="text-pink-600">{user.fullName}</span>
     //   </h1>
     // </div>
-    <ChapterMemberDetails members={parsedMembers} />
+    <>
+      <ChapterReportsDownloadLink
+        data={{
+          report: JSON.parse(JSON.stringify(data)),
+          statuses: JSON.parse(JSON.stringify(statuses)),
+          chapters: JSON.parse(JSON.stringify(chapters)),
+        }}
+      />
+    </>
   );
 }

@@ -2,21 +2,17 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import { checkRole } from "@/lib/role";
 import { ChapterDocument } from "@/models/chapter";
 import { DistrictDocument } from "@/models/district";
-import { capitalize } from "@/utils";
-import {
-  getAllChapters,
-  getAllDistricts,
-  getMonthlyMoneyDetails,
-} from "@/utils/functions";
-import { auth } from "@clerk/nextjs/server";
+import { capitalize, capitalizeSentence } from "@/utils";
+import { getAllChapters, getAllDistricts } from "@/utils/functions";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Suspense } from "react";
 import ActiveMembersCard from "./components/ActiveMembersCard";
 import FilterDropdown from "./components/FilterDropdown";
 import MemberBirthdaysCard from "./components/MemberBirthdaysCard";
 import MemberDistributionCard from "./components/MemberDistributionCard";
 import MemberGrowthCard from "./components/MemberGrowthCard";
-import NewMembersCard from "./components/NewMembersCard";
 import MoneyDetailsCard from "./components/MoneyDetailsCard";
+import NewMembersCard from "./components/NewMembersCard";
 
 type Props = {
   searchParams?: {
@@ -38,6 +34,8 @@ const Dashboard = async ({ searchParams }: Props) => {
 
   const role = auth().sessionClaims?.metadata.role!;
 
+  const user = await clerkClient().users.getUser(auth().userId!);
+
   let chapters: ChapterDocument[] | null = null;
   let districts: DistrictDocument[] | null = null;
 
@@ -53,14 +51,17 @@ const Dashboard = async ({ searchParams }: Props) => {
       }
     );
   }
-
   return (
     <main className="flex flex-col gap-6 p-4 w-full">
       <div className="flex flex-col gap-2 w-full">
         <h2 className="text-xl font-bold">Dashboard</h2>
         <div className="flex flex-row w-full items-center justify-between">
           <h3 className="text-slate-600 text-lg font-semibold">
-            Welcome to the dashboard, {capitalize(role.split("-").join(" "))}
+            Welcome to the dashboard{" "}
+            <span className="text-pink-600">
+              {capitalize(user.firstName)} {capitalize(user.lastName)} -{" "}
+              {capitalizeSentence(role, "-")}
+            </span>
           </h3>
           <FilterDropdown
             chapters={chapters}
@@ -144,7 +145,7 @@ const Dashboard = async ({ searchParams }: Props) => {
       </section>
       <section className="w-full space-y-3">
         <h2 className="text-lg font-semibold">Insights</h2>
-        <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2">
           <Suspense
             fallback={
               <LoadingSpinner

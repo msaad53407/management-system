@@ -5,7 +5,7 @@ export const addMemberSchema = z.object({
   greeting: z.enum(["Sis.", "Bro."], {
     required_error: "Greeting is required",
   }),
-  chapterId: z.string(),
+  chapterId: z.string().min(1, "Required"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   username: z.string().optional(),
@@ -29,12 +29,12 @@ export const editFormSchema = (role: Roles) =>
         required_error: "Member ID is required",
       })
       .min(1, "Member ID is required"),
-    chapterId: z.string(),
+    chapterId: z.string().optional(),
     greeting: z.enum(["Sis.", "Bro."], {
       required_error: "Greeting is required",
     }),
     firstName: z.string().min(1, "First name is required"),
-    middleName: z.string(),
+    middleName: z.string().optional(),
     lastName: z.string().min(1, "Last name is required"),
     emailAddress: z
       .string()
@@ -58,47 +58,23 @@ export const editFormSchema = (role: Roles) =>
     zipcode: z
       .string({ required_error: "Zip code is required" })
       .min(1, "Zip code is required"),
-    petitioner1: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Petitioner 1 is required" })
-          .min(1, "Petitioner 1 is required")
-      : z.string().optional(),
-    petitioner2: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Petitioner 2 is required" })
-          .min(1, "Petitioner 2 is required")
-      : z.string().optional(),
-    petitioner3: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Petitioner 3 is required" })
-          .min(1, "Petitioner 3 is required")
-      : z.string().optional(),
+    petitioner1: z.string().optional(),
+    petitioner2: z.string().optional(),
+    petitioner3: z.string().optional(),
     memberStatus: ["secretary", "grand-administrator"].includes(role)
       ? z
           .string({ required_error: "Member status is required" })
           .min(1, "Member status is required")
       : z.string().optional(),
-    chapterOffice: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Chapter office is required" })
-          .min(1, "Chapter office is required")
-      : z.string().optional(),
+    chapterOffice: z.string().optional(),
     grandChapterOffice: z.string().optional(),
-    memberRank: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Member rank is required" })
-          .min(1, "Member rank is required")
-      : z.string().optional(),
+    memberRank: z.string().optional(),
     birthdate: ["secretary", "grand-administrator"].includes(role)
       ? z
           .string({ required_error: "Birthdate is required" })
           .min(1, "Birthdate is required")
       : z.string().optional(),
-    initiationDate: ["secretary", "grand-administrator"].includes(role)
-      ? z
-          .string({ required_error: "Initiation date is required" })
-          .min(1, "Initiation date is required")
-      : z.string().optional(),
+    initiationDate: z.string().optional(),
     queenOfTheSouth: z.string().optional(),
     amarant: z.string().optional(),
     petitionDate: z.string().optional(),
@@ -141,16 +117,8 @@ export const addDistrictSchema = z.object({
       required_error: "District charter date is required",
     })
     .min(1, "District charter date should be in the future"),
-  districtMeet1: z
-    .string({
-      required_error: "District meet 1 is required",
-    })
-    .min(1, "District meet 1 is required"),
-  districtMeet2: z
-    .string({
-      required_error: "District meet 2 is required",
-    })
-    .min(1, "District meet 2 is required"),
+  districtMeet1: z.string().optional(),
+  districtMeet2: z.string().optional(),
   firstName: z
     .string({
       required_error: "First name is required",
@@ -180,21 +148,18 @@ export const addDistrictSchema = z.object({
 });
 
 export const updateDistrictSchema = z.object({
+  districtName: z
+    .string({
+      required_error: "District Name is required",
+    })
+    .min(1, "District Name is required"),
   districtChartDate: z
     .string({
       required_error: "Chart date is required",
     })
     .min(1, "Chart date is required"),
-  districtMeet1: z
-    .string({
-      required_error: "Meet 1 is required",
-    })
-    .min(1, "Meet 1 is required"),
-  districtMeet2: z
-    .string({
-      required_error: "Meet 2 is required",
-    })
-    .min(1, "Meet 2 is required"),
+  districtMeet1: z.string().optional(),
+  districtMeet2: z.string().optional(),
   districtMonDues: z
     .string({
       required_error: "Monthly dues is required",
@@ -260,12 +225,8 @@ export const addChapterSchema = z.object({
       required_error: "Chart date is required",
     })
     .min(1, "Chart date is required"),
-  chapterMeet1: z
-    .string({
-      required_error: "Meet 1 is required",
-    })
-    .min(1, "Meet 1 is required"),
-  chapterMeet2: z.string(),
+  chapterMeet1: z.string().optional(),
+  chapterMeet2: z.string().optional(),
   chpMonDues: z
     .string({
       required_error: "Monthly dues is required",
@@ -334,7 +295,7 @@ export const updateChapterSchema = z.object({
       required_error: "Address 1 is required",
     })
     .min(1, "Address 1 is required"),
-  chapterAddress2: z.string(),
+  chapterAddress2: z.string().optional(),
   chapterCity: z
     .string({
       required_error: "City is required",
@@ -356,16 +317,8 @@ export const updateChapterSchema = z.object({
       required_error: "Chart date is required",
     })
     .min(1, "Chart date is required"),
-  chapterMeet1: z
-    .string({
-      required_error: "Meet 1 is required",
-    })
-    .min(1, "Meet 1 is required"),
-  chapterMeet2: z
-    .string({
-      required_error: "Meet 2 is required",
-    })
-    .min(1, "Meet 2 is required"),
+  chapterMeet1: z.string().optional(),
+  chapterMeet2: z.string().optional(),
   chpMonDues: z
     .string({
       required_error: "Monthly dues is required",
@@ -381,6 +334,9 @@ export const updateChapterSchema = z.object({
       required_error: "Chapter ID is required",
     })
     .min(1, "Chapter ID is required"),
+  chapterTechnologyFees: z
+    .string({ required_error: "Technology Fees is required" })
+    .min(1, "Technology Fees is required"),
 });
 
 export const updateDuesSchema = z.object({
@@ -407,6 +363,11 @@ export const updateDuesSchema = z.object({
   paymentStatus: z.enum(["unpaid", "paid", "overdue"], {
     required_error: "Payment status is required",
   }),
+  dueId: z
+    .string({
+      required_error: "Due ID is required",
+    })
+    .min(1, "Due ID is required"),
 });
 
 export const dateFormSchema = z.object({

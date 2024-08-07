@@ -1,12 +1,11 @@
-import { getChapterMembers } from "@/actions/chapter";
-import ChapterDetailsPDF from "@/components/pdf/ChapterDetails";
+import { ChapterReportsDownloadLink } from "@/components/pdf/ChapterReport";
 import UpcomingBirthdaysPDF from "@/components/pdf/UpcomingBirthdays";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MemberDocument } from "@/models/member";
 import {
+  getAllChapters,
   getAllRanks,
   getAllStatuses,
-  getChapterFinances,
+  getChapterReport,
   getMembersBirthdays,
 } from "@/utils/functions";
 import { Types } from "mongoose";
@@ -23,57 +22,29 @@ const ChapterReports = async ({ params: { chapterId } }: Props) => {
     notFound();
   }
 
-  const { data, message } = await getChapterMembers(
-    new Types.ObjectId(chapterId)
-  );
-  const ranks = await getAllRanks();
-  const statuses = await getAllStatuses();
+  const [
+    { data: members, message: membersMessage },
+    { data: ranks, message: ranksMessage },
+    { data: report, message: reportMessage },
+    { data: statuses, message: statusesMessage },
+    { data: chapters, message: chaptersMessage },
+  ] = await Promise.all([
+    getMembersBirthdays({ chapterId: chapterId }),
+    getAllRanks(),
+    getChapterReport(chapterId.toString()),
+    getAllStatuses(),
+    getAllChapters(),
+  ]);
 
-  if (!data || !ranks.data || !statuses.data) {
-    return (
-      <main className="flex flex-col gap-6 p-4 w-full">
-        <Card>
-          <CardHeader>
-            <CardTitle>Chapter Reports</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-500 text-center">
-              Error: {!data && message} {!ranks.data && ranks.message}{" "}
-              {!statuses.data && statuses.message}
-            </p>
-          </CardContent>
-        </Card>
-      </main>
-    );
-  }
+  const birthdaysNotAvailable =
+    !members || members.length === 0 || !ranks || ranks.length === 0;
 
-  const parsedData = JSON.parse(JSON.stringify(data)) as MemberDocument[];
-  const { data: finances, message: financesMessage } = await getChapterFinances(
-    new Types.ObjectId(chapterId),
-    {}
-  );
-  const { data: upcomingBirthdays, message: upcomingBirthdaysMessage } =
-    await getMembersBirthdays({
-      chapterId: new Types.ObjectId(chapterId),
-    });
-
-  if (!finances || !upcomingBirthdays) {
-    return (
-      <main className="flex flex-col gap-6 p-4 w-full">
-        <Card>
-          <CardHeader>
-            <CardTitle>Chapter Reports</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-500 text-center">
-              Error: {!finances && financesMessage}{" "}
-              {!upcomingBirthdays && upcomingBirthdaysMessage}
-            </p>
-          </CardContent>
-        </Card>
-      </main>
-    );
-  }
+  const reportNotAvailable =
+    !report ||
+    !statuses ||
+    statuses.length === 0 ||
+    !chapters ||
+    chapters.length === 0;
 
   return (
     <main className="flex flex-col gap-6 p-4 w-full">
@@ -87,25 +58,32 @@ const ChapterReports = async ({ params: { chapterId } }: Props) => {
               <h4 className="text-lg text-slate-600 font-normal">
                 Chapter Details
               </h4>
-              <ChapterDetailsPDF
-                finances={finances}
-                members={parsedData}
-                ranks={ranks.data}
-                statuses={statuses.data}
-              >
-                Download
-              </ChapterDetailsPDF>
+              {!reportNotAvailable ? (
+                <ChapterReportsDownloadLink
+                  data={{
+                    report: JSON.parse(JSON.stringify(report)),
+                    statuses: JSON.parse(JSON.stringify(statuses)),
+                    chapters: JSON.parse(JSON.stringify(chapters)),
+                  }}
+                />
+              ) : (
+                <div>Not Available</div>
+              )}
             </li>
             <li className="flex w-full items-center justify-between py-3">
               <h4 className="text-lg text-slate-600 font-normal">
                 Upcoming Birthdays
               </h4>
-              <UpcomingBirthdaysPDF
-                upcomingBirthdays={upcomingBirthdays}
-                ranks={ranks.data}
-              >
-                Download
-              </UpcomingBirthdaysPDF>
+              {!birthdaysNotAvailable ? (
+                <UpcomingBirthdaysPDF
+                  ranks={JSON.parse(JSON.stringify(ranks))}
+                  upcomingBirthdays={members}
+                >
+                  Upcoming Birthdays
+                </UpcomingBirthdaysPDF>
+              ) : (
+                <div>Not Available</div>
+              )}
             </li>
           </ul>
         </CardContent>

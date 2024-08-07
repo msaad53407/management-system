@@ -55,7 +55,11 @@ export default function SignInPage() {
   // }, [passwordError]);
 
   return (
-    <SignIn.Root>
+    <SignIn.Root
+      fallback={
+        <LoadingSpinner className="min-h-screen" spinnerClassName="size-32" />
+      }
+    >
       <div className="flex items-center justify-center w-full h-screen">
         <Clerk.Loading>
           {(isGlobalLoading) => (

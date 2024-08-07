@@ -84,7 +84,7 @@ const ChapterMembers = async ({
   ] = await Promise.all([
     getChapterMembers(chapterId),
     getAllRanks(),
-    getAllStatuses(true),
+    getAllStatuses(),
   ]);
 
   if (
