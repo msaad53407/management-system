@@ -1,26 +1,30 @@
 import { Roles } from "@/types/globals";
 import { z } from "zod";
 
-export const addMemberSchema = z.object({
-  greeting: z.enum(["Sis.", "Bro."], {
-    required_error: "Greeting is required",
-  }),
-  chapterId: z.string().min(1, "Required"),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  username: z.string().optional(),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(1, "Password is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  address: z.string().min(1, "Address is required"),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  zipCode: z.string().min(1, "Zip code is required"),
-  petitioner1: z.string().min(1, "Petitioner 1 is required"),
-  petitioner2: z.string().optional(),
-  petitioner3: z.string().optional(),
-  memberStatus: z.string().min(1, "Member status is required"),
-});
+export const addMemberSchema = (role: Roles) =>
+  z.object({
+    greeting: z.enum(["Sis.", "Bro."], {
+      required_error: "Greeting is required",
+    }),
+    chapterId:
+      role === "grand-administrator"
+        ? z.string().min(1, "Required")
+        : z.string().optional(),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    username: z.string().optional(),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(1, "Password is required"),
+    phoneNumber: z.string().min(1, "Phone number is required"),
+    address: z.string().min(1, "Address is required"),
+    city: z.string().min(1, "City is required"),
+    state: z.string().min(1, "State is required"),
+    zipCode: z.string().min(1, "Zip code is required"),
+    petitioner1: z.string().optional(),
+    petitioner2: z.string().optional(),
+    petitioner3: z.string().optional(),
+    memberStatus: z.string().min(1, "Member status is required"),
+  });
 
 export const editFormSchema = (role: Roles) =>
   z.object({

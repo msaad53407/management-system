@@ -35,6 +35,21 @@ const ChapterMembers = async () => {
   ) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="text-xl font-semibold text-slate-600">
+            Member Roster
+          </h3>
+          {checkRole("secretary") && (
+            <Link href="/chapter/member/add">
+              <Button
+                variant={"destructive"}
+                className="bg-button-primary hover:bg-button-primary"
+              >
+                Add Member
+              </Button>
+            </Link>
+          )}
+        </div>
         <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
           {(!members || members.length === 0) && membersMessage}{" "}
           {(!ranks || ranks.length === 0) && ranksMessage}{" "}

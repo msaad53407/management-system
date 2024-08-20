@@ -86,7 +86,6 @@ const detailsFields = [
     label: "Petitioner 1",
     id: "petitioner1",
     type: "select",
-    required: true,
     placeholder: "Select Petitioner",
     dropdownType: "petitioners",
   },
@@ -138,7 +137,6 @@ const AddMemberForm = ({ dropdownOptions, chapterId }: Props) => {
         className="grid grid-cols-1 gap-4 w-full overflow-x-hidden p-2"
         action={formAction}
       >
-        
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
           <Input
             type="text"

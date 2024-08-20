@@ -194,10 +194,13 @@ export const addMember = async (_prevState: any, formData: FormData) => {
   if (!checkRole(["secretary", "grand-administrator"])) {
     redirect("/chapter/members");
   }
-  const { userId } = auth();
+
+  const { userId, sessionClaims } = auth();
+  const role = sessionClaims?.metadata.role!;
+
   const rawData = Object.fromEntries(formData);
 
-  const { success, data, error } = addMemberSchema.safeParse(rawData);
+  const { success, data, error } = addMemberSchema(role).safeParse(rawData);
 
   if (!success) {
     console.error(error);
@@ -235,7 +238,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
     }
 
     if (!user) {
-      return { message: "Error: User not found", success: false };
+      return { message: "Error: Could not create user", success: false };
     }
     let chapter;
     if (!data.chapterId) {
@@ -275,7 +278,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       state: new Types.ObjectId(data.state) || null,
       status: new Types.ObjectId(data.memberStatus) || null,
       phoneNumber1: data.phoneNumber,
-      sponsor1: new Types.ObjectId(data.petitioner1) || null,
+      sponsor1: data.petitioner1 ? new Types.ObjectId(data.petitioner1) : null,
       sponsor2: data.petitioner2 ? new Types.ObjectId(data.petitioner2) : null,
       sponsor3: data.petitioner3 ? new Types.ObjectId(data.petitioner3) : null,
       greeting: data.greeting,
