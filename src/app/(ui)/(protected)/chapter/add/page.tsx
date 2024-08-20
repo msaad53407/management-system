@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import Link from "next/link";
-import React from "react";
-import AddChapterForm from "./components/AddChapterForm";
-import { getAllDistricts, getAllStates } from "@/utils/functions";
 import { DistrictDocument } from "@/models/district";
+import { getAllDistricts, getAllStates } from "@/utils/functions";
+import Link from "next/link";
+import AddChapterForm from "./components/AddChapterForm";
 
 const AddChapter = async () => {
   const [states, districts] = await Promise.all([

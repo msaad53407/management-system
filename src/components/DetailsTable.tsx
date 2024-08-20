@@ -85,7 +85,8 @@ export default function DetailsTable(props: Props) {
     const { data, message } = await removeMember(memberId);
     setOpen(false);
     toast({
-      title: message,
+      title: !data ? "Error" : "Success",
+      description: message,
       duration: 3000,
       variant: !data ? "destructive" : "default",
     });

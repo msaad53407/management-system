@@ -362,9 +362,15 @@ export const editMember = async (_prevState: any, formData: FormData) => {
           city: data.city,
           state: new Types.ObjectId(data.state) || null,
           phoneNumber1: data.phoneNumber,
-          sponsor1: new Types.ObjectId(data.petitioner1) || null,
-          sponsor2: new Types.ObjectId(data.petitioner2) || null,
-          sponsor3: new Types.ObjectId(data.petitioner3) || null,
+          sponsor1: data.petitioner1
+            ? new Types.ObjectId(data.petitioner1)
+            : null,
+          sponsor2: data.petitioner2
+            ? new Types.ObjectId(data.petitioner2)
+            : null,
+          sponsor3: data.petitioner3
+            ? new Types.ObjectId(data.petitioner3)
+            : null,
           birthDate: data.birthdate ? new Date(data.birthdate) : null,
           initiationDate: data.initiationDate
             ? new Date(data.initiationDate)
@@ -373,7 +379,9 @@ export const editMember = async (_prevState: any, formData: FormData) => {
             ? new Date(data.queenOfTheSouth)
             : null,
           amaranthDate: data.amarant ? new Date(data.amarant) : null,
-          memberRank: data.memberRank || null,
+          memberRank: data.memberRank
+            ? new Types.ObjectId(data.memberRank)
+            : null,
           petitionDate: data.petitionDate ? new Date(data.petitionDate) : null,
           petitionReceivedDate: data.petitionReceived
             ? new Date(data.petitionReceived)
@@ -395,9 +403,12 @@ export const editMember = async (_prevState: any, formData: FormData) => {
             : null,
           emergencyContactPhone: data.emergencyContactPhone,
           password: data.password,
-          dropReason: new Types.ObjectId(data.dropReason) || null,
-          expelReason:
-            new Types.ObjectId(data.suspensionExpelledReason) || null,
+          dropReason: data.dropReason
+            ? new Types.ObjectId(data.dropReason)
+            : null,
+          expelReason: data.suspensionExpelledReason
+            ? new Types.ObjectId(data.suspensionExpelledReason)
+            : null,
           expelDate: data.suspensionExpelledDate
             ? new Date(data.suspensionExpelledDate)
             : null,
@@ -413,15 +424,23 @@ export const editMember = async (_prevState: any, formData: FormData) => {
           queenOfSouthDate: data.queenOfTheSouth
             ? new Date(data.queenOfTheSouth)
             : null,
-          chapterOffice: new Types.ObjectId(data.chapterOffice) || null,
-          grandOffice: new Types.ObjectId(data.grandChapterOffice) || null,
-          rank: new Types.ObjectId(data.memberRank) || null,
+          chapterOffice: data.chapterOffice
+            ? new Types.ObjectId(data.chapterOffice)
+            : null,
+          grandOffice: data.grandChapterOffice
+            ? new Types.ObjectId(data.grandChapterOffice)
+            : null,
+          rank: data.memberRank ? new Types.ObjectId(data.memberRank) : null,
           reinstatedDate: data.reinstatedDate
             ? new Date(data.reinstatedDate)
             : null,
-          status: new Types.ObjectId(data.memberStatus) || null,
-          chapter: new Types.ObjectId(data.chapterId) || null,
-          demitToChapter: new Types.ObjectId(data.demitToChapter) || null,
+          status: data.memberStatus
+            ? new Types.ObjectId(data.memberStatus)
+            : null,
+          chapter: data.chapterId ? new Types.ObjectId(data.chapterId) : null,
+          demitToChapter: data.demitToChapter
+            ? new Types.ObjectId(data.demitToChapter)
+            : null,
         },
         {
           new: true,

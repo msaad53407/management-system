@@ -112,7 +112,7 @@ const ChapterMembers = async ({
             </Link>
           )}
         </div>
-        <div className="flex flex-col gap-6 p-4 w-full">
+        <div className="flex flex-col items-center gap-6 p-4 w-full">
           <h3 className="text-xl font-semibold text-slate-600">
             {(!members || members.length === 0) && membersMessage}
             {(!ranks || ranks.length === 0) && ranksMessage}
