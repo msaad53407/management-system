@@ -43,6 +43,23 @@ const DistrictChapters = async ({ params: { districtId } }: Props) => {
   if (!chapters || chapters.length === 0) {
     return (
       <section className="flex flex-col gap-6 p-4 w-full">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="text-xl font-semibold text-slate-600">
+            District:{" "}
+            <span className="text-pink-600">{capitalize(district.name)}</span>{" "}
+            Chapters
+          </h3>
+          {checkRole(["grand-administrator"]) && (
+            <Link href={`/chapter/add`}>
+              <Button
+                variant={"destructive"}
+                className="bg-button-primary hover:bg-button-primary"
+              >
+                Add Chapter
+              </Button>
+            </Link>
+          )}
+        </div>
         <h3 className="text-xl font-semibold text-slate-600 text-center my-10">
           There are currently no Chapters in this District.
         </h3>
@@ -59,14 +76,14 @@ const DistrictChapters = async ({ params: { districtId } }: Props) => {
           Chapters
         </h3>
         {checkRole(["grand-administrator"]) && (
-          // <Link href={`/chapter/member/add?chapterId=${params.chapterId}`}>
-          <Button
-            variant={"destructive"}
-            className="bg-button-primary hover:bg-button-primary"
-          >
-            Add Chapter
-          </Button>
-          // </Link>
+          <Link href={`/chapter/add`}>
+            <Button
+              variant={"destructive"}
+              className="bg-button-primary hover:bg-button-primary"
+            >
+              Add Chapter
+            </Button>
+          </Link>
         )}
       </div>
       <div className="flex flex-col gap-4 w-full">

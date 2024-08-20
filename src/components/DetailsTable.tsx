@@ -394,7 +394,9 @@ export default function DetailsTable(props: Props) {
                   <p>{district.name?.split(" ").at(1)}</p>
                 </TableCell>
                 <TableCell className="font-medium text-slate-600">
-                  <p>{district.name}</p>
+                  <Link href={`/district/${district._id}/chapters`}>
+                    <p>{district.name}</p>
+                  </Link>
                 </TableCell>
 
                 {allowedActions({ district }) ? (
