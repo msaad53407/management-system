@@ -43,6 +43,7 @@ import {
 } from "./ui/alert-dialog";
 import { ChapterDocument } from "@/models/chapter";
 import { DistrictDocument } from "@/models/district";
+import { toast } from "./ui/use-toast";
 
 type Props =
   | {
@@ -81,9 +82,13 @@ export default function DetailsTable(props: Props) {
   const [open, setOpen] = useState(false);
 
   const removeMemberHandler = async (memberId: string) => {
-    const { message } = await removeMember(memberId);
+    const { data, message } = await removeMember(memberId);
     setOpen(false);
-    alert(message);
+    toast({
+      title: message,
+      duration: 3000,
+      variant: !data ? "destructive" : "default",
+    });
   };
   const { user } = useUser();
   const checkRoleClient = useCheckRole();
