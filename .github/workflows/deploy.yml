@@ -21,4 +21,4 @@ jobs:
 
     - name: Deploy to VPS
       run: |
-        ssh root@193.203.167.13 'bash -s' < ~/deploy.sh
+        ssh root@193.203.167.13 'bash -s' < ./deploy.sh
