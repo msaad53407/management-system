@@ -16,7 +16,38 @@ jobs:
     - name: Copy SSH key
       uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.VPS_DEPLOY_KEY }}
+        key: ${{ secray@gmail.com
+root@main:/# ss-keyscan
+-Н 193.203.167.13
+Command
+'ss-keyscan'
+not found,
+did you mean:
+command
+ssh-keyscan'
+from deb openssh-client (1:8.9p1-3ubuntu0.10)
+Try: apt install ‹ deb name> root@main:/#
+ssh-keyscan -H 193.203.167.13
+193.203.167.13:22
+SSH-2.0-0penSSH_8.9p1 Ubuntu-3ubuntue.10
+1|gxZWMy7b+Y12J422C80BXekwU6g=|NYq77HAFt2CbqLxfqOGWJHIMrWA= ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB
+AAABg@Dr/Auwnn6fxgf2DKwBelk/Gsc18C6ApCTq6HYTtnDj00BRRpdOhWoEadIAVuoy1077PJb4aQ9EEd7HovBTqf11
+SQaJ033Qp@bytkUfayUKHi4t0aGVZQUaAgje3I4D9c0fALA/x1YIU/JBNo/vnNUVHTjBgjAvK5xGvb1311x0Pgag/no/el
+JfIKAIjn6TozGxpIo1Rs6FDexhgVUs4tGgHL/mOmzK0kXfL+nk/AekspLAdbsosTfS42eQGoMByq1hmxf/SorZbw6aSk4
+dGOKCdPq5j2IbUUqR1q0TF02HjDqdr0J/VoBkVFnu0aG1QptF/9KvnBODBhkQiU80waKXRdoNB1SqIotSmQ9rfak2bNmT
+61k1ZyAkNo517hH+ePjb87NhRM8GkkUi7af6GVpyCkjCiKWJE6qq+QaDHcvnAKyPz0ZY1380tAKn]ZtwAi2M/XtGRkmao
+40bf®BTF6U3Gd+Fy4HRPDQ6M9MsQUsx]GI4FqM4HxJT™H†Acc78=
+# 193.203.167.13:22 SSH-2.0-0penSSH_8.9p1 Ubuntu-3ubuntue. 10
+|1|043uS5010HoCf/y0876cL24pxUE=|JqmVNmpix+ZMiy/7rD/zlkdaBI0= ecdsa-sha2-nistp256 AAAAE2VjZHNh|
+LXNoYTItbmIzdHAyNTYAAAAIbm1zdHAyNTYAAABBBPi5hROnVwERZKHLMujMss7b]EB0qMfFJPI6Qd@01qUFdRi7Vtk9y
+obv/gz52h15YIuAV00KdkWK53Rb5X/kBg=
+# 193.203.167.13:22 SSH-2.0-0penSSH_8.9p1
+Ubuntu-3ubuntuo.10
+|1|pttn30JIYSmTw+SKLbVbs1Uadzk=|f@4ZUtXdvk7XPND1CJkxxBNcy8s= ssh-ed25519 AAAAC3NzaC11ZDI1NTE5
+AAAAIER+52M0iks/6H3M1QTfk1HXK1zug+06FnFRm3QXaSwm
+# 193.203.167.13:22 SSH-2.0-0penSSH_8.9p1 Ubuntu-3ubuntue. 10
+# 193.203.167.
+13:22 SSH-2.0-0penSSH_8.9p1 Ubuntu-3ubuntu0. 10ets.VPS_DEPLOY_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }} 
 
     - name: Deploy to VPS
