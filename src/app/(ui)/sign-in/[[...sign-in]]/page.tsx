@@ -1,20 +1,25 @@
 "use client";
 
+import { validateRole } from "@/actions/user";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  SelectTrigger,
   Select,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 import { Roles } from "@/types/globals";
-import { capitalize, capitalizeSentence } from "@/utils";
+import { capitalizeSentence } from "@/utils";
 import * as Clerk from "@clerk/elements/common";
 import * as SignIn from "@clerk/elements/sign-in";
+import { useSignIn } from "@clerk/nextjs";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 const roles: Roles[] = [
@@ -27,32 +32,84 @@ const roles: Roles[] = [
 ];
 
 export default function SignInPage() {
-  const [role, setRole] = useState<Roles | "">("");
+  const [signInInfo, setSignInInfo] = useState<{
+    email: string;
+    password: string;
+    role?: Roles;
+  }>({
+    email: "",
+    password: "",
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  // useEffect(() => {
-  //   if (emailError) {
-  //     console.log(emailError)
-  //     const timeout = setTimeout(() => {
-  //       setEmailError(null);
-  //     }, 3000);
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const searchParams = useSearchParams();
 
-  //     return () => clearTimeout(timeout);
-  //   }
-  // }, [emailError]);
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  // useEffect(() => {
-  //   if (passwordError) {
-  //     console.log(passwordError)
-  //     const timeout = setTimeout(() => {
-  //       setPasswordError(null);
-  //     }, 3000);
+    if (!isLoaded) return;
 
-  //     return () => clearTimeout(timeout);
-  //   }
-  // }, [passwordError]);
+    setIsLoading(true);
+
+    const { data, message } = await validateRole(
+      signInInfo.email,
+      signInInfo.role
+    );
+
+    if (!data) {
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { createdSessionId } = await signIn.create({
+        identifier: signInInfo.email,
+        password: signInInfo.password,
+        strategy: "password",
+      });
+
+      if (!createdSessionId) {
+        toast({
+          title: "Error",
+          description: "Unable to sign in !! Invalid credentials",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await setActive({
+        session: createdSessionId,
+      });
+
+      toast({
+        title: "Success",
+        description: "Signed in successfully",
+      });
+      const redirectUrl = searchParams.get("redirect_url");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+        return;
+      }
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Unable to sign in !! " + error?.errors?.at(0)?.message,
+        variant: "destructive",
+      });
+    }
+
+    setIsLoading(false);
+  };
 
   return (
     <SignIn.Root
@@ -60,13 +117,13 @@ export default function SignInPage() {
         <LoadingSpinner className="min-h-screen" spinnerClassName="size-32" />
       }
     >
-      <div className="flex items-center justify-center w-full h-screen">
+      <form
+        className="flex items-center justify-center w-full h-screen"
+        onSubmit={handleSignIn}
+      >
         <Clerk.Loading>
           {(isGlobalLoading) => (
-            <SignIn.Step
-              name="start"
-              className="flex flex-col gap-4 min-w-[350px] p-4"
-            >
+            <div className="flex flex-col gap-4 min-w-[350px] p-4">
               <h1 className="text-4xl font-bold text-pink-600">Welcome Back</h1>
 
               <h3 className="text-sm font-medium text-slate-600">
@@ -74,8 +131,14 @@ export default function SignInPage() {
               </h3>
 
               <div className="flex flex-col gap-1">
-                <Label>User Role</Label>
-                <Select value={role} onValueChange={(r: Roles) => setRole(r)}>
+                <Label htmlFor="role">User Role</Label>
+                <Select
+                  value={signInInfo.role}
+                  onValueChange={(r: Roles) =>
+                    setSignInInfo({ ...signInInfo, role: r })
+                  }
+                  name="role"
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a Role" />
                   </SelectTrigger>
@@ -89,36 +152,41 @@ export default function SignInPage() {
                 </Select>
               </div>
 
-              {role ? (
+              {signInInfo.role ? (
                 <>
                   <Clerk.GlobalError className="inline-block text-sm text-destructive" />
-                  <Clerk.Field name="identifier" className="w-full">
-                    <Clerk.Label asChild>
-                      <Label>Email address</Label>
-                    </Clerk.Label>
-                    <Clerk.Input type="email" required asChild>
-                      <Input />
-                    </Clerk.Input>
-                    <Clerk.FieldError className="inline-block text-sm text-destructive">
-                      {({ message, code }) => {
-                        if (message !== emailError) setEmailError(message);
-                        return <span data-error-code={code}>{message}</span>;
+                  <div className="w-full flex flex-col gap-2">
+                    <Label htmlFor="email">Email address</Label>
+                    <Input
+                      type="email"
+                      id="email"
+                      required
+                      value={signInInfo.email}
+                      onChange={(e) => {
+                        setSignInInfo({
+                          ...signInInfo,
+                          email: e.target.value,
+                        });
                       }}
-                    </Clerk.FieldError>
-                  </Clerk.Field>
+                    />
+                  </div>
 
-                  <Clerk.Field name="password" className="w-full">
-                    <Clerk.Label asChild>
-                      <Label>Password</Label>
-                    </Clerk.Label>
+                  <div className="w-full">
+                    <Label htmlFor="password">Password</Label>
                     <div className="relative">
-                      <Clerk.Input
-                        asChild
+                      <Input
                         type={showPassword ? "text" : "password"}
+                        id="password"
+                        name="password"
                         required
-                      >
-                        <Input />
-                      </Clerk.Input>
+                        onChange={(e) => {
+                          setSignInInfo({
+                            ...signInInfo,
+                            password: e.target.value,
+                          });
+                        }}
+                        value={signInInfo.password}
+                      />
                       {!showPassword ? (
                         <Eye
                           className="absolute right-2 top-1/4 cursor-pointer"
@@ -131,39 +199,28 @@ export default function SignInPage() {
                         />
                       )}
                     </div>
-
-                    <Clerk.FieldError className="inline-block text-sm text-destructive max-w-[315px]">
-                      {({ message, code }) => {
-                        if (message !== passwordError)
-                          setPasswordError(message);
-                        return <span data-error-code={code}>{message}</span>;
-                      }}
-                    </Clerk.FieldError>
-                  </Clerk.Field>
-                  <SignIn.Action
-                    submit
-                    disabled={isGlobalLoading}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isGlobalLoading || isLoading}
+                    variant="ghost"
                     className="w-full text-center bg-pink-600 text-white py-2 rounded-lg"
                   >
-                    <Clerk.Loading>
-                      {(isLoading) => {
-                        return isLoading ? (
-                          <LoadingSpinner
-                            className="w-full"
-                            spinnerClassName="size-6 border-t-white"
-                          />
-                        ) : (
-                          "Sign In"
-                        );
-                      }}
-                    </Clerk.Loading>
-                  </SignIn.Action>
+                    {isLoading ? (
+                      <LoadingSpinner
+                        className="w-full"
+                        spinnerClassName="size-6 border-t-white"
+                      />
+                    ) : (
+                      "Sign In"
+                    )}
+                  </Button>
                 </>
               ) : null}
-            </SignIn.Step>
+            </div>
           )}
         </Clerk.Loading>
-      </div>
+      </form>
     </SignIn.Root>
   );
 }
