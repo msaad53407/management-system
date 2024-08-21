@@ -10,19 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Copy SSH key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.VPS_DEPLOY_KEY }}
+      - name: Copy SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.VPS_DEPLOY_KEY }}
 
-   - name: Add VPS to known hosts
-      run: |
-        mkdir -p ~/.ssh
-        ssh-keyscan -H 193.203.167.13 >> ~/.ssh/known_hosts
+      - name: Add VPS to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H 193.203.167.13 >> ~/.ssh/known_hosts
 
-    - name: Deploy to VPS
-      run: |
-        ssh root@193.203.167.13 'bash /root/deploy.sh'
+      - name: Deploy to VPS
+        run: |
+          ssh root@193.203.167.13 'bash /root/deploy.sh'
