@@ -5,19 +5,29 @@ import { updateDuesSchema } from "@/lib/zod/member";
 import { Due } from "@/models/dues";
 import { Member } from "@/models/member";
 import { Types } from "mongoose";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-export async function updateDues(_prevState: any, formData: FormData) {
-  const rawValues = Object.fromEntries(formData);
-
-  const { success, data, error } = updateDuesSchema.safeParse(rawValues);
+export async function updateDues(formData: z.infer<typeof updateDuesSchema>) {
+  const { success, data, error } = updateDuesSchema.safeParse(formData);
 
   if (!success) {
     return {
-      message: error.flatten().fieldErrors,
+      message: "Invalid data",
+      fieldErrors: error.flatten().fieldErrors,
       success: false,
     };
   }
-  const { memberId, amount, dueDate, paymentStatus, totalDues, dueId } = data;
+  const {
+    memberId,
+    amount,
+    dueDate,
+    totalDues,
+    dueId,
+    datePaid,
+    receiptNo,
+    balanceForward,
+  } = data;
 
   try {
     await connectDB();
@@ -49,13 +59,19 @@ export async function updateDues(_prevState: any, formData: FormData) {
       };
     }
 
+    const previousAmount = oldDue.amount;
+
+    const amountDifference = Number(amount) - Number(previousAmount);
+
     const updatedDue = await Due.findByIdAndUpdate(
       new Types.ObjectId(dueId),
       {
         totalDues: Number(totalDues),
-        amount: !!extraDues ? Number(totalDues) : Number(amount),
+        amount: Number(amount),
         dueDate,
-        paymentStatus,
+        datePaid,
+        balanceForward: balanceForward - amountDifference,
+        receiptNo,
       },
       { new: true }
     );
@@ -66,10 +82,6 @@ export async function updateDues(_prevState: any, formData: FormData) {
         success: false,
       };
     }
-
-    const previousAmount = oldDue.amount;
-
-    const amountDifference = Number(amount) - Number(previousAmount);
 
     await Member.findByIdAndUpdate(
       memberId,
@@ -93,31 +105,44 @@ export async function updateDues(_prevState: any, formData: FormData) {
       message: "Error Connecting to Database",
       success: false,
     };
+  } finally {
+    revalidatePath(`/member/${memberId}/dues`);
   }
 }
 
-export async function createDue(memberId: Types.ObjectId, totalDues?: number) {
+export async function createDues(
+  memberId: Types.ObjectId,
+  totalDues?: number,
+  currentMonth?: number
+) {
   try {
     await connectDB();
-    const newDue = await Due.create({
-      memberId: new Types.ObjectId(memberId),
-      amount: 0,
-      totalDues: totalDues || 10,
-      dueDate: new Date(),
-      paymentStatus: "unpaid",
-    });
+    const months = Array<number>(12 - (currentMonth || 0)).fill(0);
+    const newDues = await Due.create(
+      months.map((_, i) => ({
+        memberId: new Types.ObjectId(memberId),
+        amount: 0,
+        totalDues: totalDues || 10,
+        dueDate: new Date(
+          new Date().getFullYear(),
+          (currentMonth || 0) + i,
+          25
+        ),
+        paymentStatus: "unpaid",
+      }))
+    );
 
-    if (!newDue) {
+    if (!newDues || newDues.length === 0) {
       return {
         data: null,
         message:
-          "Error Creating Due, Create manually by Visiting member's Dues page.",
+          "Error Creating Dues, Create manually by Visiting member's Dues page.",
       };
     }
 
     return {
-      data: newDue,
-      message: "Due Created",
+      data: newDues,
+      message: "Dues Created",
     };
   } catch (error) {
     console.error(error);

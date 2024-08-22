@@ -1,4 +1,5 @@
 import { ChapterDocument } from "@/models/chapter";
+import { DueDocument } from "@/models/dues";
 import { MemberDocument } from "@/models/member";
 import { Types } from "mongoose";
 
@@ -180,7 +181,7 @@ export type ChapterReportAggregation = {
   activeMembersLastMonth: MemberDocument[];
 };
 
-export type MonthlyDuesAggregation = {
+export type YearlyDuesAggregation = {
   _id: Types.ObjectId;
   firstName: string;
   lastName: string;
@@ -188,7 +189,12 @@ export type MonthlyDuesAggregation = {
   chapterId: Types.ObjectId;
   email: string;
   phoneNumber1: string;
-  monthlyDues: MonthlyDue[];
+  yearlyDues: DueDocument[];
+  chapter: {
+    _id: Types.ObjectId;
+    name: string;
+    chpMonDues: number;
+  }[];
   initiationDate: Date;
   duesLeftForYear: number;
   extraDues?: number;

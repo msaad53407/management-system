@@ -1,9 +1,9 @@
+import { getChapter } from "@/actions/chapter";
 import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
 import { Chapter, ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { District, DistrictDocument } from "@/models/district";
-import { Due } from "@/models/dues";
 import { GrandOfficeDocument } from "@/models/grandOffice";
 import { Member, MemberDocument } from "@/models/member";
 import { Rank, RankDocument } from "@/models/rank";
@@ -19,16 +19,12 @@ import {
   FinancesAggregationResult,
   MemberDropdownAggregationResult,
   MonthlyActiveMemberAggregation,
-  MonthlyDue,
-  MonthlyDuesAggregation,
   MonthlyMemberGrowthAggregation,
+  YearlyDuesAggregation,
 } from "@/types/globals";
 import { auth } from "@clerk/nextjs/server";
-import { getMonth, getYear } from "date-fns";
 import { Types } from "mongoose";
 import "server-only";
-import { getDaysInMonth } from ".";
-import { getChapter } from "@/actions/chapter";
 
 export async function getSystemFinances(date: {
   month?: number;
@@ -2782,16 +2778,13 @@ export async function getChapterReport(chapterId: string) {
   }
 }
 
-export async function getMonthlyDues(
+export async function getYearlyDues(
   memberId: string | Types.ObjectId,
-  date: {
-    month?: number;
-    year?: number;
-  }
+  year: number = new Date().getFullYear()
 ) {
   try {
     await connectDB();
-    const result = await Member.aggregate<MonthlyDuesAggregation>([
+    const result = await Member.aggregate<YearlyDuesAggregation>([
       {
         $match: {
           _id: new Types.ObjectId(memberId),
@@ -2802,38 +2795,13 @@ export async function getMonthlyDues(
           from: "dues",
           localField: "_id",
           foreignField: "memberId",
-          as: "monthlyDues",
+          as: "yearlyDues",
           pipeline: [
             {
               $match: {
-                $and: [
-                  {
-                    $expr: {
-                      $eq: [
-                        { $month: "$dueDate" },
-                        {
-                          $month: new Date(
-                            date.year || new Date().getFullYear(),
-                            date.month || new Date().getMonth() + 1
-                          ),
-                        },
-                      ],
-                    },
-                  },
-                  {
-                    $expr: {
-                      $eq: [
-                        { $year: "$dueDate" },
-                        {
-                          $year: new Date(
-                            date.year || new Date().getFullYear(),
-                            date.month || new Date().getMonth() + 1
-                          ),
-                        },
-                      ],
-                    },
-                  },
-                ],
+                $expr: {
+                  $eq: [{ $year: "$dueDate" }, year],
+                },
               },
             },
             {
@@ -2844,6 +2812,28 @@ export async function getMonthlyDues(
                 totalDues: 1,
                 dueDate: 1,
                 paymentStatus: 1,
+                datePaid: 1,
+                receiptNo: 1,
+                balanceForward: 1,
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "chapters",
+          localField: "chapterId",
+          foreignField: "_id",
+          as: "chapter",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                chpMonDues: 1,
               },
             },
           ],
@@ -2861,65 +2851,11 @@ export async function getMonthlyDues(
           duesLeftForYear: 1,
           email: 1,
           phoneNumber1: 1,
-          monthlyDues: 1,
+          yearlyDues: 1,
+          chapter: 1,
         },
       },
     ]);
-
-    const { monthlyDues, chapterId, initiationDate } = result[0];
-    // todo Add functionality to add dues only for active members
-    const [{ data: chapter }, { data: statuses }] = await Promise.all([
-      getChapter({
-        chapterId: chapterId.toString(),
-      }),
-      getAllStatuses(true),
-    ]);
-
-    if (!monthlyDues || monthlyDues.length === 0) {
-      if (
-        date.month &&
-        (date.month > new Date().getMonth() + 1 ||
-          date.month < new Date(initiationDate).getMonth() + 1)
-      ) {
-        return {
-          data: null,
-          message: "Invalid Filter Range",
-        };
-      }
-      if (
-        date.year &&
-        (date.year > new Date().getFullYear() ||
-          date.year < new Date(initiationDate).getFullYear())
-      ) {
-        return {
-          data: null,
-          message: "Invalid Filter Range",
-        };
-      }
-
-      const newDue = await Due.create({
-        memberId: new Types.ObjectId(memberId),
-        amount: 0,
-        dueDate:
-          (date.month &&
-            new Date(
-              date.year || new Date().getFullYear(),
-              date.month - 1,
-              25
-            )) ||
-          new Date(),
-        totalDues: chapter?.chpMonDues,
-        paymentStatus: "unpaid",
-      });
-      monthlyDues.push({
-        _id: newDue._id,
-        memberId: newDue.memberId,
-        amount: newDue.amount,
-        totalDues: newDue.totalDues,
-        dueDate: newDue.dueDate,
-        paymentStatus: newDue.paymentStatus,
-      });
-    }
 
     if (!result || result.length === 0) {
       return {
@@ -2930,7 +2866,7 @@ export async function getMonthlyDues(
 
     return {
       data: result[0],
-      message: "Monthly Dues fetched successfully",
+      message: "Yearly Dues fetched successfully",
     };
   } catch (error) {
     console.error(error);

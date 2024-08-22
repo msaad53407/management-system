@@ -3,13 +3,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
 import { Member } from "@/models/member";
-import { MonthlyDue } from "@/types/globals";
-import { capitalize, getMonth } from "@/utils";
-import { getMonthlyDues } from "@/utils/functions";
+import { getYearlyDues } from "@/utils/functions";
 import { auth } from "@clerk/nextjs/server";
 import { Types } from "mongoose";
 import { notFound } from "next/navigation";
-import AddDuesForm from "./components/AddDuesForm";
+import DuesTable from "./components/DuesTable";
 
 type Props = {
   params: {
@@ -73,7 +71,7 @@ const MemberDuesPage = async ({
       }
     }
 
-    const { data, message } = await getMonthlyDues(memberId, { month, year });
+    const { data, message } = await getYearlyDues(memberId);
 
     if (!data) {
       console.error(message);
@@ -97,42 +95,17 @@ const MemberDuesPage = async ({
     return (
       <section className="flex flex-col gap-4 p-4 w-full">
         <div className="w-full flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="text-slate-600 font-bold text-base">
-              Dues left to Pay: {data.duesLeftForYear}$
-            </p>
-            <p className="text-slate-600 font-bold text-base">
-              Extra Dues: {data?.extraDues || 0}
-            </p>
-          </div>
+          <header className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight">
+              <span className="text-pink-600">
+                {data.firstName} {data.lastName}
+              </span>{" "}
+              Dues - {new Date().getFullYear()}
+            </h1>
+          </header>
           <DateForm hardRefresh />
         </div>
-        {data.monthlyDues.map((monthlyDues: MonthlyDue) => (
-          <Card key={monthlyDues._id.toString()}>
-            <CardHeader className="flex items-center justify-between w-full flex-row">
-              <h3 className="text-xl font-semibold text-slate-600">
-                <span className="text-pink-600">
-                  {`${capitalize(data.firstName)} ${capitalize(
-                    data.middleName || ""
-                  )} ${capitalize(data.lastName)}`}
-                  &apos;s
-                </span>{" "}
-                Dues
-              </h3>
-              <h3 className="text-xl font-semibold text-slate-600">
-                <span className="text-pink-600 capitalize">
-                  {getMonth(monthlyDues.dueDate)}&apos;s
-                </span>{" "}
-                Dues
-              </h3>
-            </CardHeader>
-            <CardContent>
-              <AddDuesForm
-                currentMonthDues={JSON.parse(JSON.stringify(monthlyDues))}
-              />
-            </CardContent>
-          </Card>
-        ))}
+        <DuesTable duesData={JSON.parse(JSON.stringify(data))} />
       </section>
     );
   } catch (error) {
