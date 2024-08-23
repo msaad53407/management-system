@@ -84,12 +84,10 @@ export default function DuesTable({ duesData }: Props) {
               <Label>Total Paid $</Label>
               <Input
                 type="text"
-                value={
-                  duesData.yearlyDues.reduce(
-                    (acc, curr) => acc + curr.amount,
-                    0
-                  ) + (duesData.extraDues || 0)
-                }
+                value={duesData.yearlyDues.reduce(
+                  (acc, curr) => acc + curr.amount,
+                  0
+                )}
                 readOnly
               />
             </div>
@@ -99,13 +97,22 @@ export default function DuesTable({ duesData }: Props) {
             </div>
             <div className="space-y-2">
               <Label>Amount Past Due $</Label>
-              <Input type="text" value="$40.00" readOnly />
+              <Input
+                type="text"
+                value={duesData.yearlyDues
+                  .filter((due) => due.paymentStatus === "overdue")
+                  .reduce(
+                    (acc, curr) => acc + (curr.totalDues - curr.amount),
+                    0
+                  )}
+                readOnly
+              />
             </div>
             <div className="space-y-2">
               <Label>Payments Outstanding $</Label>
               <Input
                 type="text"
-                value="2.666"
+                value={duesData.duesLeftForYear}
                 readOnly
                 className="bg-green-50"
               />

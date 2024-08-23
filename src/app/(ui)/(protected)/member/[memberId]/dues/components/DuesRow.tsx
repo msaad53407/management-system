@@ -46,11 +46,11 @@ const DuesRow = ({
       ? new Date(dues.dueDate).toISOString().split("T")[0]
       : "",
     balanceForward:
-      new Date(dues.dueDate).getMonth() < new Date().getMonth()
+      new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
         ? dues.balanceForward!
         : duesLeftForYear,
     memberBalance:
-      new Date(dues.dueDate).getMonth() < new Date().getMonth()
+      new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
         ? dues.memberBalance!
         : extraDues,
   });
@@ -58,11 +58,11 @@ const DuesRow = ({
     setFormFields({
       ...formFields,
       balanceForward:
-        new Date(dues.dueDate).getMonth() < new Date().getMonth()
+        new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
           ? dues.balanceForward!
           : duesLeftForYear,
       memberBalance:
-        new Date(dues.dueDate).getMonth() < new Date().getMonth()
+        new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
           ? dues.memberBalance!
           : extraDues,
     });
@@ -180,7 +180,7 @@ const DuesRow = ({
       <TableCell className="min-w-32">
         <Select
           value={formFields.paymentStatus}
-          onValueChange={(val: "unpaid" | "paid") =>
+          onValueChange={(val: "unpaid" | "paid" | "overdue") =>
             setFormFields((prev) => ({
               ...prev,
               paymentStatus: val,
@@ -193,6 +193,7 @@ const DuesRow = ({
           <SelectContent>
             <SelectItem value="unpaid">Unpaid</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>
