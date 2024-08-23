@@ -2815,6 +2815,7 @@ export async function getYearlyDues(
                 datePaid: 1,
                 receiptNo: 1,
                 balanceForward: 1,
+                memberBalance: 1,
                 createdAt: 1,
                 updatedAt: 1,
               },

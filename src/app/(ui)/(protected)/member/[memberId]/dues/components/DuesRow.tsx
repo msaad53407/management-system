@@ -3,6 +3,13 @@
 import { updateDues } from "@/actions/dues";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import { DueDocument } from "@/models/dues";
@@ -11,40 +18,55 @@ import { Types } from "mongoose";
 import { useEffect, useState } from "react";
 
 type Props = {
-  data: DueDocument;
+  dues: DueDocument;
   monthlyDues: number;
   memberId: Types.ObjectId;
   duesLeftForYear: number;
+  extraDues: number;
 };
 
-const DuesRow = ({ data, monthlyDues, memberId, duesLeftForYear }: Props) => {
+const DuesRow = ({
+  dues,
+  monthlyDues,
+  memberId,
+  duesLeftForYear,
+  extraDues,
+}: Props) => {
   const [formFields, setFormFields] = useState({
-    datePaid: data.datePaid
-      ? new Date(data.datePaid).toISOString().split("T")[0]
+    datePaid: dues.datePaid
+      ? new Date(dues.datePaid).toISOString().split("T")[0]
       : "",
-    receiptNo: data.receiptNo || "",
-    paymentStatus: data.paymentStatus,
-    dueId: data._id.toString(),
+    receiptNo: dues.receiptNo || "",
+    paymentStatus: dues.paymentStatus,
+    dueId: dues._id.toString(),
     memberId: memberId.toString(),
-    amount: data.amount || 0,
-    totalDues: data.totalDues,
-    dueDate: data.dueDate
-      ? new Date(data.dueDate).toISOString().split("T")[0]
+    amount: dues.amount || 0,
+    totalDues: dues.totalDues,
+    dueDate: dues.dueDate
+      ? new Date(dues.dueDate).toISOString().split("T")[0]
       : "",
     balanceForward:
-      new Date(data.dueDate).getMonth() < new Date().getMonth()
-        ? data.balanceForward!
+      new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+        ? dues.balanceForward!
         : duesLeftForYear,
+    memberBalance:
+      new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+        ? dues.memberBalance!
+        : extraDues,
   });
   useEffect(() => {
     setFormFields({
       ...formFields,
       balanceForward:
-        new Date(data.dueDate).getMonth() < new Date().getMonth()
-          ? data.balanceForward!
+        new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+          ? dues.balanceForward!
           : duesLeftForYear,
+      memberBalance:
+        new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+          ? dues.memberBalance!
+          : extraDues,
     });
-  }, [duesLeftForYear]);
+  }, [duesLeftForYear, dues.memberBalance]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -88,7 +110,7 @@ const DuesRow = ({ data, monthlyDues, memberId, duesLeftForYear }: Props) => {
   return (
     <TableRow>
       <TableCell className="min-w-32">
-        {getMonthName((new Date(data.dueDate).getMonth() + 1).toString())}
+        {getMonthName((new Date(dues.dueDate).getMonth() + 1).toString())}
       </TableCell>
       <TableCell className="min-w-32">
         <Input
@@ -150,7 +172,30 @@ const DuesRow = ({ data, monthlyDues, memberId, duesLeftForYear }: Props) => {
         />
       </TableCell>
       <TableCell className="min-w-32">
+        ${formFields.memberBalance?.toFixed(2)}
+      </TableCell>
+      <TableCell className="min-w-32">
         ${formFields.balanceForward?.toFixed(2)}
+      </TableCell>
+      <TableCell className="min-w-32">
+        <Select
+          value={formFields.paymentStatus}
+          onValueChange={(val: "unpaid" | "paid" | "overdue") =>
+            setFormFields((prev) => ({
+              ...prev,
+              paymentStatus: val,
+            }))
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a payment status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="unpaid">Unpaid</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="overdue">Overdue</SelectItem>
+          </SelectContent>
+        </Select>
       </TableCell>
       <TableCell>
         <form onSubmit={handleDuesUpdate}>
@@ -159,7 +204,9 @@ const DuesRow = ({ data, monthlyDues, memberId, duesLeftForYear }: Props) => {
             variant={"secondary"}
             disabled={
               isLoading ||
-              new Date(data.dueDate).getMonth() > new Date().getMonth()
+              new Date(dues.dueDate).getMonth() > new Date().getMonth() + 1 ||
+              dues.paymentStatus === "paid" ||
+              dues.paymentStatus === "overdue"
             }
           >
             Update

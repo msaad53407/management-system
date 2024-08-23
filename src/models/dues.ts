@@ -10,6 +10,7 @@ export interface DueDocument extends Document {
   datePaid?: Date;
   receiptNo?: string;
   balanceForward?: number;
+  memberBalance?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -41,6 +42,10 @@ const duesSchema = new mongoose.Schema(
     },
     balanceForward: {
       type: Number,
+    },
+    memberBalance: {
+      type: Number,
+      default: 0,
     },
     paymentStatus: {
       type: String,

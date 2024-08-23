@@ -18,7 +18,7 @@ export async function updateDues(formData: z.infer<typeof updateDuesSchema>) {
       success: false,
     };
   }
-  const {
+  let {
     memberId,
     amount,
     dueDate,
@@ -27,17 +27,40 @@ export async function updateDues(formData: z.infer<typeof updateDuesSchema>) {
     datePaid,
     receiptNo,
     balanceForward,
+    paymentStatus,
   } = data;
 
   try {
     await connectDB();
 
-    const extraDues =
-      Number(amount) > Number(totalDues)
-        ? Number(amount) - Number(totalDues)
-        : 0;
+    const member = await Member.findById(new Types.ObjectId(memberId));
 
-    if (!!extraDues) {
+    if (!member) {
+      return {
+        message: "Error: Member not found",
+        success: false,
+      };
+    }
+
+    // //Handle case if amount is less than total Dues and we have balance in member's account to pay from.
+    // if (amount < totalDues) {
+    //   if ((member.extraDues || 0) > 0) {
+    //     const extraDues = member.extraDues;
+    //     totalDues - amount
+
+    //     const updatedDue = await Due.findByIdAndUpdate(
+    //       new Types.ObjectId(dueId),
+    //       {
+    //         memberBalance: member.extraDues,
+    //       },
+    //       { new: true }
+    //     );
+    //   }
+    // }
+
+    const extraDues = amount > totalDues ? amount - totalDues : 0;
+
+    if (extraDues) {
       const updatedMember = await Member.findByIdAndUpdate(memberId, {
         extraDues,
       });
@@ -48,6 +71,7 @@ export async function updateDues(formData: z.infer<typeof updateDuesSchema>) {
           success: false,
         };
       }
+      amount = totalDues;
     }
 
     const oldDue = await Due.findById(new Types.ObjectId(dueId));
@@ -59,18 +83,28 @@ export async function updateDues(formData: z.infer<typeof updateDuesSchema>) {
       };
     }
 
+    if (paymentStatus === "paid" && amount < totalDues) {
+      return {
+        message:
+          "Error: Cannot set payment status to paid if paid dues are less than total Dues",
+        success: false,
+      };
+    }
+
     const previousAmount = oldDue.amount;
 
-    const amountDifference = Number(amount) - Number(previousAmount);
+    const amountDifference = amount - previousAmount;
 
     const updatedDue = await Due.findByIdAndUpdate(
       new Types.ObjectId(dueId),
       {
-        totalDues: Number(totalDues),
-        amount: Number(amount),
+        totalDues: totalDues,
+        amount: amount,
         dueDate,
         datePaid,
         balanceForward: balanceForward - amountDifference,
+        memberBalance: extraDues,
+        paymentStatus,
         receiptNo,
       },
       { new: true }

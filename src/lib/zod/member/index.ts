@@ -366,9 +366,9 @@ export const updateDuesSchema = z.object({
       required_error: "Balance forward is required",
     })
     .min(0, "Balance forward must be greater than 0"),
-  // paymentStatus: z.enum(["unpaid", "paid", "overdue"], {
-  //   required_error: "Payment status is required",
-  // }),
+  paymentStatus: z.enum(["unpaid", "paid", "overdue"], {
+    required_error: "Payment status is required",
+  }),
   receiptNo: z.string().optional(),
   dueId: z
     .string({

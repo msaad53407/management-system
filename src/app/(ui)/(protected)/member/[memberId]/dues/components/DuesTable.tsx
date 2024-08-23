@@ -34,7 +34,9 @@ export default function DuesTable({ duesData }: Props) {
                   <TableHead className="min-w-32">Receipt No</TableHead>
                   <TableHead className="min-w-32">Monthly Dues</TableHead>
                   <TableHead className="min-w-32">Paid Dues $</TableHead>
+                  <TableHead className="min-w-32">Member Balance</TableHead>
                   <TableHead className="min-w-32">Balance Forward</TableHead>
+                  <TableHead className="min-w-32">Payment Status</TableHead>
                   <TableHead className="min-w-32">Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -48,10 +50,11 @@ export default function DuesTable({ duesData }: Props) {
                   .map((row, index) => (
                     <Fragment key={index}>
                       <DuesRow
-                        data={row}
+                        dues={row}
                         monthlyDues={duesData.chapter?.[0]?.chpMonDues}
                         memberId={duesData._id}
                         duesLeftForYear={duesData.duesLeftForYear}
+                        extraDues={duesData.extraDues || 0}
                       />
                     </Fragment>
                   ))}
@@ -81,12 +84,18 @@ export default function DuesTable({ duesData }: Props) {
               <Label>Total Paid $</Label>
               <Input
                 type="text"
-                value={duesData.yearlyDues.reduce(
-                  (acc, curr) => acc + curr.amount,
-                  0
-                )}
+                value={
+                  duesData.yearlyDues.reduce(
+                    (acc, curr) => acc + curr.amount,
+                    0
+                  ) + (duesData.extraDues || 0)
+                }
                 readOnly
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Member Balance $</Label>
+              <Input type="text" value={duesData.extraDues} readOnly />
             </div>
             <div className="space-y-2">
               <Label>Amount Past Due $</Label>
