@@ -180,7 +180,7 @@ const DuesRow = ({
       <TableCell className="min-w-32">
         <Select
           value={formFields.paymentStatus}
-          onValueChange={(val: "unpaid" | "paid" | "overdue") =>
+          onValueChange={(val: "unpaid" | "paid") =>
             setFormFields((prev) => ({
               ...prev,
               paymentStatus: val,
@@ -193,7 +193,6 @@ const DuesRow = ({
           <SelectContent>
             <SelectItem value="unpaid">Unpaid</SelectItem>
             <SelectItem value="paid">Paid</SelectItem>
-            <SelectItem value="overdue">Overdue</SelectItem>
           </SelectContent>
         </Select>
       </TableCell>

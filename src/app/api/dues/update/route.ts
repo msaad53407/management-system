@@ -11,7 +11,7 @@ async function updateDues(member: MemberDocument) {
         { memberId: new Types.ObjectId(member._id) },
         {
           $expr: {
-            $eq: [{ $month: "$dueDate" }, new Date().getMonth() + 1],
+            $eq: [{ $month: "$dueDate" }, new Date().getMonth() + 2],
           },
         },
       ],
@@ -23,6 +23,7 @@ async function updateDues(member: MemberDocument) {
 
     if (due.amount === due.totalDues) {
       due.paymentStatus = "paid";
+      due.datePaid = new Date();
       await due.save();
       return;
     }
@@ -46,6 +47,7 @@ async function updateDues(member: MemberDocument) {
     member.extraDues = (member.extraDues || 0) - amountDifference;
     due.amount += amountDifference;
     due.paymentStatus = "paid";
+    due.datePaid = new Date();
 
     await Promise.all([member.save(), due.save()]);
   } catch (error) {
