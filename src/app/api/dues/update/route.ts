@@ -16,40 +16,52 @@ async function updateDues(member: MemberDocument) {
         },
       ],
     });
+    console.log(due, "1");
 
     if (!due) return;
+    console.log("2");
 
     if (due.paymentStatus === "paid") return;
+    console.log("3");
 
     if (due.amount === due.totalDues) {
       due.paymentStatus = "paid";
       due.datePaid = new Date();
       await due.save();
+
+      console.log("4");
+
       return;
     }
 
     if (member.extraDues === 0) {
       due.paymentStatus = "overdue";
       await due.save();
+
+      console.log("5");
+      
       return;
     }
-
+    
     const amountDifference = due.totalDues - due.amount;
-
+    
     if ((member.extraDues || 0) < amountDifference) {
+      console.log("here");
       due.amount += member.extraDues || 0;
       member.extraDues = 0;
       due.paymentStatus = "overdue";
       await Promise.all([member.save(), due.save()]);
+      console.log("6");
       return;
     }
-
+    
     member.extraDues = (member.extraDues || 0) - amountDifference;
     due.amount += amountDifference;
     due.paymentStatus = "paid";
     due.datePaid = new Date();
-
+    
     await Promise.all([member.save(), due.save()]);
+    console.log("7");
   } catch (error) {
     console.error(`Error updating dues for member ${member._id}:`, error);
   }
