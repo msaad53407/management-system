@@ -46,11 +46,11 @@ const DuesRow = ({
       ? new Date(dues.dueDate).toISOString().split("T")[0]
       : "",
     balanceForward:
-      new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+      new Date(dues.dueDate).getMonth() < new Date().getMonth()
         ? dues.balanceForward!
         : duesLeftForYear,
     memberBalance:
-      new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+      new Date(dues.dueDate).getMonth() < new Date().getMonth()
         ? dues.memberBalance!
         : extraDues,
   });
@@ -58,11 +58,11 @@ const DuesRow = ({
     setFormFields({
       ...formFields,
       balanceForward:
-        new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+        new Date(dues.dueDate).getMonth() < new Date().getMonth()
           ? dues.balanceForward!
           : duesLeftForYear,
       memberBalance:
-        new Date(dues.dueDate).getMonth() < new Date().getMonth() + 1
+        new Date(dues.dueDate).getMonth() < new Date().getMonth()
           ? dues.memberBalance!
           : extraDues,
     });
@@ -204,7 +204,7 @@ const DuesRow = ({
             variant={"secondary"}
             disabled={
               isLoading ||
-              new Date(dues.dueDate).getMonth() > new Date().getMonth() + 1 ||
+              new Date(dues.dueDate).getMonth() > new Date().getMonth() ||
               dues.paymentStatus === "paid" ||
               dues.paymentStatus === "overdue"
             }
