@@ -17,23 +17,23 @@ async function updateDues(member: MemberDocument) {
       ],
     });
 
-    if (!due) return;
+    if (!due) return "No due found";
 
-    if (due.paymentStatus === "paid") return;
+    if (due.paymentStatus === "paid") return "Dues already paid";
 
     if (due.amount === due.totalDues) {
       due.paymentStatus = "paid";
       due.datePaid = new Date();
       await due.save();
 
-      return;
+      return "Dues Already paid, status changed to paid";
     }
 
     if (member.extraDues === 0) {
       due.paymentStatus = "overdue";
       await due.save();
 
-      return;
+      return "No balance to pay dues from, status changed to overdue";
     }
 
     const amountDifference = due.totalDues - due.amount;
@@ -48,7 +48,7 @@ async function updateDues(member: MemberDocument) {
       due.paymentStatus = "overdue";
       await Promise.all([member.save(), due.save()]);
 
-      return;
+      return "Balance insufficient, status changed to overdue";
     }
     console.log("Balance Forward", member.duesLeftForYear! - amountDifference);
     member.extraDues = (member.extraDues || 0) - amountDifference;
@@ -59,8 +59,10 @@ async function updateDues(member: MemberDocument) {
     due.datePaid = new Date();
 
     await Promise.all([member.save(), due.save()]);
+    return "Dues updated successfully";
   } catch (error) {
     console.error(`Error updating dues for member ${member._id}:`, error);
+    return "Error updating dues for member " + member._id;
   }
 }
 
@@ -70,9 +72,9 @@ export async function GET() {
 
     const members = await Member.find({});
 
-    await Promise.all(members.map(updateDues));
+    const results = await Promise.all(members.map(updateDues));
 
-    return NextResponse.json("success", { status: 200 });
+    return NextResponse.json(results.join(", "), { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json("Internal server error", { status: 500 });
