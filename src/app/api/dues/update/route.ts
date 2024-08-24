@@ -11,7 +11,7 @@ async function updateDues(member: MemberDocument) {
         { memberId: new Types.ObjectId(member._id) },
         {
           $expr: {
-            $eq: [{ $month: "$dueDate" }, new Date().getMonth() + 2],
+            $eq: [{ $month: "$dueDate" }, new Date().getMonth() + 1],
           },
         },
       ],
@@ -47,11 +47,9 @@ async function updateDues(member: MemberDocument) {
       member.extraDues = 0;
       due.paymentStatus = "overdue";
 
-      await member.save();
-      await due.save();
+      await Promise.all([member.save(), due.save()]);
 
-      return `Balance insufficient, status changed to overdue 
-      Due Amount: ${due.amount}\nBalance Forward: ${due.balanceForward}\nDues Left For Year: ${member.duesLeftForYear}\nExtra Dues: ${member.extraDues}`;
+      return `Balance insufficient, status changed to overdue`;
     }
     console.log("Balance Forward", member.duesLeftForYear! - amountDifference);
     member.extraDues = (member.extraDues || 0) - amountDifference;
