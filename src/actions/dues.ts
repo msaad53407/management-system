@@ -62,7 +62,7 @@ export async function updateDues(formData: z.infer<typeof updateDuesSchema>) {
 
     if (extraDues) {
       const updatedMember = await Member.findByIdAndUpdate(memberId, {
-        extraDues,
+        $inc: { extraDues: extraDues },
       });
 
       if (!updatedMember) {
