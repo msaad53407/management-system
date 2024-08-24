@@ -48,7 +48,8 @@ async function updateDues(member: MemberDocument) {
       due.paymentStatus = "overdue";
       await Promise.all([member.save(), due.save()]);
 
-      return "Balance insufficient, status changed to overdue";
+      return `Balance insufficient, status changed to overdue 
+      Due Amount: ${due.amount}\nBalance Forward: ${due.balanceForward}\nDues Left For Year: ${member.duesLeftForYear}\nExtra Dues: ${member.extraDues}`;
     }
     console.log("Balance Forward", member.duesLeftForYear! - amountDifference);
     member.extraDues = (member.extraDues || 0) - amountDifference;
