@@ -66,7 +66,14 @@ const DuesRow = ({
           ? dues.memberBalance!
           : extraDues,
     });
-  }, [duesLeftForYear, dues.memberBalance]);
+  }, [
+    duesLeftForYear,
+    dues.memberBalance,
+    dues.balanceForward,
+    formFields,
+    extraDues,
+    dues.dueDate,
+  ]);
 
   const [isLoading, setIsLoading] = useState(false);
 

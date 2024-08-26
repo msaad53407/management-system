@@ -40,7 +40,7 @@ export default function useFormAction(
         });
       }
     }
-  }, [formState]);
+  }, [formState, router]);
 
   return {
     infoMessage,
