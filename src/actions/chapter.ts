@@ -17,7 +17,7 @@ import bcrypt from "bcrypt";
 import { Types } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
-import { createDue } from "./dues";
+import { createDues } from "./dues";
 import { getAllStatuses } from "@/utils/functions";
 
 type GetDistrictParams =
@@ -285,6 +285,7 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       districtId: new Types.ObjectId(chapter?.districtId) || null,
       duesLeftForYear:
         (12 - new Date().getMonth()) * (chapter?.chpMonDues || 0),
+      extraDues: 0,
     });
 
     if (!member) {
@@ -294,9 +295,10 @@ export const addMember = async (_prevState: any, formData: FormData) => {
       };
     }
 
-    const { data: dues, message } = await createDue(
+    const { data: dues, message } = await createDues(
       member._id,
-      chapter?.chpMonDues
+      chapter?.chpMonDues,
+      new Date().getMonth()
     );
 
     if (!dues) {

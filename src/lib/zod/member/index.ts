@@ -350,23 +350,26 @@ export const updateDuesSchema = z.object({
     })
     .min(1, "Member ID is required"),
   amount: z
-    .string({
+    .number({
       required_error: "Amount is required",
     })
-    .min(1, "Amount is required"),
+    .min(0, "Amount must be greater than 0"),
   totalDues: z
-    .string({
-      required_error: "Total Dues Received are required",
+    .number({
+      required_error: "Total dues is required",
     })
-    .min(1, "Total Dues Received are required"),
-  dueDate: z
-    .string({
-      required_error: "Due date is required",
+    .min(0, "Dues must be greater than 0"),
+  dueDate: z.string().optional(),
+  datePaid: z.string().optional(),
+  balanceForward: z
+    .number({
+      required_error: "Balance forward is required",
     })
-    .min(1, "Due date is required"),
+    .min(0, "Balance forward must be greater than 0"),
   paymentStatus: z.enum(["unpaid", "paid", "overdue"], {
     required_error: "Payment status is required",
   }),
+  receiptNo: z.string().optional(),
   dueId: z
     .string({
       required_error: "Due ID is required",
