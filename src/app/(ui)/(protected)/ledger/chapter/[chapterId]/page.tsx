@@ -1,23 +1,86 @@
+import { getChapter } from "@/actions/chapter";
+import { getDistrict } from "@/actions/district";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Printer, UserCheck, Check } from "lucide-react";
-import BillRow from "./components/BillRow";
+import UnauthorizedAccess from "@/components/UnauthorizedAccess";
+import { checkRole } from "@/lib/role";
+import {
+  getAllChaptersByDistrict,
+  getChapterBills,
+  getMemberChapter,
+} from "@/utils/functions";
+import { auth } from "@clerk/nextjs/server";
+import { Printer } from "lucide-react";
 import BillModal from "./components/BillModal";
-import { getChapterBills } from "@/utils/functions";
+import BillRow from "./components/BillRow";
 
 type Props = {
   params: { chapterId: string };
 };
 
 export default async function ChapterLedger({ params: { chapterId } }: Props) {
+  const userId = auth().userId;
+  if (!checkRole(["grand-officer", "grand-administrator"])) {
+    if (checkRole("member")) {
+      const { data, message } = await getMemberChapter(undefined, userId!);
+      if (!data) {
+        return <UnauthorizedAccess title="Error" message={message} />;
+      }
+
+      if (data._id.toString() !== chapterId) {
+        return <UnauthorizedAccess title="Unauthorized" />;
+      }
+    }
+
+    if (checkRole("secretary")) {
+      const { data, message } = await getChapter({ secretaryId: userId! });
+
+      if (!data) {
+        return <UnauthorizedAccess title="Error" message={message} />;
+      }
+
+      if (data._id.toString() !== chapterId) {
+        return <UnauthorizedAccess title="Unauthorized" />;
+      }
+    }
+
+    if (checkRole("worthy-matron")) {
+      const { data, message } = await getChapter({ matronId: userId! });
+
+      if (!data) {
+        return <UnauthorizedAccess title="Error" message={message} />;
+      }
+
+      if (data._id.toString() !== chapterId) {
+        return <UnauthorizedAccess title="Unauthorized" />;
+      }
+    }
+
+    if (checkRole("district-deputy")) {
+      const { data: district, message: districtMessage } = await getDistrict({
+        deputyId: userId!,
+      });
+      if (!district) {
+        return <UnauthorizedAccess title="Error" message={districtMessage} />;
+      }
+      const { data, message } = await getAllChaptersByDistrict(district._id);
+
+      if (!data) {
+        return <UnauthorizedAccess title="Error" message={message} />;
+      }
+
+      if (!data.find((chapter) => chapter._id.toString() === chapterId)) {
+        return <UnauthorizedAccess title="Unauthorized" />;
+      }
+    }
+  }
   const { data, message } = await getChapterBills(chapterId);
 
   return (
@@ -32,9 +95,11 @@ export default async function ChapterLedger({ params: { chapterId } }: Props) {
           <Button variant="outline" className="flex items-center">
             <Printer className="mr-2 h-4 w-4" /> Print Bill Book
           </Button>
-          <BillModal type="add" chapterId={chapterId}>
-            Add New Bill
-          </BillModal>
+          {checkRole(["secretary", "grand-administrator"]) && (
+            <BillModal type="add" chapterId={chapterId}>
+              Add New Bill
+            </BillModal>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
@@ -69,8 +134,12 @@ export default async function ChapterLedger({ params: { chapterId } }: Props) {
                 <TableHead>Bill Amount</TableHead>
                 <TableHead>Payee</TableHead>
                 <TableHead>On Account Of</TableHead>
-                <TableHead>Actions</TableHead>
-                <TableHead>Workflow</TableHead>
+                {checkRole(["secretary", "grand-administrator"]) && (
+                  <>
+                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead>Workflow</TableHead>
+                  </>
+                )}
                 <TableHead>WM Approval</TableHead>
                 <TableHead>Treasurer Review</TableHead>
               </TableRow>

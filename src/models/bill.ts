@@ -9,6 +9,7 @@ export type BillDocument = {
   onAccountOf: string;
   wmApproval: "Pending" | "Approved" | "Declined";
   treasurerReview: "Pending" | "Reviewed";
+  workflowStarted: boolean;
 };
 
 const billSchema = new mongoose.Schema(
@@ -46,6 +47,10 @@ const billSchema = new mongoose.Schema(
         values: ["Pending", "Reviewed"],
       },
       default: "Pending",
+    },
+    workflowStarted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -188,9 +188,9 @@ export const startBillWorkflow = async (billId: string | Types.ObjectId) => {
     }
 
     const { error } = await resend.emails.send({
-      from: secretary.emailAddresses?.[0]?.emailAddress,
+      from: "pubg53407@gmail.com",
       subject: "Bill Approval",
-      to: worthyMatron.emailAddresses?.[0]?.emailAddress,
+      to: "msmuhammadsaad78@gmail.com",
       //   cc: , send to Grand Administrator as well.
       react: "Bill Approval",
     });
@@ -201,6 +201,9 @@ export const startBillWorkflow = async (billId: string | Types.ObjectId) => {
         message: error.message,
       };
     }
+
+    bill.workflowStarted = true;
+    await bill.save();
 
     return {
       success: true,

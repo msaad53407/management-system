@@ -869,14 +869,21 @@ export async function getAllMemberDropdownOptions(memberId: string) {
   }
 }
 
-export async function getMemberChapter(memberId: Types.ObjectId) {
+export async function getMemberChapter(
+  memberId?: Types.ObjectId,
+  userId?: string
+) {
   try {
     await connectDB();
     const memberChapterAggregation = await Member.aggregate([
       {
-        $match: {
-          _id: new Types.ObjectId(memberId),
-        },
+        $match: memberId
+          ? {
+              _id: new Types.ObjectId(memberId),
+            }
+          : {
+              userId: userId,
+            },
       },
       {
         $lookup: {
