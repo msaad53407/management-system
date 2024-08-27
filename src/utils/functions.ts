@@ -1,6 +1,7 @@
 import { getChapter } from "@/actions/chapter";
 import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
+import { Bill } from "@/models/bill";
 import { Chapter, ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { District, DistrictDocument } from "@/models/district";
@@ -2868,6 +2869,60 @@ export async function getYearlyDues(
     return {
       data: result[0],
       message: "Yearly Dues fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getChapterBills(chapterId: string | Types.ObjectId) {
+  try {
+    await connectDB();
+
+    const bills = await Bill.find({
+      chapterId: new Types.ObjectId(chapterId),
+    });
+
+    if (!bills || bills.length === 0) {
+      return {
+        data: null,
+        message: "No chapter bills found",
+      };
+    }
+
+    return {
+      data: bills,
+      message: "Chapter bills fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getBill(billId: string | Types.ObjectId) {
+  try {
+    await connectDB();
+
+    const bill = await Bill.findById(new Types.ObjectId(billId));
+
+    if (!bill) {
+      return {
+        data: null,
+        message: "Bill not found",
+      };
+    }
+
+    return {
+      data: bill,
+      message: "Bill fetched successfully",
     };
   } catch (error) {
     console.error(error);

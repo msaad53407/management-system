@@ -16,7 +16,7 @@ import {
   MessageSquareIcon,
   Settings,
   StickyNote,
-  UsersRound
+  UsersRound,
 } from "lucide-react";
 import Logo from "./Logo";
 import MobileSidebar from "./MobileSidebar";
@@ -121,6 +121,12 @@ async function Sidebar() {
           href: `/finances/district/${district?._id}`,
           Icon: <Banknote />,
           roles: ["district-deputy"],
+        },
+        {
+          title: "Chapter Ledger",
+          href: `/ledger/chapter/${chapter?._id}`,
+          Icon: <MessageSquareIcon />,
+          roles: ["secretary", "worthy-matron"],
         },
       ],
       roles: [

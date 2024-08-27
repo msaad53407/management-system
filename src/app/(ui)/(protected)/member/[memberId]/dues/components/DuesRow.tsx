@@ -66,14 +66,8 @@ const DuesRow = ({
           ? dues.memberBalance!
           : extraDues,
     });
-  }, [
-    duesLeftForYear,
-    dues.memberBalance,
-    dues.balanceForward,
-    formFields,
-    extraDues,
-    dues.dueDate,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duesLeftForYear, dues.memberBalance]);
 
   const [isLoading, setIsLoading] = useState(false);
 

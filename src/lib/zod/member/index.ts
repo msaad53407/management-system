@@ -383,3 +383,28 @@ export const dateFormSchema = z.object({
     .min(1, "Month is required"),
   year: z.string(),
 });
+
+export const addBillSchema = z.object({
+  chapterId: z
+    .string({ required_error: "Chapter ID is required" })
+    .min(1, "Chapter ID is required"),
+  amount: z
+    .string({ required_error: "Amount is required" })
+    .min(1, "Amount must be greater than 0"),
+  date: z
+    .string({ required_error: "Date is required" })
+    .min(1, "Date is required"),
+  payee: z
+    .string({ required_error: "Payee is required" })
+    .min(1, "Payee is required"),
+  onAccountOf: z
+    .string({ required_error: "On account of is required" })
+    .min(1, "On account of is required"),
+});
+
+export const updateBillSchema = z.object({
+  billId: z
+    .string({ required_error: "Bill ID is required" })
+    .min(1, "Bill ID is required"),
+  ...addBillSchema.shape,
+});

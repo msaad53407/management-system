@@ -37,6 +37,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^18",
     "recharts": "^2.12.7",
+    "resend": "^4.0.0",
     "server-only": "^0.0.1",
     "sharp": "^0.33.4",
     "svix": "^1.24.0",
