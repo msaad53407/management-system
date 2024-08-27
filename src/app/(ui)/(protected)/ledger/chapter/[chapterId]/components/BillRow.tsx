@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  approveBill,
   startBillWorkflow,
   voidBill as voidBillFunction,
 } from "@/actions/bill";
@@ -65,6 +66,27 @@ const BillRow = ({ bill }: Props) => {
     setIsLoading(false);
   };
 
+  const approveBillFromTreasurer = async () => {
+    setIsLoading(true);
+    const { message, success } = await approveBill(bill._id);
+
+    if (!success) {
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: message,
+    });
+    setIsLoading(false);
+  };
+
   return (
     <TableRow>
       <TableCell>{bill._id.toString()}</TableCell>
@@ -84,6 +106,10 @@ const BillRow = ({ bill }: Props) => {
                 onAccountOf={bill.onAccountOf}
                 payee={bill.payee}
                 chapterId={bill.chapterId.toString()}
+                disabled={
+                  bill.wmApproval === "Approved" &&
+                  bill.treasurerReview === "Reviewed"
+                }
               >
                 <Edit className="h-4 w-4" />
               </BillModal>
@@ -96,19 +122,28 @@ const BillRow = ({ bill }: Props) => {
                   isLoading && "cursor-not-allowed opacity-60"
                 )}
                 onClick={voidBill}
-                disabled={isLoading}
+                disabled={
+                  isLoading ||
+                  (bill.wmApproval === "Approved" &&
+                    bill.treasurerReview === "Reviewed")
+                }
               >
                 Void
               </Button>
             </div>
           </TableCell>
-          <TableCell className="flex place-content-center">
+          <TableCell>
             <Button
               variant="outline"
               size="icon"
               title="Start Workflow"
               onClick={startWorkflow}
-              disabled={isLoading}
+              disabled={
+                isLoading ||
+                (bill.wmApproval === "Approved" &&
+                  bill.treasurerReview === "Reviewed") ||
+                bill.workflowStarted
+              }
             >
               {isLoading ? (
                 <LoadingSpinner spinnerClassName="size-6" />
@@ -119,7 +154,7 @@ const BillRow = ({ bill }: Props) => {
           </TableCell>
         </>
       )}
-      <TableCell className="text-center">
+      <TableCell>
         {/*
          * If workflow of bill is not started, then it is inactive
          * If workflow of bill is started, then check if wmApproval is Pending, Approved or Rejected
@@ -127,25 +162,33 @@ const BillRow = ({ bill }: Props) => {
         {bill.workflowStarted ? (
           bill.wmApproval === "Pending" ? (
             checkRoleClient("worthy-matron") ? (
-              <Button className="bg-green-500 hover:bg-green-600 text-white">
-                Approve
+              <Button
+                className="bg-green-500 hover:bg-green-600 text-white"
+                onClick={approveBillFromTreasurer}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <LoadingSpinner spinnerClassName="size-6" />
+                ) : (
+                  "Approve"
+                )}
               </Button>
             ) : (
               "Pending"
             )
           ) : bill.wmApproval === "Approved" ? (
-            <CheckIcon className="h-4 w-4 text-green-500" />
+            <CheckIcon className="size-6 text-white bg-green-500 p-1 rounded" />
           ) : (
-            <XIcon className="h-4 w-4 text-red-500" />
+            <XIcon className="size-6 text-white bg-red-500 p-1 rounded" />
           )
         ) : (
           "Inactive"
         )}
       </TableCell>
-      <TableCell className="text-center">
+      <TableCell>
         {bill.workflowStarted ? (
           bill.treasurerReview === "Reviewed" ? (
-            <CheckIcon className="h-4 w-4 text-green-500" />
+            <CheckIcon className="size-6 text-white bg-green-500 p-1 rounded" />
           ) : (
             "Pending"
           )

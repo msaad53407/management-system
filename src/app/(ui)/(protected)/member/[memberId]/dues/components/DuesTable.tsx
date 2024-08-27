@@ -40,7 +40,7 @@ export default function DuesTable({ duesData }: Props) {
                   <TableHead className="min-w-32">Action</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="overflow-y-hidden">
                 {duesData?.yearlyDues
                   .sort(
                     (a, b) =>

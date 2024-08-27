@@ -33,6 +33,7 @@ type Props =
       onAccountOf: string;
       date: string;
       children: React.ReactNode;
+      disabled?: boolean;
     };
 
 const BillModal = (props: Props) => {
@@ -157,7 +158,11 @@ const BillModal = (props: Props) => {
               />
             </Label>
 
-            <SubmitButton>{capitalize(props.type)}</SubmitButton>
+            <SubmitButton
+              disabled={props.type === "edit" ? props.disabled || false : false}
+            >
+              {capitalize(props.type)}
+            </SubmitButton>
           </form>
         </DialogHeader>
       </DialogContent>

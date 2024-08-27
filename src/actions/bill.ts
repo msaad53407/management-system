@@ -8,6 +8,10 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { Types } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import BillApprovalEmail from "@/components/emailTemplates/BillApproval";
+import BillReviewEmail from "@/components/emailTemplates/BillReview";
+import { Member } from "@/models/member";
+import { ChapterOffice } from "@/models/chapterOffice";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -188,11 +192,19 @@ export const startBillWorkflow = async (billId: string | Types.ObjectId) => {
     }
 
     const { error } = await resend.emails.send({
-      from: "pubg53407@gmail.com",
-      subject: "Bill Approval",
+      from: `Secretary ${chapter.name} <delivered@resend.dev>`,
+      subject: "Bill Approval Request",
       to: "msmuhammadsaad78@gmail.com",
       //   cc: , send to Grand Administrator as well.
-      react: "Bill Approval",
+      react: BillApprovalEmail({
+        approvalLink: `${process.env.NEXT_PUBLIC_APP_BASE_URL}/ledger/chapter/${chapterId}`,
+        billAmount: bill.amount,
+        billDate: bill.date,
+        chapterNumber: chapter.chapterNumber,
+        onAccountOf: bill.onAccountOf,
+        payee: bill.payee,
+        worthyMatronName: worthyMatron.firstName + " " + worthyMatron.lastName,
+      }),
     });
 
     if (error) {
@@ -235,7 +247,12 @@ export const approveBill = async (billId: string | Types.ObjectId) => {
     }
 
     chapterId = bill.chapterId;
-    const chapter = await Chapter.findById(new Types.ObjectId(bill.chapterId));
+    const [chapter, treasurerOffice] = await Promise.all([
+      Chapter.findById(new Types.ObjectId(bill.chapterId)),
+      ChapterOffice.findOne({
+        name: "Treasurer",
+      }),
+    ]);
 
     if (!chapter) {
       return {
@@ -243,6 +260,7 @@ export const approveBill = async (billId: string | Types.ObjectId) => {
         message: "This bill does not belong to a chapter",
       };
     }
+
     const secretaryId = chapter.secretaryId;
     const secretary = await clerkClient().users.getUser(secretaryId!);
     if (!secretary) {
@@ -252,12 +270,45 @@ export const approveBill = async (billId: string | Types.ObjectId) => {
       };
     }
 
+    if (!treasurerOffice) {
+      return {
+        success: false,
+        message: "No Office found for Treasurer",
+      };
+    }
+
+    const treasurer = await Member.findOne({
+      chapterId: new Types.ObjectId(chapterId),
+      chapterOffice: new Types.ObjectId(treasurerOffice._id),
+    });
+
+    if (!treasurer) {
+      return {
+        success: false,
+        message: "No Treasurer found for this chapter",
+      };
+    }
+
+    if (!treasurer.email) {
+      return {
+        success: false,
+        message: "Treasurer email not found",
+      };
+    }
+
     const { error } = await resend.emails.send({
-      from: secretary.emailAddresses?.[0]?.emailAddress,
-      subject: "Bill Approval",
-      to: bill.onAccountOf,
+      from: `Secretary ${chapter.name} <delivered@resend.dev>`,
+      subject: "Bill Review Request",
+      to: treasurer.email,
       //   cc: , send to Grand Administrator as well.
-      react: "Bill Approval",
+      react: BillReviewEmail({
+        billAmount: bill.amount,
+        billDate: bill.date,
+        chapterNumber: chapter.chapterNumber,
+        onAccountOf: bill.onAccountOf,
+        payee: bill.payee,
+        treasurerName: treasurer.firstName + " " + treasurer.lastName,
+      }),
     });
 
     if (error) {

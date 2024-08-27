@@ -5,7 +5,6 @@ import {
   Heading,
   Hr,
   Html,
-  Link,
   Preview,
   Section,
   Text,
@@ -13,12 +12,11 @@ import {
 
 type Props = {
   chapterNumber?: number;
-  worthyMatronName: string;
-  billAmount: number;
-  billDate: Date;
   payee: string;
+  treasurerName: string;
+  billAmount: number;
   onAccountOf: string;
-  approvalLink: string;
+  billDate: Date;
 };
 
 const main = {
@@ -66,7 +64,6 @@ const btn = {
   textAlign: "center" as const,
   display: "block",
   width: "100%",
-  padding: "12px 0",
 };
 
 const hr = {
@@ -80,25 +77,27 @@ const footer = {
   lineHeight: "16px",
 };
 
-const BillApprovalEmail = ({
-  chapterNumber,
-  worthyMatronName,
+const BillReviewEmail = ({
+  treasurerName,
   billAmount,
+  onAccountOf,
   billDate,
   payee,
-  onAccountOf,
-  approvalLink,
+  chapterNumber,
 }: Props) => (
   <Html>
     <Head />
-    <Preview>Bill Approval Request</Preview>
+    <Preview>Bill Payment Request</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Bill Approval Request</Heading>
+        <Heading style={h1}>Bill Payment Request</Heading>
         <Text style={text}>
-          Dear Worthy Matron, {worthyMatronName} of Chapter #{chapterNumber}
+          Dear Treasurer, {treasurerName} of Chapter #{chapterNumber},
         </Text>
-        <Text style={text}>A new bill requires your approval:</Text>
+        <Text style={text}>
+          A bill has been approved and requires payment. Please review the
+          details below:
+        </Text>
         <Section style={billDetails}>
           <Text style={text}>
             <strong>Amount:</strong> {billAmount} $
@@ -110,19 +109,18 @@ const BillApprovalEmail = ({
             <strong>Payee:</strong> {payee}
           </Text>
           <Text style={text}>
-            <strong>Due Date:</strong> {billDate.toISOString().split("T")[0]}
+            <strong>Date:</strong>{" "}
+            {new Date(billDate).toISOString().split("T")[0]}
           </Text>
         </Section>
-        <Link style={btn} href={approvalLink}>
-          Approve Bill
-        </Link>
         <Hr style={hr} />
         <Text style={footer}>
-          This is an automated message. Please do not reply to this email.
+          This is an automated message. If you have any questions, please
+          contact the Worthy Matron or Secretary.
         </Text>
       </Container>
     </Body>
   </Html>
 );
 
-export default BillApprovalEmail;
+export default BillReviewEmail;
