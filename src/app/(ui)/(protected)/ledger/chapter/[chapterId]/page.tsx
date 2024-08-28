@@ -20,6 +20,7 @@ import { auth } from "@clerk/nextjs/server";
 import { Printer } from "lucide-react";
 import BillModal from "./components/BillModal";
 import BillRow from "./components/BillRow";
+import PrintButton from "@/components/PrintButton";
 
 type Props = {
   params: { chapterId: string };
@@ -92,9 +93,12 @@ export default async function ChapterLedger({ params: { chapterId } }: Props) {
       </CardHeader>
       <CardContent>
         <div className="flex justify-between mb-6">
-          <Button variant="outline" className="flex items-center">
-            <Printer className="mr-2 h-4 w-4" /> Print Bill Book
-          </Button>
+          {data && (
+            <PrintButton
+              label="Print Bill Book"
+              data={JSON.parse(JSON.stringify(data))}
+            />
+          )}
           {checkRole(["secretary", "grand-administrator"]) && (
             <BillModal type="add" chapterId={chapterId}>
               Add New Bill
@@ -126,7 +130,7 @@ export default async function ChapterLedger({ params: { chapterId } }: Props) {
         </div>
 
         {data ? (
-          <Table>
+          <Table id="bills-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Bill #</TableHead>
