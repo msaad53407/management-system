@@ -23,6 +23,7 @@
     "@radix-ui/react-toast": "^1.2.1",
     "@react-email/components": "^0.0.23",
     "@react-pdf/renderer": "^3.4.4",
+    "@tinymce/tinymce-react": "^5.1.1",
     "axios": "^1.7.2",
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.0",

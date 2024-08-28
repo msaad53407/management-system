@@ -10,6 +10,7 @@ import { SignOutButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import {
   Banknote,
+  BookIcon,
   Download,
   HomeIcon,
   Landmark,
@@ -125,7 +126,7 @@ async function Sidebar() {
         {
           title: "Chapter Ledger",
           href: `/ledger/chapter/${chapter?._id}`,
-          Icon: <MessageSquareIcon />,
+          Icon: <BookIcon />,
           roles: ["secretary", "worthy-matron"],
         },
       ],
