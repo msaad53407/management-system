@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreHorizontal, Settings } from "lucide-react";
+import { Book, MoreHorizontal, Presentation, Settings } from "lucide-react";
 import Image from "next/image";
 
 import { removeMember } from "@/actions/chapter";
@@ -44,6 +44,7 @@ import {
 import { ChapterDocument } from "@/models/chapter";
 import { DistrictDocument } from "@/models/district";
 import { toast } from "./ui/use-toast";
+import { checkRole } from "@/lib/role";
 
 type Props =
   | {
@@ -324,14 +325,24 @@ export default function DetailsTable(props: Props) {
                     {allowedActions({ chapter }) ? (
                       <>
                         {" "}
-                        {checkRoleClient([
-                          "secretary",
-                          "grand-administrator",
-                        ]) && (
+                        {!checkRoleClient("member") && (
                           <TableCell className="hidden lg:table-cell">
-                            <Link href={`/chapter/${chapter._id}/settings`}>
-                              <Settings className="size-6 text-slate-600" />
-                            </Link>
+                            <div className="flex gap-5">
+                              {checkRoleClient([
+                                "secretary",
+                                "grand-administrator",
+                              ]) && (
+                                <Link href={`/chapter/${chapter._id}/settings`}>
+                                  <Settings className="size-6 text-slate-600" />
+                                </Link>
+                              )}
+                              <Link href={`/ledger/chapter/${chapter._id}`}>
+                                <Book className="size-6 text-slate-600" />
+                              </Link>
+                              <Link href={`/meetings/chapter/${chapter._id}`}>
+                                <Presentation className="size-6 text-slate-600" />
+                              </Link>
+                            </div>
                           </TableCell>
                         )}
                       </>
@@ -353,16 +364,22 @@ export default function DetailsTable(props: Props) {
                             <DropdownMenuLabel className="flex justify-center">
                               Actions
                             </DropdownMenuLabel>
-                            {checkRoleClient([
-                              "secretary",
-                              "grand-administrator",
-                            ]) && (
-                              <TableCell className="hidden lg:table-cell">
+                            <TableCell className="hidden lg:table-cell">
+                              {checkRoleClient([
+                                "secretary",
+                                "grand-administrator",
+                              ]) && (
                                 <Link href={`/chapter/${chapter._id}/settings`}>
                                   <Settings className="size-6 text-slate-600" />
                                 </Link>
-                              </TableCell>
-                            )}
+                              )}
+                              <Link href={`/ledger/chapter/${chapter._id}`}>
+                                <Book className="size-6 text-slate-600" />
+                              </Link>
+                              <Link href={`/meetings/chapter/${chapter._id}`}>
+                                <Presentation className="size-6 text-slate-600" />
+                              </Link>
+                            </TableCell>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : null}

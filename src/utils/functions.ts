@@ -1,10 +1,12 @@
 import { getChapter } from "@/actions/chapter";
 import { connectDB } from "@/lib/db";
 import { checkRole } from "@/lib/role";
+import { Bill } from "@/models/bill";
 import { Chapter, ChapterDocument } from "@/models/chapter";
 import { ChapterOfficeDocument } from "@/models/chapterOffice";
 import { District, DistrictDocument } from "@/models/district";
 import { GrandOfficeDocument } from "@/models/grandOffice";
+import { Meeting } from "@/models/meeting";
 import { Member, MemberDocument } from "@/models/member";
 import { Rank, RankDocument } from "@/models/rank";
 import { ReasonDocument } from "@/models/reason";
@@ -868,14 +870,21 @@ export async function getAllMemberDropdownOptions(memberId: string) {
   }
 }
 
-export async function getMemberChapter(memberId: Types.ObjectId) {
+export async function getMemberChapter(
+  memberId?: Types.ObjectId,
+  userId?: string
+) {
   try {
     await connectDB();
     const memberChapterAggregation = await Member.aggregate([
       {
-        $match: {
-          _id: new Types.ObjectId(memberId),
-        },
+        $match: memberId
+          ? {
+              _id: new Types.ObjectId(memberId),
+            }
+          : {
+              userId: userId,
+            },
       },
       {
         $lookup: {
@@ -2868,6 +2877,114 @@ export async function getYearlyDues(
     return {
       data: result[0],
       message: "Yearly Dues fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getChapterBills(chapterId: string | Types.ObjectId) {
+  try {
+    await connectDB();
+
+    const bills = await Bill.find({
+      chapterId: new Types.ObjectId(chapterId),
+    });
+
+    if (!bills || bills.length === 0) {
+      return {
+        data: null,
+        message: "No chapter bills found",
+      };
+    }
+
+    return {
+      data: bills,
+      message: "Chapter bills fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getBill(billId: string | Types.ObjectId) {
+  try {
+    await connectDB();
+
+    const bill = await Bill.findById(new Types.ObjectId(billId));
+
+    if (!bill) {
+      return {
+        data: null,
+        message: "Bill not found",
+      };
+    }
+
+    return {
+      data: bill,
+      message: "Bill fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getChapterMeetings(chapterId: string | Types.ObjectId) {
+  try {
+    await connectDB();
+
+    const meetings = await Meeting.find({
+      chapterId: new Types.ObjectId(chapterId),
+    });
+
+    if (!meetings || !meetings.length) {
+      return {
+        data: null,
+        message: "No chapter meetings found",
+      };
+    }
+
+    return {
+      data: meetings,
+      message: "Chapter meetings fetched successfully",
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      data: null,
+      message: "Error Connecting to Database",
+    };
+  }
+}
+
+export async function getMeeting(meetingId: string | Types.ObjectId) {
+  try {
+    await connectDB();
+
+    const meeting = await Meeting.findById(new Types.ObjectId(meetingId));
+
+    if (!meeting) {
+      return {
+        data: null,
+        message: "Meeting not found",
+      };
+    }
+
+    return {
+      data: meeting,
+      message: "Meeting fetched successfully",
     };
   } catch (error) {
     console.error(error);

@@ -19,6 +19,7 @@ import { revalidatePath } from "next/cache";
 import { redirect, RedirectType } from "next/navigation";
 import { createDues } from "./dues";
 import { getAllStatuses } from "@/utils/functions";
+import { ChapterOffice } from "@/models/chapterOffice";
 
 type GetDistrictParams =
   | { secretaryId: string; chapterId?: never; matronId?: never }
@@ -350,6 +351,32 @@ export const editMember = async (_prevState: any, formData: FormData) => {
   }
   try {
     await connectDB();
+
+    const treasurerOffice = await ChapterOffice.findOne({
+      name: "Treasurer",
+    });
+
+    if (!treasurerOffice) {
+      return {
+        message: "Treasurer office not found",
+        success: false,
+      };
+    }
+
+    if (treasurerOffice._id.toString() === data.chapterOffice) {
+      const alreadyExistingTreasurer = await Member.findOne({
+        chapterId: new Types.ObjectId(data.chapterId),
+        chapterOffice: new Types.ObjectId(treasurerOffice._id),
+      });
+
+      if (alreadyExistingTreasurer) {
+        return {
+          message: "Treasurer already exists in Chapter",
+          success: false,
+        };
+      }
+    }
+
     if (checkRole(["secretary", "grand-administrator"])) {
       const member = await Member.findOneAndUpdate(
         { userId: data.memberId },

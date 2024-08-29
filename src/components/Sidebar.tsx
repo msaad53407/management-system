@@ -10,13 +10,15 @@ import { SignOutButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import {
   Banknote,
+  BookIcon,
   Download,
   HomeIcon,
   Landmark,
   MessageSquareIcon,
+  Presentation,
   Settings,
   StickyNote,
-  UsersRound
+  UsersRound,
 } from "lucide-react";
 import Logo from "./Logo";
 import MobileSidebar from "./MobileSidebar";
@@ -122,6 +124,12 @@ async function Sidebar() {
           Icon: <Banknote />,
           roles: ["district-deputy"],
         },
+        {
+          title: "Chapter Ledger",
+          href: `/ledger/chapter/${chapter?._id}`,
+          Icon: <BookIcon />,
+          roles: ["secretary", "worthy-matron"],
+        },
       ],
       roles: [
         "secretary",
@@ -152,6 +160,12 @@ async function Sidebar() {
           href: `/reports/district/${district?._id}`,
           Icon: <StickyNote />,
           roles: ["district-deputy"],
+        },
+        {
+          title: "Meetings",
+          href: `/meetings/chapter/${chapter?._id}`,
+          Icon: <Presentation />,
+          roles: ["secretary", "worthy-matron"],
         },
         {
           title: "Forms",

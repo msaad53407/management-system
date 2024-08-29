@@ -9,10 +9,11 @@ import LoadingSpinner from "./LoadingSpinner";
 const SubmitButton = ({
   className,
   children,
+  ...props
 }: {
   children: React.ReactNode;
   className?: string;
-}) => {
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) => {
   const { pending } = useFormStatus();
 
   return (
@@ -24,6 +25,7 @@ const SubmitButton = ({
         className,
         pending && "opacity-50 cursor-not-allowed"
       )}
+      {...props}
     >
       {!pending ? (
         children
