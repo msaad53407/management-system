@@ -408,3 +408,24 @@ export const updateBillSchema = z.object({
     .min(1, "Bill ID is required"),
   ...addBillSchema.shape,
 });
+
+export const meetingAddSchema = z.object({
+  chapterId: z.string().min(1, "Chapter ID is required"),
+  meetingDate: z
+    .string({ required_error: "Meeting date is required" })
+    .min(1, "Meeting date is required"),
+  meetingDoc: z
+    .string({ required_error: "Meeting document is required" })
+    .min(1, "Meeting document is required"),
+  meetingDocType: z.enum(["minutes", "history", "notes"], {
+    required_error: "Meeting document type is required",
+  }),
+});
+
+export const meetingEditSchema = z.object({
+  meetingId: z
+    .string({ required_error: "Meeting ID is required" })
+    .min(1, "Meeting ID is required"),
+  ...meetingAddSchema.shape,
+  chapterId: z.void(),
+});

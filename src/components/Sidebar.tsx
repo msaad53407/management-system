@@ -15,6 +15,7 @@ import {
   HomeIcon,
   Landmark,
   MessageSquareIcon,
+  Presentation,
   Settings,
   StickyNote,
   UsersRound,
@@ -159,6 +160,12 @@ async function Sidebar() {
           href: `/reports/district/${district?._id}`,
           Icon: <StickyNote />,
           roles: ["district-deputy"],
+        },
+        {
+          title: "Meetings",
+          href: `/meetings/chapter/${chapter?._id}`,
+          Icon: <Presentation />,
+          roles: ["secretary", "worthy-matron"],
         },
         {
           title: "Forms",

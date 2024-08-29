@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-export type BillDocument = {
+export interface BillDocument extends Document {
   _id: mongoose.Types.ObjectId;
   chapterId: mongoose.Types.ObjectId;
   amount: number;
@@ -10,7 +10,7 @@ export type BillDocument = {
   wmApproval: "Pending" | "Approved" | "Declined";
   treasurerReview: "Pending" | "Reviewed";
   workflowStarted: boolean;
-};
+}
 
 const billSchema = new mongoose.Schema(
   {
