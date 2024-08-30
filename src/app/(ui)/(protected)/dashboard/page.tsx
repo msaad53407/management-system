@@ -13,7 +13,6 @@ import MemberDistributionCard from "./components/MemberDistributionCard";
 import MemberGrowthCard from "./components/MemberGrowthCard";
 import MoneyDetailsCard from "./components/MoneyDetailsCard";
 import NewMembersCard from "./components/NewMembersCard";
-import TextEditor from "@/components/TextEditor";
 
 type Props = {
   searchParams?: {
@@ -175,7 +174,6 @@ const Dashboard = async ({ searchParams }: Props) => {
           <MemberBirthdaysCard />
         </div>
       </section>
-      <TextEditor />
     </main>
   );
 };
