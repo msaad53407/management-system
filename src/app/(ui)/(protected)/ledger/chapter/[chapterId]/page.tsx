@@ -21,6 +21,7 @@ import { Printer } from "lucide-react";
 import BillModal from "./components/BillModal";
 import BillRow from "./components/BillRow";
 import PrintButton from "@/components/PrintButton";
+import ChapterLedgerDocument from "@/components/pdf/ChapterLedger";
 
 type Props = {
   params: { chapterId: string };
@@ -96,7 +97,11 @@ export default async function ChapterLedger({ params: { chapterId } }: Props) {
           {data && (
             <PrintButton
               label="Print Bill Book"
-              data={JSON.parse(JSON.stringify(data))}
+              document={
+                <ChapterLedgerDocument
+                  data={JSON.parse(JSON.stringify(data))}
+                />
+              }
             />
           )}
           {checkRole(["secretary", "grand-administrator"]) && (

@@ -37,7 +37,7 @@ export const addMeeting = async (_prevState: any, formData: FormData) => {
     });
 
     return {
-      data: newMeeting.toJSON(),
+      data: JSON.parse(JSON.stringify(newMeeting)),
       success: true,
       message: "Meeting added successfully",
     };

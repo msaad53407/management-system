@@ -30,6 +30,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
     "formidable": "^3.5.1",
+    "html-react-parser": "^5.1.15",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.400.0",
