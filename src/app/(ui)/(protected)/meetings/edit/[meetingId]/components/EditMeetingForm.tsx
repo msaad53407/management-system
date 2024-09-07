@@ -15,14 +15,18 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { useCheckRole } from "@/hooks/useCheckRole";
 import useFormAction from "@/hooks/useFormAction";
+import { ChapterDocument } from "@/models/chapter";
 import { MeetingDocument } from "@/models/meeting";
+import { User } from "@clerk/nextjs/server";
 import { useEffect, useState } from "react";
 
 type Props = {
   meeting: MeetingDocument;
+  matron: User;
+  chapter: ChapterDocument;
 };
 
-const EditMeetingForm = ({ meeting }: Props) => {
+const EditMeetingForm = ({ meeting, chapter, matron }: Props) => {
   const [meetingDocType, setMeetingDocType] = useState(meeting.meetingDocType);
   const { formAction, formMessage, infoMessage } = useFormAction(editMeeting);
 
@@ -57,6 +61,8 @@ const EditMeetingForm = ({ meeting }: Props) => {
       <TextEditor
         initialContent={meeting.meetingDoc}
         meetingDocType={meetingDocType}
+        matron={matron}
+        templateDataChapter={chapter}
       />
       <div className="flex flex-col sm:flex-row w-full items-center justify-between">
         <Label htmlFor="meetingDate" className="space-y-2">
