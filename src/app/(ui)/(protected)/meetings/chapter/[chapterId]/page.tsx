@@ -1,9 +1,16 @@
 import { getChapter } from "@/actions/chapter";
+import MeetingDetailsDocument from "@/components/pdf/MeetingDetails";
+import PrintButton from "@/components/PrintButton";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { checkRole } from "@/lib/role";
 import { getChapterMeetings } from "@/utils/functions";
-import { FileTextIcon, HistoryIcon, NotebookIcon } from "lucide-react";
+import {
+  FileTextIcon,
+  HistoryIcon,
+  LucideEdit,
+  NotebookIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -73,11 +80,11 @@ const ChapterMeetingPage = async ({ params: { chapterId } }: Props) => {
       <div className="w-full grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
         {meetings.map((meeting, index) => (
           <Card key={index}>
-            <Link href={`/meetings/edit/${meeting._id}`}>
-              <CardHeader className="flex flex-row gap-3 items-center justify-between space-y-0">
-                <CardTitle className="text-lg font-bold">
-                  {new Date(meeting.meetingDate).toLocaleDateString()}
-                </CardTitle>
+            <CardHeader className="flex flex-row gap-3 items-center justify-between space-y-0">
+              <CardTitle className="text-lg font-bold">
+                {new Date(meeting.meetingDate).toLocaleDateString()}
+              </CardTitle>
+              <div className="flex flex-col gap-2">
                 <Badge
                   variant="outline"
                   className="flex items-center space-x-1"
@@ -85,8 +92,25 @@ const ChapterMeetingPage = async ({ params: { chapterId } }: Props) => {
                   {getDocTypeIcon(meeting.meetingDocType)}
                   <span className="capitalize">{meeting.meetingDocType}</span>
                 </Badge>
-              </CardHeader>
-            </Link>
+                <div className="flex items-center gap-2 justify-center">
+                  <Link
+                    href={`/meetings/edit/${meeting._id}`}
+                    className="border rounded-xl p-1"
+                  >
+                    <LucideEdit className="h-5 w-5" />
+                  </Link>
+                  <PrintButton
+                    className="rounded-xl p-1 h-fit"
+                    printerClassName="h-5 w-5 mr-0"
+                    document={
+                      <MeetingDetailsDocument
+                        data={JSON.parse(JSON.stringify(meeting))}
+                      />
+                    }
+                  />
+                </div>
+              </div>
+            </CardHeader>
           </Card>
         ))}
       </div>

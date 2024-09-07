@@ -246,11 +246,13 @@ const ChapterReport = ({
           </Text>
           <View style={{ ...styles.section, border: "none" }}>
             <View style={styles.logoRow}>
-              <Image style={styles.logo} src="/upload/logo.png" />
+              {/*@ts-ignore*/}
+              <Image style={styles.logo} src="/upload/logo.png" alt="logo" />
               <Text style={styles.title}>
                 Esther Grand Chapter of the Eastern Star
               </Text>
-              <Image style={styles.logo} src="/upload/logo.png" />
+              {/*@ts-ignore*/}
+              <Image style={styles.logo} src="/upload/logo.png" alt="logo" />
             </View>
             <View
               style={{

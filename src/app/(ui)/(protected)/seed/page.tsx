@@ -7,7 +7,8 @@ import React from "react";
 
 const Seed = () => {
   const seedDB = async (formData: FormData) => {
-    "use server";
+    "use server"
+//This File exports server side functions. Do not export functions from this file just to be able to import them in another file. Any function exported from this file becomes a POST API endpoint;
     const password = formData.get("password");
     if (!password) {
       return {

@@ -1,6 +1,6 @@
 "use client";
 
-import { editMeeting } from "@/actions/meeting";
+import { addMeeting } from "@/actions/meeting";
 import SubmitButton from "@/components/SubmitButton";
 import TextEditor from "@/components/TextEditor";
 import { Input } from "@/components/ui/input";
@@ -16,21 +16,27 @@ import { toast } from "@/components/ui/use-toast";
 import { useCheckRole } from "@/hooks/useCheckRole";
 import useFormAction from "@/hooks/useFormAction";
 import { ChapterDocument } from "@/models/chapter";
-import { MeetingDocument } from "@/models/meeting";
 import { User } from "@clerk/nextjs/server";
 import { useEffect, useState } from "react";
 
 type Props = {
-  meeting: MeetingDocument;
-  matron: User;
   chapter: ChapterDocument;
+  matron: User;
 };
 
-const EditMeetingForm = ({ meeting, chapter, matron }: Props) => {
-  const [meetingDocType, setMeetingDocType] = useState(meeting.meetingDocType);
-  const { formAction, formMessage, infoMessage } = useFormAction(editMeeting);
+const AddMeetingForm = ({ chapter, matron }: Props) => {
+  const [meetingDocType, setMeetingDocType] = useState<
+    "minutes" | "notes" | "history"
+  >("minutes");
+
+  const { formAction, infoMessage, formMessage } = useFormAction(addMeeting);
 
   const checkRoleClient = useCheckRole();
+
+  const isAuthorizedToEdit = checkRoleClient([
+    "grand-administrator",
+    "secretary",
+  ]);
 
   useEffect(() => {
     if (infoMessage.message) {
@@ -59,10 +65,9 @@ const EditMeetingForm = ({ meeting, chapter, matron }: Props) => {
         {typeof formMessage !== "string" ? formMessage["meetingDoc"] : ""}
       </p>
       <TextEditor
-        initialContent={meeting.meetingDoc}
         meetingDocType={meetingDocType}
-        matron={matron}
         templateDataChapter={chapter}
+        matron={matron}
       />
       <div className="flex flex-col sm:flex-row w-full items-center justify-between">
         <Label htmlFor="meetingDate" className="space-y-2">
@@ -75,18 +80,9 @@ const EditMeetingForm = ({ meeting, chapter, matron }: Props) => {
             id="meetingDate"
             name="meetingDate"
             required
-            disabled={!checkRoleClient(["secretary", "grand-administrator"])}
-            defaultValue={
-              new Date(meeting.meetingDate).toISOString().split("T")[0]
-            }
+            disabled={!isAuthorizedToEdit}
           />
         </Label>
-        <Input
-          name="meetingId"
-          type="hidden"
-          value={meeting._id.toString()}
-          disabled={!checkRoleClient(["secretary", "grand-administrator"])}
-        />
         <Label htmlFor="meetingDocType" className="space-y-2">
           <p className="text-red-500">
             {typeof formMessage !== "string"
@@ -101,8 +97,8 @@ const EditMeetingForm = ({ meeting, chapter, matron }: Props) => {
               setMeetingDocType(value)
             }
             value={meetingDocType}
-            disabled={!checkRoleClient(["secretary", "grand-administrator"])}
             required
+            disabled={!isAuthorizedToEdit}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a meeting Type" />
@@ -115,14 +111,20 @@ const EditMeetingForm = ({ meeting, chapter, matron }: Props) => {
           </Select>
         </Label>
       </div>
+      <Input
+        type="hidden"
+        name="chapterId"
+        value={chapter._id.toString()}
+        disabled={!isAuthorizedToEdit}
+      />
       <SubmitButton
         className="w-fit mx-auto"
         disabled={!checkRoleClient(["secretary", "grand-administrator"])}
       >
-        Update Meeting
+        Add Meeting
       </SubmitButton>
     </form>
   );
 };
 
-export default EditMeetingForm;
+export default AddMeetingForm;

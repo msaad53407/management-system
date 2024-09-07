@@ -4,22 +4,22 @@ import { cn } from "@/utils";
 import { BlobProvider } from "@react-pdf/renderer";
 import { VariantProps } from "class-variance-authority";
 import { Printer } from "lucide-react";
-import ChapterLedgerDocument from "./pdf/ChapterLedger";
 import { Button } from "./ui/button";
-import { BillDocument } from "@/models/bill";
 
 type Props = {
-  label: string;
-  data: BillDocument[];
+  label?: string;
   className?: string;
+  printerClassName?: string;
   variant?: VariantProps<typeof Button>["variant"];
+  document: any;
 };
 
 const PrintButton = ({
   className,
   variant = "outline",
+  printerClassName,
   label,
-  data,
+  document,
 }: Props) => {
   const handlePrint = (url: string | null) => {
     return () => {
@@ -31,14 +31,14 @@ const PrintButton = ({
   };
 
   return (
-    <BlobProvider document={<ChapterLedgerDocument data={data} />}>
+    <BlobProvider document={document}>
       {({ url }) => (
         <Button
           variant={variant}
           className={cn("flex items-center", className)}
           onClick={handlePrint(url)}
         >
-          <Printer className="mr-2 h-4 w-4" /> {label}
+          <Printer className={cn("mr-2 h-4 w-4", printerClassName)} /> {label}
         </Button>
       )}
     </BlobProvider>

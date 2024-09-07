@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import NotificationDropdown from "./NotificationDropdown";
+import { addNotification } from "@/actions/notification";
 
 const Header = () => {
   const pathname = usePathname();
@@ -21,8 +23,19 @@ const Header = () => {
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (search) {
-      const filter = searchParams.get("filter");
-      router.push(`/search?q=${search}${filter ? `&filter=${filter}` : ""}`);
+      const searchEntriesArray = Array.from(searchParams.entries()); // shape: [["q", "test"], ["filter", "test"]]
+      /** 
+       * Remove query params from searchParams If it exists, because Updated one will be added.
+       */
+      const entriesWithoutQueryParam = searchEntriesArray
+        .filter((entry) => entry[0] !== "q")
+        .map((entry) => `${entry[0]}=${entry[1]}`)
+        .join("&");
+      router.push(
+        `/search?q=${search}${
+          entriesWithoutQueryParam ? `&${entriesWithoutQueryParam}` : ""
+        }`
+      );
     }
   };
 
@@ -156,11 +169,19 @@ const Header = () => {
           </form>
           <UserButton />
           <Button
-            className="bg-transparent text-slate-600 hover:bg-transparent p-1 rounded-md"
-            size="icon"
+            className="bg-transparent hover:bg-transparent rounded-full"
+            variant={"ghost"}
+            size={"default"}
+            onClick={async () =>
+              await addNotification(
+                "user_2kv7s7sAgFLl7yImOqeeGeWfizW",
+                "Hey! this is a Test Notification. Check it out."
+              )
+            }
           >
-            <BellIcon />
+            Send Notification
           </Button>
+          <NotificationDropdown />
         </div>
       </header>
     </>

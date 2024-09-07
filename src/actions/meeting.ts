@@ -1,4 +1,5 @@
-"use server";
+"use server"
+//This File exports server side functions. Do not export functions from this file just to be able to import them in another file. Any function exported from this file becomes a POST API endpoint;
 
 import { isAuthenticated } from "@/lib/authorization";
 import { connectDB } from "@/lib/db";
@@ -37,7 +38,7 @@ export const addMeeting = async (_prevState: any, formData: FormData) => {
     });
 
     return {
-      data: newMeeting.toJSON(),
+      data: JSON.parse(JSON.stringify(newMeeting)),
       success: true,
       message: "Meeting added successfully",
     };
