@@ -25,7 +25,7 @@ COPY . .
 ARG CACHEBUST=${GITHUB_SHA}
 LABEL build_id=$CACHEBUST
 
-ENV MONGODB_URI=${MONGODB_URI}
+ENV MONGODB_URI=$MONGODB_URI
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
