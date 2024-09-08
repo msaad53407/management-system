@@ -31,6 +31,7 @@ jobs:
             msaad78/management-system:${{ github.sha }}
             msaad78/management-system:latest
           build-args: |
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
             CACHEBUST=${{ github.sha }}
 
       - name: Set up SSH
@@ -42,3 +43,6 @@ jobs:
         #Change IP Address and path of deploy script
         run: |
           ssh -o StrictHostKeyChecking=no root@13.60.78.231 'bash /root/docker-nextjs-app/deploy.sh'
+
+      - name: Logout of Docker
+        run: docker logout
