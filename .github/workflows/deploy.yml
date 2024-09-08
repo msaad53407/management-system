@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Build and Deploy Docker Image
 
 on:
   push:
@@ -6,23 +6,39 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Add VPS to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H 193.203.167.13 >> ~/.ssh/known_hosts
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            msaad78/management-system:${{ github.sha }}
+            msaad78/management-system:latest
+          build-args: |
+            CACHEBUST=${{ github.sha }}
 
-      - name: Deploy to VPS
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to Server
+        #Change IP Address and path of deploy script
         run: |
-          ssh root@193.203.167.13 'bash /root/deploy.sh'
+          ssh -o StrictHostKeyChecking=no root@13.60.78.231 'bash /root/docker-nextjs-app/deploy.sh'
